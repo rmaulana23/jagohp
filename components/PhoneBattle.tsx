@@ -213,8 +213,6 @@ const PhoneBattle: React.FC = () => {
                     <p className="text-base text-gray-400 pb-1">Adu spesifikasi tipe HP kesukaan Kalian, biar gak salah pilih.</p>
                 </div>
                 
-                <BannerAd />
-                
                 <form onSubmit={handleBattle}>
                     <div className="flex flex-col lg:flex-row items-center justify-center gap-4 mt-6">
                         {phoneNames.map((name, index) => (

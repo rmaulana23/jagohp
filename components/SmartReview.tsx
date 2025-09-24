@@ -279,8 +279,6 @@ const SmartReview: React.FC = () => {
                     </div>
                 </div>
 
-                <BannerAd />
-
                 <div className="max-w-4xl mx-auto text-center mt-6">
                     <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto mb-12">
                         <input
