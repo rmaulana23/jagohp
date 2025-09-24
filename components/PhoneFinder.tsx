@@ -210,62 +210,56 @@ const PhoneFinder: React.FC = () => {
             </div>
         </div>
         
-        <div className="max-w-5xl mx-auto w-full">
-            <form onSubmit={handleSubmit} className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-5 backdrop-blur-sm">
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                    {/* Left Column */}
-                    <div className="lg:col-span-3 space-y-5">
-                        <QuestionSection title="1. Apa aktivitas & kebutuhan utamamu?">
-                            <div className="grid grid-cols-2 gap-3">
-                                {activityOptions.map(activity => (
-                                    <Checkbox
-                                        key={activity}
-                                        label={activity}
-                                        checked={activities.includes(activity)}
-                                        onChange={() => handleActivityChange(activity)}
-                                    />
-                                ))}
-                            </div>
-                        </QuestionSection>
-                        <QuestionSection title="2. Seberapa penting kualitas kamera untukmu?">
-                            <div className="flex flex-col items-center pt-1">
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max="5"
-                                    value={cameraPriority}
-                                    onChange={e => setCameraPriority(parseInt(e.target.value))}
-                                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-cyan-400"
+        <div className="max-w-4xl mx-auto w-full">
+            <form onSubmit={handleSubmit} className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-6 md:p-8 backdrop-blur-sm">
+                <div className="space-y-6">
+                    <QuestionSection title="1. Apa aktivitas & kebutuhan utamamu?">
+                        <div className="grid grid-cols-2 gap-3">
+                            {activityOptions.map(activity => (
+                                <Checkbox
+                                    key={activity}
+                                    label={activity}
+                                    checked={activities.includes(activity)}
+                                    onChange={() => handleActivityChange(activity)}
                                 />
-                                <span className="mt-2 text-cyan-300 font-semibold">{["Tidak Penting", "Kurang Penting", "Cukup Penting", "Penting", "Sangat Penting"][cameraPriority - 1]}</span>
-                            </div>
-                        </QuestionSection>
-                    </div>
-                    {/* Right Column */}
-                    <div className="lg:col-span-2 space-y-5">
-                        <QuestionSection title="3. Berapa budget maksimalmu?">
-                            <select
-                                value={budget}
-                                onChange={e => setBudget(e.target.value)}
-                                className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all"
-                            >
-                                {budgetOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
-                        </QuestionSection>
-
-                        <QuestionSection title="4. Ada preferensi lain? (Opsional)">
+                            ))}
+                        </div>
+                    </QuestionSection>
+                    <QuestionSection title="2. Seberapa penting kualitas kamera untukmu?">
+                        <div className="flex flex-col items-center pt-1">
                             <input
-                                type="text"
-                                value={otherPrefs}
-                                onChange={e => setOtherPrefs(e.target.value)}
-                                placeholder="Misal: Suka merk Samsung..."
-                                className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-lg p-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all"
+                                type="range"
+                                min="1"
+                                max="5"
+                                value={cameraPriority}
+                                onChange={e => setCameraPriority(parseInt(e.target.value))}
+                                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-cyan-400"
                             />
-                        </QuestionSection>
-                    </div>
+                            <span className="mt-2 text-cyan-300 font-semibold">{["Tidak Penting", "Kurang Penting", "Cukup Penting", "Penting", "Sangat Penting"][cameraPriority - 1]}</span>
+                        </div>
+                    </QuestionSection>
+                    <QuestionSection title="3. Berapa budget maksimalmu?">
+                        <select
+                            value={budget}
+                            onChange={e => setBudget(e.target.value)}
+                            className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all"
+                        >
+                            {budgetOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                        </select>
+                    </QuestionSection>
+
+                    <QuestionSection title="4. Ada preferensi lain? (Opsional)">
+                        <input
+                            type="text"
+                            value={otherPrefs}
+                            onChange={e => setOtherPrefs(e.target.value)}
+                            placeholder="Misal: Suka merk Samsung..."
+                            className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-lg p-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all"
+                        />
+                    </QuestionSection>
                 </div>
 
-                <div className="text-center pt-6">
+                <div className="text-center pt-8">
                     <button
                         type="submit"
                         disabled={loading}
