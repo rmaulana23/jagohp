@@ -197,82 +197,84 @@ const PhoneFinder: React.FC = () => {
   };
 
   return (
-    <section id="finder" className="flex-grow flex flex-col items-center pt-24 pb-6 px-4 sm:px-6 md:px-12 w-full">
+    <section id="finder" className="flex-grow flex flex-col items-center pt-20 pb-4 px-4 sm:px-6 md:px-12 w-full">
       <div className="w-full">
         <div className="max-w-4xl mx-auto text-center">
-            <div className="mb-6">
+            <div className="mb-4">
               <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
                 Smart Pick
               </h1>
-              <p className="text-base text-gray-400 mt-4 pb-1">
+              <p className="text-base text-gray-400 mt-2 pb-1">
                 Jawab beberapa pertanyaan ini, dan biarkan AI menemukan HP yang paling pas untukmu.
               </p>
             </div>
         </div>
         
         <div className="max-w-4xl mx-auto w-full">
-            <form onSubmit={handleSubmit} className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-6 md:p-8 backdrop-blur-sm">
-                <div className="space-y-6">
-                    <QuestionSection title="1. Apa aktivitas & kebutuhan utamamu?">
-                        <div className="grid grid-cols-2 gap-3">
-                            {activityOptions.map(activity => (
-                                <Checkbox
-                                    key={activity}
-                                    label={activity}
-                                    checked={activities.includes(activity)}
-                                    onChange={() => handleActivityChange(activity)}
-                                />
-                            ))}
-                        </div>
-                    </QuestionSection>
-                    <QuestionSection title="2. Seberapa penting kualitas kamera untukmu?">
-                        <div className="flex flex-col items-center pt-1">
-                            <input
-                                type="range"
-                                min="1"
-                                max="5"
-                                value={cameraPriority}
-                                onChange={e => setCameraPriority(parseInt(e.target.value))}
-                                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-cyan-400"
-                            />
-                            <span className="mt-2 text-cyan-300 font-semibold">{["Tidak Penting", "Kurang Penting", "Cukup Penting", "Penting", "Sangat Penting"][cameraPriority - 1]}</span>
-                        </div>
-                    </QuestionSection>
-                    <QuestionSection title="3. Berapa budget maksimalmu?">
-                        <select
-                            value={budget}
-                            onChange={e => setBudget(e.target.value)}
-                            className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all"
-                        >
-                            {budgetOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                        </select>
-                    </QuestionSection>
+            {!results && !loading && (
+              <form onSubmit={handleSubmit} className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-6 md:p-8 backdrop-blur-sm">
+                  <div className="space-y-4">
+                      <QuestionSection title="1. Apa aktivitas & kebutuhan utamamu?">
+                          <div className="grid grid-cols-2 gap-3">
+                              {activityOptions.map(activity => (
+                                  <Checkbox
+                                      key={activity}
+                                      label={activity}
+                                      checked={activities.includes(activity)}
+                                      onChange={() => handleActivityChange(activity)}
+                                  />
+                              ))}
+                          </div>
+                      </QuestionSection>
+                      <QuestionSection title="2. Seberapa penting kualitas kamera untukmu?">
+                          <div className="flex flex-col items-center">
+                              <input
+                                  type="range"
+                                  min="1"
+                                  max="5"
+                                  value={cameraPriority}
+                                  onChange={e => setCameraPriority(parseInt(e.target.value))}
+                                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-cyan-400"
+                              />
+                              <span className="mt-1 text-cyan-300 font-semibold text-sm">{["Tidak Penting", "Kurang Penting", "Cukup Penting", "Penting", "Sangat Penting"][cameraPriority - 1]}</span>
+                          </div>
+                      </QuestionSection>
+                      <QuestionSection title="3. Berapa budget maksimalmu?">
+                          <select
+                              value={budget}
+                              onChange={e => setBudget(e.target.value)}
+                              className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-lg p-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all"
+                          >
+                              {budgetOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                          </select>
+                      </QuestionSection>
 
-                    <QuestionSection title="4. Ada preferensi lain? (Opsional)">
-                        <input
-                            type="text"
-                            value={otherPrefs}
-                            onChange={e => setOtherPrefs(e.target.value)}
-                            placeholder="Misal: Suka merk Samsung..."
-                            className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-lg p-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all"
-                        />
-                    </QuestionSection>
-                </div>
+                      <QuestionSection title="4. Ada preferensi lain? (Opsional)">
+                          <input
+                              type="text"
+                              value={otherPrefs}
+                              onChange={e => setOtherPrefs(e.target.value)}
+                              placeholder="Misal: Suka merk Samsung..."
+                              className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-lg p-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all"
+                          />
+                      </QuestionSection>
+                  </div>
 
-                <div className="text-center pt-8">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="font-orbitron text-lg font-bold w-full max-w-sm h-14 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group bg-gradient-to-r from-cyan-500 to-green-500 disabled:opacity-50"
-                    >
-                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center gap-3">
-                            {loading ? 'Menganalisis...' : 'Cari Rekomendasi'}
-                            {!loading && <SparklesIcon className="w-6 h-6" />}
-                        </span>
-                    </button>
-                    {error && <p className="text-red-400 mt-4">{error}</p>}
-                </div>
-            </form>
+                  <div className="text-center pt-6">
+                      <button
+                          type="submit"
+                          disabled={loading}
+                          className="font-orbitron text-lg font-bold w-full max-w-sm h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group bg-gradient-to-r from-cyan-500 to-green-500 disabled:opacity-50"
+                      >
+                          <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center gap-3">
+                              {loading ? 'Menganalisis...' : 'Cari Rekomendasi'}
+                              {!loading && <SparklesIcon className="w-6 h-6" />}
+                          </span>
+                      </button>
+                      {error && <p className="text-red-400 mt-3 text-sm">{error}</p>}
+                  </div>
+              </form>
+            )}
             
             <div className="animate-fade-in">
                 {loading && <ResultsSkeleton />}
@@ -303,7 +305,7 @@ const Checkbox: FC<{ label: string; checked: boolean; onChange: () => void }> = 
 );
 
 const ResultsSkeleton: FC = () => (
-  <div className="mt-10 animate-pulse">
+  <div className="mt-8 animate-pulse">
     <div className="h-7 bg-gray-700/50 rounded-md w-1/2 mx-auto mb-6"></div>
     <div className="grid md:grid-cols-3 gap-6">
       {[...Array(3)].map((_, i) => (
@@ -322,7 +324,7 @@ const ResultsSkeleton: FC = () => (
 );
 
 const ResultsDisplay: FC<{ results: AIResponse }> = ({ results }) => (
-  <div className="mt-10 animate-fade-in">
+  <div className="mt-8 animate-fade-in">
     <h2 className="font-orbitron text-2xl font-bold text-center mb-6 text-cyan-300">Rekomendasi Terbaik Untukmu</h2>
     <div className="grid md:grid-cols-3 gap-6">
       {results.recommendations.map((rec, i) => (

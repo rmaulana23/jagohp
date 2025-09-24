@@ -189,22 +189,22 @@ const InsightPublic: React.FC = () => {
     })).sort((a, b) => b.votes - a.votes);
 
     return (
-        <section id="insight" className="flex-grow flex flex-col items-center pt-24 pb-6 px-4 sm:px-6 md:px-12 w-full">
+        <section id="insight" className="flex-grow flex flex-col items-center pt-20 pb-4 px-4 sm:px-6 md:px-12 w-full">
             <div className="container mx-auto max-w-7xl animate-fade-in">
-                <div className="text-center mb-6">
+                <div className="text-center mb-4">
                     <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
                         Polling Netizen
                     </h1>
-                    <p className="text-base text-gray-400 mt-4 pb-1">
+                    <p className="text-base text-gray-400 mt-2 pb-1">
                         Polling, Survei, dan Data Terkini Seputar Dunia Smartphone.
                     </p>
                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-8">
+                <div className="flex flex-col lg:flex-row gap-6">
                     <div className="w-full lg:flex-[2]">
                         <div className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-5 md:p-6 backdrop-blur-sm h-full flex flex-col">
-                            <h2 className="font-orbitron text-xl font-bold mb-2 text-cyan-300">Polling: HP dengan Ekosistem OS/UI Terbaik</h2>
-                            <div className="flex flex-col sm:flex-row justify-between items-center mb-6 min-h-[36px]">
+                            <h2 className="font-orbitron text-xl font-bold mb-1 text-cyan-300">Polling: HP dengan Ekosistem OS/UI Terbaik</h2>
+                            <div className="flex flex-col sm:flex-row justify-between items-center mb-4 min-h-[36px]">
                                 <p className="text-gray-400 text-sm text-center sm:text-left mb-2 sm:mb-0 flex-grow">
                                     {hasVoted 
                                         ? <>
@@ -223,7 +223,7 @@ const InsightPublic: React.FC = () => {
                                 )}
                             </div>
                             {errorPoll && <p className="text-red-400 text-center text-sm mb-4">{errorPoll}</p>}
-                            <div className="w-full flex-grow min-h-[250px]">
+                            <div className="w-full flex-grow min-h-[240px]">
                                 {loadingPoll ? <div className="flex justify-center items-center h-full"><div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div></div> : (
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart
