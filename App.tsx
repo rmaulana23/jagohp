@@ -17,6 +17,12 @@ import ChatBubbleIcon from './components/icons/ChatBubbleIcon';
 const App: React.FC = () => {
   const [page, setPage] = useState('home');
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [reviewQuery, setReviewQuery] = useState('');
+
+  const handleHeroSearch = (query: string) => {
+    setReviewQuery(query);
+    setPage('review');
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0f1f] text-gray-200 overflow-x-hidden flex flex-col">
@@ -31,9 +37,9 @@ const App: React.FC = () => {
       
       {/* Main content wrapper that grows */}
       <main className="relative z-10 flex-grow flex">
-        {page === 'home' && <Hero setPage={setPage} openChat={() => setIsChatOpen(true)} />}
+        {page === 'home' && <Hero setPage={setPage} onSearch={handleHeroSearch} />}
         {page === 'battle' && <PhoneBattle />}
-        {page === 'review' && <SmartReview />}
+        {page === 'review' && <SmartReview initialQuery={reviewQuery} clearInitialQuery={() => setReviewQuery('')} />}
         {page === 'finder' && <PhoneFinder />} {/* Halaman baru ditambahkan */}
         {page === 'leaderboard' && <Leaderboard />}
         {page === 'insight' && <InsightPublic />}
@@ -53,14 +59,21 @@ const App: React.FC = () => {
       />
 
       {/* Floating Chat Bubble */}
-      {page !== 'home' && !isChatOpen && (
+      {!isChatOpen && (
         <button
           onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
-                     shadow-lg shadow-cyan-500/30 hover:scale-110 transition-all duration-300 animate-fade-in"
+          className="fixed bottom-6 right-6 z-40 flex items-center animate-fade-in"
           aria-label="Buka Tanya AI"
         >
-          <ChatBubbleIcon className="w-7 h-7" />
+          <div className="bg-[#1e293b]/90 backdrop-blur-sm text-white text-sm rounded-full px-4 py-2 mr-2 shadow-md border border-cyan-400/20">
+            Tanya dulu Kakak
+          </div>
+          <div
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
+                       shadow-lg shadow-cyan-500/30"
+          >
+            <ChatBubbleIcon className="w-7 h-7" />
+          </div>
         </button>
       )}
     </div>

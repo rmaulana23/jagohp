@@ -1,5 +1,5 @@
-
-import React from 'react';
+import React, { useState } from 'react';
+import SearchIcon from './icons/SearchIcon';
 
 // New "AI Core" visual component
 const AICore: React.FC = () => (
@@ -17,7 +17,16 @@ const AICore: React.FC = () => (
   </div>
 );
 
-const Hero: React.FC<{ setPage: (page: string) => void; openChat: () => void; }> = ({ setPage, openChat }) => {
+const Hero: React.FC<{ setPage: (page: string) => void; onSearch: (query: string) => void; }> = ({ setPage, onSearch }) => {
+  const [query, setQuery] = useState('');
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      onSearch(query.trim());
+    }
+  };
+
   return (
     // Section now grows to fill the available space and centers content vertically.
     <section className="relative flex-grow flex flex-col items-center justify-center px-4 overflow-hidden">
@@ -32,7 +41,7 @@ const Hero: React.FC<{ setPage: (page: string) => void; openChat: () => void; }>
       <AICore />
 
       {/* Hero Content */}
-      <div className="relative z-10 text-center animate-fade-in">
+      <div className="relative z-10 text-center animate-fade-in w-full max-w-3xl">
         <h1 className="font-orbitron text-4xl md:text-6xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-gray-200 via-white to-gray-300 drop-shadow-lg">
           Your AI Expert
           <br />
@@ -41,42 +50,28 @@ const Hero: React.FC<{ setPage: (page: string) => void; openChat: () => void; }>
           </span>
         </h1>
         <p className="max-w-2xl mx-auto mt-4 text-base md:text-lg text-gray-300 font-light leading-relaxed">
-          JAGO-HP solusi biar Kalian gak bingung atau salah beli HP.
+          JAGO-HP Bantu Pilihkan HP Terbaik untuk Kalian. Coba Sekarang GRATIS!
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mt-8">
-          <div className="flex flex-col items-center text-center">
-            <button 
-              onClick={openChat}
-              className="font-orbitron text-base font-bold w-60 h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden
-                           text-white bg-transparent group border-2 border-cyan-500 backdrop-blur-sm">
-              <span className="absolute w-full h-full bg-gradient-to-br from-cyan-500 to-blue-600 opacity-0 group-hover:opacity-100
-                               transition-opacity ease-in duration-300"></span>
-              <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f]/80 rounded-full
-                               group-hover:bg-opacity-0 flex items-center justify-center">
-                Tanya dulu Kakak
-              </span>
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 blur-md opacity-0 group-hover:opacity-75 transition-opacity duration-300 -z-10"></div>
+        <form onSubmit={handleSearchSubmit} className="relative max-w-xl mx-auto mt-8">
+            <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Tuliskan tipe HP untuk direview, misal: iphone 17..."
+                className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-full py-3 pl-6 pr-16 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-300 text-base"
+                aria-label="Cari review smartphone"
+            />
+            <button
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
+                           hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 transition-all duration-300"
+                aria-label="Mulai Smart Review"
+            >
+                <SearchIcon className="w-5 h-5"/>
             </button>
-            <p className="text-xs text-gray-400 mt-2 max-w-[250px]">Live Chat AI Sales Assistant</p>
-          </div>
-
-          <div className="flex flex-col items-center text-center">
-            <button 
-              onClick={() => setPage('review')}
-              className="font-orbitron text-base font-bold w-60 h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden
-                           text-white bg-transparent group border-2 border-green-500 backdrop-blur-sm">
-              <span className="absolute w-full h-full bg-gradient-to-br from-green-500 to-teal-600 opacity-0 group-hover:opacity-100
-                               transition-opacity ease-in duration-300"></span>
-              <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f]/80 rounded-full
-                               group-hover:bg-opacity-0 flex items-center justify-center">
-                Smart Review
-              </span>
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-green-500 to-teal-600 blur-md opacity-0 group-hover:opacity-75 transition-opacity duration-300 -z-10"></div>
-            </button>
-            <p className="text-xs text-gray-400 mt-2 max-w-[250px]">Ulasan Cepat dengan AI</p>
-          </div>
-        </div>
+        </form>
+        <p className="text-xs text-gray-400 mt-2">Ketik lalu Tekan Enter untuk memulai Smart Review dengan AI-Powered.</p>
       </div>
       
       {/* Social Proof Text */}

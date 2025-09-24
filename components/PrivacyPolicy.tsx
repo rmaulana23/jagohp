@@ -6,7 +6,6 @@ const PrivacyPolicy: React.FC = () => {
       title: '1. Informasi yang Kami Kumpulkan',
       content: 'Kami dapat mengumpulkan informasi berikut:',
       points: [
-        'Informasi pribadi: seperti nama, alamat email, atau nomor kontak jika Anda menghubungi kami melalui formulir kontak.',
         'Informasi non-pribadi: seperti alamat IP, jenis browser, perangkat, halaman yang diakses, serta waktu kunjungan.',
         'Cookies & teknologi serupa: digunakan untuk meningkatkan pengalaman pengguna dan menampilkan iklan yang relevan.',
       ],

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, FC } from 'react';
+import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
 import SearchIcon from './icons/SearchIcon';
@@ -59,7 +59,12 @@ interface ReviewResult {
   };
 }
 
-const SmartReview: React.FC = () => {
+interface SmartReviewProps {
+  initialQuery?: string;
+  clearInitialQuery?: () => void;
+}
+
+const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQuery }) => {
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -159,10 +164,8 @@ const SmartReview: React.FC = () => {
         },
     };
 
-
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!query) {
+    const performSearch = async (searchQuery: string) => {
+        if (!searchQuery) {
             setError('Please enter a smartphone name.');
             return;
         }
@@ -170,7 +173,7 @@ const SmartReview: React.FC = () => {
         setError(null);
         setReview(null);
 
-        const cacheKey = query.trim().toLowerCase();
+        const cacheKey = searchQuery.trim().toLowerCase();
 
         // 1. Check cache first
         if (supabase) {
@@ -200,15 +203,15 @@ const SmartReview: React.FC = () => {
 
         const prompt = `**Konteks Waktu: ${today}**
 
-        Generate a comprehensive review in **Bahasa Indonesia** for the device: '${query}'. **Gunakan tanggal hari ini sebagai titik acuan untuk semua data.**
+        Generate a comprehensive review in **Bahasa Indonesia** for the device: '${searchQuery}'. **Gunakan tanggal hari ini sebagai titik acuan untuk semua data.**
         
         **Aturan Validasi Perangkat (SANGAT PENTING):**
-        1.  **Analisis Query:** Periksa query pengguna ('${query}').
-        2.  **Jika BUKAN Smartphone:** Jika query merujuk pada laptop, tablet, atau perangkat lain (BUKAN smartphone), **hentikan proses review**. Sebagai gantinya, kembalikan JSON di mana field \`phoneName\` berisi pesan error yang jelas, contoh: "Error: Fitur ini hanya untuk smartphone. '${query}' adalah sebuah laptop/tablet." dan isi field lainnya dengan data placeholder (misal, 0 untuk angka, string kosong untuk teks).
+        1.  **Analisis Query:** Periksa query pengguna ('${searchQuery}').
+        2.  **Jika BUKAN Smartphone:** Jika query merujuk pada laptop, tablet, atau perangkat lain (BUKAN smartphone), **hentikan proses review**. Sebagai gantinya, kembalikan JSON di mana field \`phoneName\` berisi pesan error yang jelas, contoh: "Error: Fitur ini hanya untuk smartphone. '${searchQuery}' adalah sebuah laptop/tablet." dan isi field lainnya dengan data placeholder (misal, 0 untuk angka, string kosong untuk teks).
         3.  **Jika Smartphone:** Lanjutkan ke aturan berikutnya.
 
         **Aturan Pengenalan Nama Ponsel (SANGAT PENTING):**
-        - **Identifikasi Cerdas:** Dari query pengguna ('${query}'), identifikasi nama smartphone yang resmi dan lengkap. Query pengguna bisa jadi hanya nama model (contoh: "S24 Ultra"), nama alias, atau nama kode (contoh: "panther" untuk Google Pixel 7).
+        - **Identifikasi Cerdas:** Dari query pengguna ('${searchQuery}'), identifikasi nama smartphone yang resmi dan lengkap. Query pengguna bisa jadi hanya nama model (contoh: "S24 Ultra"), nama alias, atau nama kode (contoh: "panther" untuk Google Pixel 7).
         - **Output Konsisten:** Field \`phoneName\` dalam respons JSON **WAJIB** berisi nama resmi yang lengkap dan dikenali secara umum (misal: "Samsung Galaxy S24 Ultra").
 
         **Aturan Akurasi dan Verifikasi Data (SANGAT PENTING):**
@@ -264,6 +267,19 @@ const SmartReview: React.FC = () => {
         }
     };
 
+    useEffect(() => {
+        if (initialQuery) {
+            setQuery(initialQuery);
+            performSearch(initialQuery);
+            clearInitialQuery?.();
+        }
+    }, [initialQuery]);
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        performSearch(query);
+    };
+
     return (
         <section id="review" className="flex-grow flex flex-col items-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
             <div className="w-full">
@@ -284,7 +300,7 @@ const SmartReview: React.FC = () => {
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Tuliskan tipe HP, misal: iPhone 17..."
+                            placeholder="Tuliskan tipe HP untuk direview, misal: iPhone 17..."
                             className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-full py-3 pl-5 pr-16 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-300"
                             aria-label="Smartphone search input"
                         />

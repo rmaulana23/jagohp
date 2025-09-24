@@ -205,7 +205,7 @@ const PhoneFinder: React.FC = () => {
                 Smart Pick
               </h1>
               <p className="text-base text-gray-400 mt-2 pb-1">
-                Jawab beberapa pertanyaan ini, dan biarkan AI menemukan HP yang paling pas untukmu.
+                Jawab beberapa pertanyaan ini, dan biarkan Kami menemukan HP yang paling pas untukmu.
               </p>
             </div>
         </div>

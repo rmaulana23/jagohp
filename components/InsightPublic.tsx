@@ -21,20 +21,6 @@ const pollOptions: Omit<PollData, 'votes'>[] = [
 
 const COLORS = ['#22d3ee', '#34d399', '#a78bfa', '#f87171', '#fbbf24', '#60a5fa', '#f472b6', '#818cf8'];
 
-const mostSearched = [
-    { name: 'Infinix GT 20 Pro', trend: 'up' },
-    { name: 'Samsung Galaxy S24 Ultra', trend: 'stable' },
-    { name: 'Poco F6', trend: 'up' },
-    { name: 'iPhone 15 Pro Max', trend: 'down' },
-    { name: 'Redmi Note 13 Pro', trend: 'stable' },
-];
-
-const mostCompared = [
-    { phone1: 'Poco F6', phone2: 'Infinix GT 20 Pro' },
-    { phone1: 'Samsung A55', phone2: 'Vivo V30' },
-    { phone1: 'Realme 12 Pro+', phone2: 'Redmi Note 13 Pro+' },
-];
-
 const InsightPublic: React.FC = () => {
     const [pollData, setPollData] = useState<PollData[]>([]);
     const [loadingPoll, setLoadingPoll] = useState(true);
@@ -160,112 +146,82 @@ const InsightPublic: React.FC = () => {
                     </p>
                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-6">
-                    <div className="w-full lg:flex-[2]">
-                        <div className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-5 md:p-6 backdrop-blur-sm h-full flex flex-col">
-                            <h2 className="font-orbitron text-xl font-bold mb-1 text-cyan-300">Polling: HP dengan Ekosistem OS/UI Terbaik</h2>
-                            <div className="flex flex-col sm:flex-row justify-between items-center mb-4 min-h-[36px]">
-                                <p className="text-gray-400 text-sm text-center sm:text-left mb-2 sm:mb-0 flex-grow">
-                                    {hasVoted 
-                                        ? <>
-                                            Anda memilih <span className="font-semibold text-white">{votedFor}</span>. 
-                                        </>
-                                        : 'Pilih ekosistem favoritmu! Klik tombol untuk vote.'}
-                                </p>
-                            </div>
-                            {errorPoll && <p className="text-red-400 text-center text-sm mb-4">{errorPoll}</p>}
-                            <div className="w-full flex-grow min-h-[380px] lg:min-h-[240px]">
-                                {loadingPoll ? <div className="flex justify-center items-center h-full"><div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div></div> : (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart
-                                            data={chartData}
-                                            layout="vertical"
-                                            margin={{ top: 5, right: 40, left: 20, bottom: 5 }}
-                                        >
-                                            <XAxis type="number" hide />
-                                            <YAxis 
-                                                type="category" 
-                                                dataKey="name"
-                                                stroke="#9ca3af" 
-                                                fontSize={12}
-                                                tickLine={false}
-                                                axisLine={false}
-                                                width={150}
-                                                tick={(props) => <CustomYAxisTick {...props} onVote={handleVote} votedFor={votedFor} isVoting={isVoting} />}
-                                                interval={0}
-                                            />
-                                            <Tooltip
-                                                cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }}
-                                                content={({ active, payload }) => {
-                                                    if (active && payload && payload.length) {
-                                                        const data = payload[0].payload;
-                                                        return (
-                                                            <div className="bg-gray-900/80 backdrop-blur-sm p-3 border border-gray-600 rounded-lg shadow-lg">
-                                                                <p className="font-bold text-white">{`${data.name}`}</p>
-                                                                <p className="text-cyan-400">{`Pilihan Publik: ${data.percentage}%`}</p>
-                                                                <p className="text-gray-400 text-xs">{`(${data.votes.toLocaleString('id-ID')} suara)`}</p>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return null;
-                                                }}
-                                            />
-                                            <Bar dataKey="percentage" barSize={22} radius={[0, 8, 8, 0]}>
-                                                <LabelList 
-                                                    dataKey="percentage" 
-                                                    position="right" 
-                                                    offset={8}
-                                                    fill="#ffffff" 
-                                                    fontSize={12}
-                                                    fontWeight="bold"
-                                                    formatter={(value: number) => `${value}%`}
-                                                />
-                                                {chartData.map((entry, index) => (
-                                                    <Cell 
-                                                        key={`cell-${index}`} 
-                                                        fill={
-                                                            hasVoted
-                                                                ? (entry.name === votedFor ? '#34d399' : '#4b5563')
-                                                                : COLORS[index % COLORS.length]
-                                                        }
-                                                        className="transition-opacity duration-300"
-                                                        style={{ opacity: hasVoted && entry.name !== votedFor ? 0.6 : 1 }}
-                                                    />
-                                                ))}
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                )}
-                            </div>
+                <div className="w-full">
+                    <div className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-5 md:p-6 backdrop-blur-sm flex flex-col">
+                        <h2 className="font-orbitron text-xl font-bold mb-1 text-cyan-300">Polling: HP dengan Ekosistem OS/UI Terbaik</h2>
+                        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 min-h-[36px]">
+                            <p className="text-gray-400 text-sm text-center sm:text-left mb-2 sm:mb-0 flex-grow">
+                                {hasVoted 
+                                    ? <>
+                                        Anda memilih <span className="font-semibold text-white">{votedFor}</span>. 
+                                    </>
+                                    : 'Pilih ekosistem favoritmu! Klik tombol untuk vote.'}
+                            </p>
                         </div>
-                    </div>
-                    <div className="w-full lg:flex-[1] flex flex-col gap-6">
-                        <DataCard title="🔥 Top 5 HP Paling Dicari" subtitle="Sebulan Terakhir">
-                            <ol className="space-y-3">
-                                {mostSearched.map((phone, index) => (
-                                    <li key={index} className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-300">
-                                            <span className="font-bold text-gray-500 mr-3">{index + 1}.</span>{phone.name}
-                                        </span>
-                                        {phone.trend === 'up' && <span className="text-green-400 text-lg">📈</span>}
-                                        {phone.trend === 'down' && <span className="text-red-400 text-lg">📉</span>}
-                                        {phone.trend === 'stable' && <span className="text-gray-400 text-lg">➖</span>}
-                                    </li>
-                                ))}
-                            </ol>
-                        </DataCard>
-                        
-                        <DataCard title="⚔️ Top 3 Duel HP Paling Panas" subtitle="Paling Sering Dibandingkan">
-                             <ul className="space-y-4">
-                                {mostCompared.map((pair, index) => (
-                                    <li key={index} className="flex items-center justify-center text-center text-sm font-semibold">
-                                        <span className="text-cyan-400">{pair.phone1}</span>
-                                        <span className="font-orbitron text-gray-500 mx-3 text-lg">VS</span>
-                                        <span className="text-green-400">{pair.phone2}</span>
-                                    </li>
-                                ))}
-                             </ul>
-                        </DataCard>
+                        {errorPoll && <p className="text-red-400 text-center text-sm mb-4">{errorPoll}</p>}
+                        <div className="w-full h-[340px]">
+                            {loadingPoll ? <div className="flex justify-center items-center h-full"><div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div></div> : (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart
+                                        data={chartData}
+                                        layout="vertical"
+                                        margin={{ top: 5, right: 40, left: 160, bottom: 5 }}
+                                    >
+                                        <XAxis type="number" hide />
+                                        <YAxis 
+                                            type="category" 
+                                            dataKey="name"
+                                            stroke="#9ca3af" 
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            width={150}
+                                            tick={(props) => <CustomYAxisTick {...props} onVote={handleVote} votedFor={votedFor} isVoting={isVoting} />}
+                                            interval={0}
+                                        />
+                                        <Tooltip
+                                            cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }}
+                                            content={({ active, payload }) => {
+                                                if (active && payload && payload.length) {
+                                                    const data = payload[0].payload;
+                                                    return (
+                                                        <div className="bg-gray-900/80 backdrop-blur-sm p-3 border border-gray-600 rounded-lg shadow-lg">
+                                                            <p className="font-bold text-white">{`${data.name}`}</p>
+                                                            <p className="text-cyan-400">{`Pilihan Publik: ${data.percentage}%`}</p>
+                                                            <p className="text-gray-400 text-xs">{`(${data.votes.toLocaleString('id-ID')} suara)`}</p>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            }}
+                                        />
+                                        <Bar dataKey="percentage" barSize={22} radius={[0, 8, 8, 0]}>
+                                            <LabelList 
+                                                dataKey="percentage" 
+                                                position="right" 
+                                                offset={8}
+                                                fill="#ffffff" 
+                                                fontSize={12}
+                                                fontWeight="bold"
+                                                formatter={(value: number) => `${value}%`}
+                                            />
+                                            {chartData.map((entry, index) => (
+                                                <Cell 
+                                                    key={`cell-${index}`} 
+                                                    fill={
+                                                        hasVoted
+                                                            ? (entry.name === votedFor ? '#34d399' : '#4b5563')
+                                                            : COLORS[index % COLORS.length]
+                                                    }
+                                                    className="transition-opacity duration-300"
+                                                    style={{ opacity: hasVoted && entry.name !== votedFor ? 0.6 : 1 }}
+                                                />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -301,15 +257,5 @@ const CustomYAxisTick: FC<any> = ({ x, y, payload, onVote, votedFor, isVoting })
         </g>
     );
 };
-
-const DataCard: FC<{ title: string; subtitle: string; children: React.ReactNode }> = ({ title, subtitle, children }) => (
-    <div className="bg-gray-800/30 border border-green-400/30 rounded-2xl p-6 backdrop-blur-sm h-full flex flex-col">
-        <h3 className="font-orbitron text-lg font-bold text-green-300">{title}</h3>
-        <p className="text-sm text-gray-400 mb-4">{subtitle}</p>
-        <div className="flex-grow">
-            {children}
-        </div>
-    </div>
-);
 
 export default InsightPublic;
