@@ -1,6 +1,6 @@
 import React, { useState, useMemo, FC } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
-import { supabase } from '../../utils/supabaseClient';
+import { supabase } from '../utils/supabaseClient';
 import SparklesIcon from './icons/SparklesIcon';
 
 // --- INTERFACES ---

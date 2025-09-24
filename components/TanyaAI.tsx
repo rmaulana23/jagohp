@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useRef, useEffect, FC } from 'react';
 import { GoogleGenAI, Chat } from '@google/genai';
-import { supabase } from '../../utils/supabaseClient'; // Import Supabase client
+import { supabase } from '../utils/supabaseClient'; // Import Supabase client
 import SendIcon from './icons/SendIcon';
 import LogoIcon from './icons/LogoIcon';
 import XMarkIcon from './icons/XMarkIcon';
