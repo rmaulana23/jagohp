@@ -140,46 +140,6 @@ const InsightPublic: React.FC = () => {
         }
     };
 
-    const handleUnvote = async () => {
-        if (isVoting || !votedFor || !supabase) return;
-
-        setIsVoting(true);
-        setErrorPoll(null);
-        const unvotedBrand = votedFor;
-
-        const optimisticData = pollData.map(item => {
-            if (item.name === unvotedBrand) return { ...item, votes: Math.max(0, item.votes - 1) };
-            return item;
-        });
-        setPollData(optimisticData);
-        setVotedFor(null);
-        localStorage.removeItem('ecosystemPollVote');
-
-        try {
-            const { data, error: selectError } = await supabase
-                .from('ecosystem_poll_votes')
-                .select('vote_count')
-                .eq('brand_name', unvotedBrand)
-                .single();
-
-            if (selectError) throw selectError;
-            
-            if (data) {
-                const { error: updateError } = await supabase
-                    .from('ecosystem_poll_votes')
-                    .update({ vote_count: Math.max(0, data.vote_count - 1) })
-                    .eq('brand_name', unvotedBrand);
-                if (updateError) throw updateError;
-            }
-        } catch (error) {
-            console.error("Error unvoting:", error);
-            setErrorPoll("Gagal membatalkan suara. Silakan coba lagi.");
-            await fetchPollData();
-        } finally {
-            setIsVoting(false);
-        }
-    };
-
     const hasVoted = !!votedFor;
     const totalVotes = pollData.reduce((sum, item) => sum + item.votes, 0);
 
@@ -208,19 +168,10 @@ const InsightPublic: React.FC = () => {
                                 <p className="text-gray-400 text-sm text-center sm:text-left mb-2 sm:mb-0 flex-grow">
                                     {hasVoted 
                                         ? <>
-                                            <span className="font-bold text-green-400">Terima kasih!</span> Anda memilih <span className="font-semibold text-white">{votedFor}</span>.
+                                            Anda memilih <span className="font-semibold text-white">{votedFor}</span>. 
                                         </>
                                         : 'Pilih ekosistem favoritmu! Klik tombol untuk vote.'}
                                 </p>
-                                {hasVoted && (
-                                    <button 
-                                        onClick={handleUnvote}
-                                        disabled={isVoting}
-                                        className="px-3 py-1 text-xs font-semibold text-red-400 bg-red-500/10 border border-red-500/30 rounded-full hover:bg-red-500/20 transition-colors flex-shrink-0 disabled:opacity-50"
-                                    >
-                                        Batalkan Suara
-                                    </button>
-                                )}
                             </div>
                             {errorPoll && <p className="text-red-400 text-center text-sm mb-4">{errorPoll}</p>}
                             <div className="w-full flex-grow min-h-[380px] lg:min-h-[240px]">
@@ -324,7 +275,6 @@ const InsightPublic: React.FC = () => {
 
 const CustomYAxisTick: FC<any> = ({ x, y, payload, onVote, votedFor, isVoting }) => {
     const brandName = payload.value;
-    const emoji = pollOptions.find(opt => opt.name === brandName)?.emoji || '📱';
     const hasVotedForThis = votedFor === brandName;
 
     return (
@@ -334,7 +284,7 @@ const CustomYAxisTick: FC<any> = ({ x, y, payload, onVote, votedFor, isVoting })
                     <span className="text-xs text-right text-gray-300 truncate flex-grow" title={brandName}>
                         {brandName}
                     </span>
-                     {!votedFor && (
+                     {!hasVotedForThis && (
                          <button 
                             onClick={() => onVote(brandName)}
                             disabled={isVoting}
@@ -343,7 +293,7 @@ const CustomYAxisTick: FC<any> = ({ x, y, payload, onVote, votedFor, isVoting })
                             Vote
                         </button>
                     )}
-                    {votedFor && hasVotedForThis && (
+                    {hasVotedForThis && (
                         <span className="text-green-400 text-lg" role="img" aria-label="voted">✓</span>
                     )}
                 </div>

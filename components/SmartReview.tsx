@@ -3,7 +3,6 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
 import SearchIcon from './icons/SearchIcon';
 import StarIcon from './icons/StarIcon';
-import BannerAd from './BannerAd';
 
 // --- NEW RATINGS INTERFACE ---
 interface Ratings {
@@ -303,7 +302,14 @@ const SmartReview: React.FC = () => {
                     <div aria-live="polite">
                         {loading && <ReviewSkeleton />}
                         {error && <div className="text-center text-red-400 border border-red-400/50 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
-                        {review && <ReviewResultDisplay review={review} />}
+                        {review && (
+                            <>
+                                <ReviewResultDisplay review={review} />
+                                <p className="text-xs text-gray-500 text-center mt-4">
+                                    Sumber data: GSMArena, Phone Arena, AnTuTu, GeekBench dan DXOMark
+                                </p>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

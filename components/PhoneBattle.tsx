@@ -6,7 +6,6 @@ import LightbulbIcon from './icons/LightbulbIcon';
 import UsersIcon from './icons/UsersIcon';
 import PlusCircleIcon from './icons/PlusCircleIcon';
 import XCircleIcon from './icons/XCircleIcon';
-import BannerAd from './BannerAd';
 
 
 // --- INTERFACES (UPDATED FOR ARRAY) ---
@@ -259,7 +258,14 @@ const PhoneBattle: React.FC = () => {
                 <div className="mt-12" aria-live="polite">
                     {loading && <BattleSkeleton phoneCount={phoneNames.length} />}
                     {error && <div className="text-center text-red-400 border border-red-400/50 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
-                    {result && <BattleResultDisplay result={result} />}
+                    {result && (
+                        <>
+                            <BattleResultDisplay result={result} />
+                            <p className="text-xs text-gray-500 text-center mt-6">
+                                Sumber data: GSMArena, Phone Arena, AnTuTu, GeekBench dan DXOMark
+                            </p>
+                        </>
+                    )}
                 </div>
 
             </div>
