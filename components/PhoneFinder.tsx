@@ -1,5 +1,6 @@
 import React, { useState, useMemo, FC } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
+import { supabase } from '../../utils/supabaseClient';
 import SparklesIcon from './icons/SparklesIcon';
 
 // --- INTERFACES ---
@@ -80,6 +81,34 @@ const PhoneFinder: React.FC = () => {
     setLoading(true);
     setError(null);
     setResults(null);
+    
+    // Create a canonical cache key from the form inputs
+    const cacheKey = [
+        ...activities.sort(),
+        `cam:${cameraPriority}`,
+        `budget:${budget}`,
+        `prefs:${otherPrefs.trim().toLowerCase()}`
+    ].join('|');
+
+    // 1. Check cache first
+    if (supabase) {
+        try {
+            const { data } = await supabase
+                .from('phone_finder_cache')
+                .select('result_data')
+                .eq('cache_key', cacheKey)
+                .single();
+            
+            if (data && data.result_data) {
+                setResults(data.result_data as AIResponse);
+                setLoading(false);
+                return; // Cache hit, skip AI call
+            }
+        } catch (cacheError) {
+            console.warn("Supabase cache check failed:", cacheError);
+        }
+    }
+
 
     const cameraPriorityText = ["Tidak penting", "Kurang penting", "Cukup penting", "Penting", "Sangat penting"][cameraPriority - 1];
     const today = new Date().toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -144,7 +173,21 @@ const PhoneFinder: React.FC = () => {
         config: { responseMimeType: "application/json", responseSchema: schema }
       });
       const resultText = response.text.trim();
-      setResults(JSON.parse(resultText));
+      const parsedResult = JSON.parse(resultText);
+      setResults(parsedResult);
+
+       // 3. Save new result to cache
+        if (supabase) {
+            try {
+                await supabase.from('phone_finder_cache').insert({
+                    cache_key: cacheKey,
+                    result_data: parsedResult
+                });
+            } catch (cacheError) {
+                console.warn("Supabase cache write failed:", cacheError);
+            }
+        }
+
     } catch (e) {
       console.error(e);
       setError("Terjadi kesalahan saat mencari rekomendasi. Silakan coba lagi.");

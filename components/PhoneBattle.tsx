@@ -1,5 +1,6 @@
 import React, { useState, FC, useMemo } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
+import { supabase } from '../../utils/supabaseClient'; // Import Supabase client
 import VersusIcon from './icons/VersusIcon';
 import LightbulbIcon from './icons/LightbulbIcon';
 import UsersIcon from './icons/UsersIcon';
@@ -105,7 +106,30 @@ const PhoneBattle: React.FC = () => {
         setLoading(true);
         setError(null);
         setResult(null);
+        
+        // Create a canonical, order-independent key for caching
+        const cacheKey = phoneNames.map(name => name.trim().toLowerCase()).sort().join('_vs_');
 
+        // 1. Check cache first
+        if (supabase) {
+            try {
+                const { data } = await supabase
+                    .from('phone_battles')
+                    .select('battle_data')
+                    .eq('cache_key', cacheKey)
+                    .single();
+                
+                if (data && data.battle_data) {
+                    setResult(data.battle_data as BattleResult);
+                    setLoading(false);
+                    return; // Cache hit, skip AI call
+                }
+            } catch (cacheError) {
+                console.warn("Supabase cache check failed:", cacheError);
+            }
+        }
+
+        // 2. If no cache, call AI
         const today = new Date().toLocaleDateString('id-ID', {
             day: 'numeric', month: 'long', year: 'numeric'
         });
@@ -149,12 +173,22 @@ const PhoneBattle: React.FC = () => {
             const resultText = response.text.trim();
             const parsedResult: BattleResult = JSON.parse(resultText);
             
-            // Check for AI-driven error message
             if (parsedResult.battleSummary.toLowerCase().startsWith('error:')) {
                 setError(parsedResult.battleSummary);
                 setResult(null);
             } else {
                 setResult(parsedResult);
+                 // 3. Save new result to cache
+                if (supabase) {
+                    try {
+                        await supabase.from('phone_battles').insert({
+                            cache_key: cacheKey,
+                            battle_data: parsedResult
+                        });
+                    } catch (cacheError) {
+                        console.warn("Supabase cache write failed:", cacheError);
+                    }
+                }
             }
 
         } catch (e) {

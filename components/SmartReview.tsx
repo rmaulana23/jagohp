@@ -1,5 +1,6 @@
 import React, { useState, useMemo, FC } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
+import { supabase } from '../../utils/supabaseClient'; // Import Supabase client
 import SearchIcon from './icons/SearchIcon';
 import StarIcon from './icons/StarIcon';
 import BannerAd from './BannerAd';
@@ -170,6 +171,28 @@ const SmartReview: React.FC = () => {
         setError(null);
         setReview(null);
 
+        const cacheKey = query.trim().toLowerCase();
+
+        // 1. Check cache first
+        if (supabase) {
+            try {
+                const { data, error } = await supabase
+                    .from('smart_reviews')
+                    .select('review_data')
+                    .eq('cache_key', cacheKey)
+                    .single();
+
+                if (data && data.review_data) {
+                    setReview(data.review_data as ReviewResult);
+                    setLoading(false);
+                    return; // Cache hit, skip AI call
+                }
+            } catch (cacheError) {
+                console.warn("Supabase cache check failed:", cacheError);
+            }
+        }
+
+        // 2. If no cache, call AI
         const today = new Date().toLocaleDateString('id-ID', {
             day: 'numeric',
             month: 'long',
@@ -216,12 +239,22 @@ const SmartReview: React.FC = () => {
             const resultText = response.text.trim();
             const parsedResult: ReviewResult = JSON.parse(resultText);
 
-            // Check for AI-driven error message
             if (parsedResult.phoneName.toLowerCase().startsWith('error:')) {
                 setError(parsedResult.phoneName);
                 setReview(null);
             } else {
                 setReview(parsedResult);
+                // 3. Save new result to cache
+                if (supabase) {
+                    try {
+                        await supabase.from('smart_reviews').insert({
+                            cache_key: cacheKey,
+                            review_data: parsedResult
+                        });
+                    } catch (cacheError) {
+                        console.warn("Supabase cache write failed:", cacheError);
+                    }
+                }
             }
 
         } catch (e) {

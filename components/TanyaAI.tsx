@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo, useRef, useEffect, FC } from 'react';
 import { GoogleGenAI, Chat } from '@google/genai';
+import { supabase } from '../../utils/supabaseClient'; // Import Supabase client
 import SendIcon from './icons/SendIcon';
 import LogoIcon from './icons/LogoIcon';
 import XMarkIcon from './icons/XMarkIcon';
@@ -92,6 +93,28 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
         setLoading(true);
         setError(null);
         
+        const cacheKey = messageText.trim().toLowerCase();
+
+        // 1. Check cache first
+        if (supabase) {
+            try {
+                const { data } = await supabase
+                    .from('ai_chat_cache')
+                    .select('response')
+                    .eq('prompt', cacheKey)
+                    .single();
+                
+                if (data && data.response) {
+                    setMessages(prev => [...prev, { role: 'model', text: data.response }]);
+                    setLoading(false);
+                    return; // Cache hit, skip AI call
+                }
+            } catch (cacheError) {
+                console.warn("Supabase cache check failed:", cacheError);
+            }
+        }
+
+        // 2. If no cache, call AI
         let currentModelResponse = "";
         setMessages(prev => [...prev, { role: 'model', text: "" }]);
 
@@ -107,6 +130,18 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
                     newMessages[newMessages.length - 1] = { role: 'model', text: currentModelResponse };
                     return newMessages;
                 });
+            }
+
+            // 3. Save new result to cache
+            if (supabase && currentModelResponse) {
+                try {
+                    await supabase.from('ai_chat_cache').insert({
+                        prompt: cacheKey,
+                        response: currentModelResponse
+                    });
+                } catch (cacheError) {
+                    console.warn("Supabase cache write failed:", cacheError);
+                }
             }
         } catch (err) {
             console.error(err);
