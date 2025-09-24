@@ -265,4 +265,56 @@ const InsightPublic: React.FC = () => {
                                     <li key={index} className="flex items-center justify-center text-center text-sm font-semibold">
                                         <span className="text-cyan-400">{pair.phone1}</span>
                                         <span className="font-orbitron text-gray-500 mx-3 text-lg">VS</span>
-                                        <span className="text-green-400">{pair.phone2
+                                        <span className="text-green-400">{pair.phone2}</span>
+                                    </li>
+                                ))}
+                             </ul>
+                        </DataCard>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+};
+
+const CustomYAxisTick: FC<any> = ({ x, y, payload, onVote, votedFor, isVoting }) => {
+    const brandName = payload.value;
+    const emoji = pollOptions.find(opt => opt.name === brandName)?.emoji || '📱';
+    const hasVotedForThis = votedFor === brandName;
+
+    return (
+        <g transform={`translate(${x - 10},${y})`}>
+            <foreignObject x={-150} y={-11} width={150} height={22}>
+                <div className="flex items-center justify-end gap-2 pr-2 h-full w-full">
+                    <span className="text-xs text-right text-gray-300 truncate flex-grow" title={brandName}>
+                        {brandName}
+                    </span>
+                     {!votedFor && (
+                         <button 
+                            onClick={() => onVote(brandName)}
+                            disabled={isVoting}
+                            className="text-xs font-bold text-cyan-400 hover:text-white bg-cyan-500/10 hover:bg-cyan-500/20 px-2 py-0.5 rounded-md transition-colors disabled:opacity-50"
+                        >
+                            Vote
+                        </button>
+                    )}
+                    {votedFor && hasVotedForThis && (
+                        <span className="text-green-400 text-lg" role="img" aria-label="voted">✓</span>
+                    )}
+                </div>
+            </foreignObject>
+        </g>
+    );
+};
+
+const DataCard: FC<{ title: string; subtitle: string; children: React.ReactNode }> = ({ title, subtitle, children }) => (
+    <div className="bg-gray-800/30 border border-green-400/30 rounded-2xl p-6 backdrop-blur-sm h-full flex flex-col">
+        <h3 className="font-orbitron text-xl font-bold text-green-300">{title}</h3>
+        <p className="text-sm text-gray-400 mb-4">{subtitle}</p>
+        <div className="flex-grow">
+            {children}
+        </div>
+    </div>
+);
+
+export default InsightPublic;
