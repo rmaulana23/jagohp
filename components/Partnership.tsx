@@ -14,7 +14,7 @@ const Partnership: React.FC = () => {
       <div className="container mx-auto max-w-4xl animate-fade-in space-y-10">
         <div className="text-center">
           <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
-            Peluang Kerja Sama
+            Partnership or Sponsorship
           </h1>
         </div>
 
@@ -37,14 +37,14 @@ const Partnership: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-300">
             <div className="bg-gray-900/40 p-6 rounded-lg border border-gray-700 space-y-3">
               <h3 className="font-orbitron text-lg font-bold text-green-400">Ads Banner</h3>
-              <p className="text-gray-400 text-sm">– Maksimal 2 slot banner eksklusif (tidak penuh iklan seperti website lain).</p>
-              <p className="text-sm"><strong className="text-gray-200">Lokasi:</strong> Header (970x90) 2 page</p>
+              <p className="text-gray-400 text-sm">Maksimal 4 slot banner eksklusif (tidak penuh iklan seperti website lain).</p>
+              <p className="text-sm"><strong className="text-gray-200">Lokasi:</strong> Header (970x90) 4 Page</p>
               <p className="text-sm"><strong className="text-gray-200">Format:</strong> gambar (JPG/PNG) atau animasi (GIF).</p>
             </div>
             
-            <div className="bg-gray-900/40 p-6 rounded-lg border border-gray-700">
+            <div className="bg-gray-900/40 p-6 rounded-lg border border-gray-700 space-y-3">
               <h3 className="font-orbitron text-lg font-bold text-green-400">Investor Partnership</h3>
-              <p className="text-gray-400 text-sm">– Dukungan dana & strategi untuk pengembangan platform AI.</p>
+              <p className="text-gray-400 text-sm">Dukungan dana & strategi untuk pengembangan platform AI.</p>
             </div>
           </div>
         </div>
