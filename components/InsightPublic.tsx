@@ -189,7 +189,7 @@ const InsightPublic: React.FC = () => {
     })).sort((a, b) => b.votes - a.votes);
 
     return (
-        <section id="insight" className="flex-grow flex flex-col items-center pt-20 pb-4 px-4 sm:px-6 md:px-12 w-full">
+        <section id="insight" className="flex-grow flex flex-col items-center pt-24 pb-4 px-4 sm:px-6 md:px-12 w-full">
             <div className="container mx-auto max-w-7xl animate-fade-in">
                 <div className="text-center mb-4">
                     <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">

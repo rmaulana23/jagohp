@@ -197,7 +197,7 @@ const PhoneFinder: React.FC = () => {
   };
 
   return (
-    <section id="finder" className="flex-grow flex flex-col items-center pt-20 pb-4 px-4 sm:px-6 md:px-12 w-full">
+    <section id="finder" className="flex-grow flex flex-col items-center pt-24 pb-4 px-4 sm:px-6 md:px-12 w-full">
       <div className="w-full">
         <div className="max-w-4xl mx-auto text-center">
             <div className="mb-4">
