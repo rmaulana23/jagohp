@@ -95,17 +95,49 @@ const InsightPublic: React.FC = () => {
         setVotedFor(brandName);
         localStorage.setItem('ecosystemPollVote', brandName);
         
-        const { error } = await supabase.rpc('handle_vote', {
-            brand_voted_for: brandName,
-            previous_vote: previousVote
-        });
+        try {
+            // 1. Decrement the previous vote, if one exists
+            if (previousVote) {
+                const { data: prevData, error: selectPrevError } = await supabase
+                    .from('ecosystem_poll_votes')
+                    .select('vote_count')
+                    .eq('brand_name', previousVote)
+                    .single();
+                
+                if (selectPrevError) throw selectPrevError;
 
-        if (error) {
+                if (prevData) {
+                    const { error: updatePrevError } = await supabase
+                        .from('ecosystem_poll_votes')
+                        .update({ vote_count: Math.max(0, prevData.vote_count - 1) })
+                        .eq('brand_name', previousVote);
+                    if (updatePrevError) throw updatePrevError;
+                }
+            }
+
+            // 2. Increment the new vote
+            const { data: newData, error: selectNewError } = await supabase
+                .from('ecosystem_poll_votes')
+                .select('vote_count')
+                .eq('brand_name', brandName)
+                .single();
+
+            if (selectNewError) throw selectNewError;
+
+            if (newData) {
+                const { error: updateNewError } = await supabase
+                    .from('ecosystem_poll_votes')
+                    .update({ vote_count: newData.vote_count + 1 })
+                    .eq('brand_name', brandName);
+                if (updateNewError) throw updateNewError;
+            }
+        } catch (error) {
             console.error("Error voting:", error);
             setErrorPoll("Gagal menyimpan suara. Silakan coba lagi.");
-            await fetchPollData();
+            await fetchPollData(); // Revert on error
+        } finally {
+            setIsVoting(false);
         }
-        setIsVoting(false);
     };
 
     const handleUnvote = async () => {
@@ -123,16 +155,29 @@ const InsightPublic: React.FC = () => {
         setVotedFor(null);
         localStorage.removeItem('ecosystemPollVote');
 
-        const { error } = await supabase.rpc('handle_unvote', {
-            brand_unvoted: unvotedBrand
-        });
+        try {
+            const { data, error: selectError } = await supabase
+                .from('ecosystem_poll_votes')
+                .select('vote_count')
+                .eq('brand_name', unvotedBrand)
+                .single();
 
-        if (error) {
+            if (selectError) throw selectError;
+            
+            if (data) {
+                const { error: updateError } = await supabase
+                    .from('ecosystem_poll_votes')
+                    .update({ vote_count: Math.max(0, data.vote_count - 1) })
+                    .eq('brand_name', unvotedBrand);
+                if (updateError) throw updateError;
+            }
+        } catch (error) {
             console.error("Error unvoting:", error);
             setErrorPoll("Gagal membatalkan suara. Silakan coba lagi.");
             await fetchPollData();
+        } finally {
+            setIsVoting(false);
         }
-        setIsVoting(false);
     };
 
     const hasVoted = !!votedFor;
