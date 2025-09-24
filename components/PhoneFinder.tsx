@@ -197,10 +197,10 @@ const PhoneFinder: React.FC = () => {
   };
 
   return (
-    <section id="finder" className="flex-grow flex flex-col items-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
+    <section id="finder" className="flex-grow flex flex-col items-center pt-24 pb-6 px-4 sm:px-6 md:px-12 w-full">
       <div className="w-full">
         <div className="max-w-4xl mx-auto text-center">
-            <div className="mb-8">
+            <div className="mb-6">
               <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
                 Smart Pick
               </h1>
@@ -211,10 +211,10 @@ const PhoneFinder: React.FC = () => {
         </div>
         
         <div className="max-w-5xl mx-auto w-full">
-            <form onSubmit={handleSubmit} className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-6 backdrop-blur-sm">
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <form onSubmit={handleSubmit} className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-5 backdrop-blur-sm">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                     {/* Left Column */}
-                    <div className="lg:col-span-3 space-y-6">
+                    <div className="lg:col-span-3 space-y-5">
                         <QuestionSection title="1. Apa aktivitas & kebutuhan utamamu?">
                             <div className="grid grid-cols-2 gap-3">
                                 {activityOptions.map(activity => (
@@ -228,7 +228,7 @@ const PhoneFinder: React.FC = () => {
                             </div>
                         </QuestionSection>
                         <QuestionSection title="2. Seberapa penting kualitas kamera untukmu?">
-                            <div className="flex flex-col items-center pt-2">
+                            <div className="flex flex-col items-center pt-1">
                                 <input
                                     type="range"
                                     min="1"
@@ -242,7 +242,7 @@ const PhoneFinder: React.FC = () => {
                         </QuestionSection>
                     </div>
                     {/* Right Column */}
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="lg:col-span-2 space-y-5">
                         <QuestionSection title="3. Berapa budget maksimalmu?">
                             <select
                                 value={budget}
@@ -265,7 +265,7 @@ const PhoneFinder: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="text-center pt-8">
+                <div className="text-center pt-6">
                     <button
                         type="submit"
                         disabled={loading}
@@ -293,13 +293,13 @@ const PhoneFinder: React.FC = () => {
 // --- Sub-components ---
 const QuestionSection: FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <div>
-    <h3 className="font-orbitron text-base font-bold text-cyan-300 mb-3">{title}</h3>
+    <h3 className="font-orbitron text-base font-bold text-cyan-300 mb-2">{title}</h3>
     {children}
   </div>
 );
 
 const Checkbox: FC<{ label: string; checked: boolean; onChange: () => void }> = ({ label, checked, onChange }) => (
-  <label className={`flex items-center p-2.5 rounded-lg cursor-pointer transition-all duration-200 border-2 ${checked ? 'bg-cyan-500/20 border-cyan-400' : 'bg-gray-900/50 border-gray-700 hover:border-gray-500'}`}>
+  <label className={`flex items-center p-2 rounded-lg cursor-pointer transition-all duration-200 border-2 ${checked ? 'bg-cyan-500/20 border-cyan-400' : 'bg-gray-900/50 border-gray-700 hover:border-gray-500'}`}>
     <input type="checkbox" checked={checked} onChange={onChange} className="hidden" />
     <div className={`w-5 h-5 rounded border-2 ${checked ? 'bg-cyan-400 border-cyan-400' : 'border-gray-500'} flex items-center justify-center mr-3 flex-shrink-0`}>
       {checked && <svg className="w-3 h-3 text-gray-900" viewBox="0 0 24 24" fill="currentColor"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg>}
