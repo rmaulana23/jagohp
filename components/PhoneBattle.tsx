@@ -200,17 +200,17 @@ const PhoneBattle: React.FC = () => {
     };
 
     return (
-        <section id="battle" className="flex-grow flex flex-col items-center pt-28 pb-12 px-4 sm:px-8 md:px-16 relative overflow-hidden">
+        <section id="battle" className="flex-grow flex flex-col items-center pt-24 pb-10 px-4 sm:px-6 md:px-12 relative overflow-hidden">
             <div className="absolute inset-0 z-0 opacity-10">
                  <div className="absolute -top-24 -left-24 w-96 h-96 bg-cyan-500/20 rounded-full filter blur-3xl"></div>
                  <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-green-500/20 rounded-full filter blur-3xl"></div>
             </div>
             <div className="container mx-auto relative z-10">
                 <div className="text-center mb-6">
-                    <h2 className="font-orbitron text-4xl md:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
+                    <h2 className="font-orbitron text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
                         Adu Spesifikasi HP
                     </h2>
-                    <p className="text-lg text-gray-400 pb-1">Adu spesifikasi tipe HP kesukaan Kalian, biar gak salah pilih.</p>
+                    <p className="text-base text-gray-400 pb-1">Adu spesifikasi tipe HP kesukaan Kalian, biar gak salah pilih.</p>
                 </div>
                 
                 <BannerAd />
@@ -242,12 +242,12 @@ const PhoneBattle: React.FC = () => {
                             </button>
                         )}
                     </div>
-                    <div className="text-center mt-12">
+                    <div className="text-center mt-10">
                          <button
                             type="submit"
                             disabled={loading}
                             aria-busy={loading}
-                            className="font-orbitron text-xl font-bold w-72 h-16 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                            className="font-orbitron text-lg font-bold w-64 h-14 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
                                        bg-gradient-to-r from-cyan-500 via-purple-500 to-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <span className="absolute w-full h-full bg-gradient-to-br from-cyan-500 via-purple-500 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
@@ -258,7 +258,7 @@ const PhoneBattle: React.FC = () => {
                     </div>
                 </form>
                 
-                <div className="mt-16" aria-live="polite">
+                <div className="mt-12" aria-live="polite">
                     {loading && <BattleSkeleton phoneCount={phoneNames.length} />}
                     {error && <div className="text-center text-red-400 border border-red-400/50 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
                     {result && <BattleResultDisplay result={result} />}
@@ -281,7 +281,7 @@ const PhoneInputCard: FC<{phoneName: string; setPhoneName: (name: string) => voi
                 value={phoneName}
                 onChange={(e) => setPhoneName(e.target.value)}
                 placeholder={placeholder}
-                className={`w-full bg-gray-900/50 border-2 ${borderColor} rounded-full text-center py-3 ${onRemove ? 'pl-6 pr-12' : 'px-6'} text-white placeholder-gray-500
+                className={`w-full bg-gray-900/50 border-2 ${borderColor} rounded-full text-center py-2.5 ${onRemove ? 'pl-6 pr-12' : 'px-6'} text-white placeholder-gray-500
                            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0a0f1f] ${ringColor} transition-all duration-300`}
             />
             {onRemove && (
@@ -295,21 +295,21 @@ const PhoneInputCard: FC<{phoneName: string; setPhoneName: (name: string) => voi
 
 const BattleSkeleton: FC<{ phoneCount: number }> = ({ phoneCount }) => (
     <div className="space-y-12 animate-pulse">
-        <div className={`grid grid-cols-1 lg:grid-cols-${phoneCount === 3 ? 3 : 2} gap-8`}>
+        <div className={`grid grid-cols-1 lg:grid-cols-${phoneCount === 3 ? 3 : 2} gap-6`}>
             {[...Array(phoneCount)].map((_, i) => (
-                <div key={i} className="bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-6 space-y-4">
-                    <div className="h-8 bg-gray-700/50 rounded-md w-3/4"></div>
+                <div key={i} className="bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-5 space-y-4">
+                    <div className="h-7 bg-gray-700/50 rounded-md w-3/4"></div>
                     {[...Array(10)].map((_, j) => <div key={j} className="h-4 bg-gray-700/50 rounded-md w-full"></div>)}
                 </div>
             ))}
         </div>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-gray-800/20 border border-gray-700 rounded-2xl p-6 space-y-3">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-gray-800/20 border border-gray-700 rounded-2xl p-5 space-y-3">
                  <div className="h-6 bg-gray-700/50 rounded-md w-1/3 mb-2"></div>
                  <div className="h-4 bg-gray-700/50 rounded-md w-full"></div>
                  <div className="h-4 bg-gray-700/50 rounded-md w-5/6"></div>
             </div>
-             <div className="bg-gray-800/20 border border-gray-700 rounded-2xl p-6 space-y-3">
+             <div className="bg-gray-800/20 border border-gray-700 rounded-2xl p-5 space-y-3">
                  <div className="h-6 bg-gray-700/50 rounded-md w-1/3 mb-2"></div>
                  <div className="h-4 bg-gray-700/50 rounded-md w-full"></div>
                  <div className="h-4 bg-gray-700/50 rounded-md w-5/6"></div>
@@ -321,24 +321,24 @@ const BattleSkeleton: FC<{ phoneCount: number }> = ({ phoneCount }) => (
 const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
     const gridColsClass = result.phones.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2';
     return (
-        <div className="space-y-12 animate-fade-in">
-            <div className={`grid grid-cols-1 ${gridColsClass} gap-8`}>
+        <div className="space-y-10 animate-fade-in">
+            <div className={`grid grid-cols-1 ${gridColsClass} gap-6`}>
                 {result.phones.map((phone, index) => (
                      <ResultCard key={index} phone={phone} />
                 ))}
             </div>
-            <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
-                <div className="bg-gray-800/30 border border-cyan-400/20 rounded-2xl p-6 backdrop-blur-sm">
+            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <div className="bg-gray-800/30 border border-cyan-400/20 rounded-2xl p-5 backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-3">
                         <LightbulbIcon className="w-6 h-6 text-cyan-400"/>
-                        <h4 className="font-orbitron text-xl font-bold">Kesimpulan Hasil</h4>
+                        <h4 className="font-orbitron text-lg font-bold">Kesimpulan Hasil</h4>
                     </div>
                     <p className="text-gray-300 leading-relaxed text-sm">{result.battleSummary}</p>
                 </div>
-                <div className="bg-gray-800/30 border border-green-400/20 rounded-2xl p-6 backdrop-blur-sm">
+                <div className="bg-gray-800/30 border border-green-400/20 rounded-2xl p-5 backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-3">
                         <UsersIcon className="w-6 h-6 text-green-400"/>
-                        <h4 className="font-orbitron text-xl font-bold">Cocok Untuk Siapa</h4>
+                        <h4 className="font-orbitron text-lg font-bold">Cocok Untuk Siapa</h4>
                     </div>
                     <p className="text-gray-300 leading-relaxed text-sm whitespace-pre-line">{result.targetAudience}</p>
                 </div>
@@ -356,10 +356,10 @@ const ResultCard: FC<{ phone: PhoneData }> = ({ phone }) => {
     ];
 
     return (
-        <div className={`bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-6`}>
-            <h4 className="font-orbitron text-2xl font-bold mb-6 truncate">{phone.name}</h4>
+        <div className={`bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-5`}>
+            <h4 className="font-orbitron text-xl font-bold mb-5 truncate">{phone.name}</h4>
             <div className="mt-4">
-                 <h5 className="text-lg font-semibold text-cyan-400 mb-3 font-orbitron">Spesifikasi Utama</h5>
+                 <h5 className="text-base font-semibold text-cyan-400 mb-3 font-orbitron">Spesifikasi Utama</h5>
                  <div className="space-y-1 text-sm">
                     {specOrder.map(({ key, label }, index) => {
                         const value = phone.specs[key];

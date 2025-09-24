@@ -18,13 +18,13 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
   };
 
   return (
-    <header className="py-4 px-8 md:px-16 backdrop-blur-sm bg-[#0a0f1f]/60 border-b border-cyan-400/20 fixed top-0 left-0 right-0 z-50">
+    <header className="py-3 px-6 md:px-12 backdrop-blur-sm bg-[#0a0f1f]/60 border-b border-cyan-400/20 fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
         {/* Left: Logo & Title */}
         <a href="#" className="flex items-center space-x-3 cursor-pointer" onClick={(e) => handleNavClick(e, 'home')}>
           <LogoIcon />
           <div className="flex flex-col">
-            <span className="font-orbitron text-2xl font-bold tracking-wider text-white leading-tight">
+            <span className="font-orbitron text-xl font-bold tracking-wider text-white leading-tight">
               JAGO-HP
             </span>
             <span className="hidden md:inline text-xs font-normal tracking-wide text-cyan-400/70">
@@ -35,7 +35,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
 
         {/* Center: Navigation */}
         <nav className="hidden lg:flex mr-16">
-          <ul className="flex items-center space-x-8">
+          <ul className="flex items-center space-x-6">
             {navItems.map((item) => {
               const isActive = page === item.key;
               return (
@@ -57,7 +57,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
         {/* Right: CTA Button */}
         <button
           onClick={() => setPage('leaderboard')}
-          className="bg-green-500/10 border border-green-400 text-green-400 px-6 py-2 rounded-full text-sm font-bold 
+          className="bg-green-500/10 border border-green-400 text-green-400 px-5 py-1.5 rounded-full text-sm font-bold 
                      hover:bg-green-400 hover:text-[#0a0f1f] hover:shadow-lg hover:shadow-green-400/40 
                      transition-all duration-300 ease-in-out"
         >

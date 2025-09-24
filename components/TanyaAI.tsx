@@ -183,7 +183,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
                 aria-hidden="true"
             ></div>
             <section 
-                className={`fixed ${positionClasses} z-50 w-[calc(100%-4rem)] max-w-lg h-[70vh] max-h-[600px] flex flex-col bg-[#0f172a]/80 backdrop-blur-xl border-2 border-cyan-400/30 rounded-2xl shadow-2xl shadow-cyan-500/20
+                className={`fixed ${positionClasses} z-50 w-[calc(100%-4rem)] max-w-md h-[70vh] max-h-[550px] flex flex-col bg-[#0f172a]/80 backdrop-blur-xl border-2 border-cyan-400/30 rounded-2xl shadow-2xl shadow-cyan-500/20
                            transition-all duration-300 ease-out ${transitionClasses}`}
                 aria-modal="true"
                 role="dialog"
@@ -191,7 +191,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
                  <div className="flex items-center justify-between p-4 border-b border-cyan-400/20">
                     <div className="flex items-center gap-2">
                         <LogoIcon />
-                        <h2 className="font-orbitron text-lg font-bold text-white">AI Sales Assistant</h2>
+                        <h2 className="font-orbitron text-base font-bold text-white">AI Sales Assistant</h2>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors" aria-label="Tutup obrolan">
                         <XMarkIcon className="w-6 h-6" />
@@ -242,15 +242,15 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
                                 }
                             }}
                             placeholder="Ketik pertanyaan Anda..."
-                            className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-xl py-3 pl-4 pr-16 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 resize-none transition-all duration-300"
+                            className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-xl py-2.5 pl-4 pr-14 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 resize-none transition-all duration-300"
                             rows={1}
-                            style={{ minHeight: '52px' }}
+                            style={{ minHeight: '48px' }}
                             aria-label="Chat input"
                         />
                         <button
                             type="submit"
                             disabled={loading || !input.trim()}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
                                        hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Send message"
                         >

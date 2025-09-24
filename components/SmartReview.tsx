@@ -266,14 +266,14 @@ const SmartReview: React.FC = () => {
     };
 
     return (
-        <section id="review" className="flex-grow flex flex-col items-center pt-28 pb-12 px-4 sm:px-8 md:px-16 w-full">
+        <section id="review" className="flex-grow flex flex-col items-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
             <div className="w-full">
                 <div className="max-w-4xl mx-auto text-center">
                      <div className="mb-6">
-                        <h1 className="font-orbitron text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
+                        <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
                             Ulasan Cepat
                         </h1>
-                        <p className="text-lg text-gray-400 max-w-4xl mx-auto mt-2 pb-1">
+                        <p className="text-base text-gray-400 max-w-4xl mx-auto mt-2 pb-1">
                             Tulis tipe HP yang ingin direview, hanya dalam beberapa detik Kami langsung buat.
                         </p>
                     </div>
@@ -282,19 +282,19 @@ const SmartReview: React.FC = () => {
                 <BannerAd />
 
                 <div className="max-w-4xl mx-auto text-center mt-6">
-                    <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto mb-16">
+                    <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto mb-12">
                         <input
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Tuliskan tipe HP, misal: iPhone 17..."
-                            className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-full py-4 pl-6 pr-20 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-300"
+                            className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-full py-3 pl-5 pr-16 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-300"
                             aria-label="Smartphone search input"
                         />
                         <button
                             type="submit"
                             disabled={loading}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
                                        hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Search for smartphone review"
                         >
@@ -315,11 +315,11 @@ const SmartReview: React.FC = () => {
 
 // --- SKELETON UPDATED with RATINGS ---
 const ReviewSkeleton: FC = () => (
-    <div className="bg-gray-800/20 border border-gray-700 rounded-2xl p-6 md:p-8 text-left space-y-8 animate-pulse">
-        <div className="h-8 bg-gray-700/50 rounded-md w-3/4 mx-auto mb-4"></div>
+    <div className="bg-gray-800/20 border border-gray-700 rounded-2xl p-5 md:p-6 text-left space-y-6 animate-pulse">
+        <div className="h-7 bg-gray-700/50 rounded-md w-3/4 mx-auto mb-4"></div>
         
         {/* Ratings Skeleton */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5 border-y border-gray-700 py-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5 border-y border-gray-700 py-5">
             {[...Array(6)].map((_, i) => (
                 <div key={i} className="space-y-2">
                     <div className="h-4 bg-gray-600/50 rounded w-5/6"></div>
@@ -339,14 +339,14 @@ const ReviewSkeleton: FC = () => (
 
         {/* Tabs Skeleton */}
         <div className="flex space-x-4 border-b border-gray-700">
-             <div className="h-10 bg-cyan-500/20 rounded-t-md w-28"></div>
-            <div className="h-10 bg-gray-700/50 rounded-t-md w-28"></div>
-            <div className="h-10 bg-gray-700/50 rounded-t-md w-28"></div>
+             <div className="h-9 bg-cyan-500/20 rounded-t-md w-24"></div>
+            <div className="h-9 bg-gray-700/50 rounded-t-md w-24"></div>
+            <div className="h-9 bg-gray-700/50 rounded-t-md w-24"></div>
         </div>
         
         {/* Content Skeleton */}
         <div className="space-y-3 pt-3">
-            <div className="h-6 bg-gray-700/50 rounded-md w-1/3 mb-2"></div>
+            <div className="h-5 bg-gray-700/50 rounded-md w-1/3 mb-2"></div>
             <div className="h-4 bg-gray-700/50 rounded-md w-full"></div>
             <div className="h-4 bg-gray-700/50 rounded-md w-5/6"></div>
         </div>
@@ -365,8 +365,8 @@ const ReviewResultDisplay: FC<{ review: ReviewResult }> = ({ review }) => {
     ];
 
     return (
-        <div className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-6 md:p-8 text-left backdrop-blur-sm animate-fade-in space-y-8">
-            <h2 className="font-orbitron text-3xl font-bold text-center mb-2">{review.phoneName}</h2>
+        <div className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-5 md:p-6 text-left backdrop-blur-sm animate-fade-in space-y-6">
+            <h2 className="font-orbitron text-2xl font-bold text-center mb-2">{review.phoneName}</h2>
 
             <RatingsDisplay ratings={review.ratings} />
 
@@ -376,7 +376,7 @@ const ReviewResultDisplay: FC<{ review: ReviewResult }> = ({ review }) => {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`font-orbitron font-semibold text-sm sm:text-base px-3 sm:px-4 py-2 transition-all duration-300 rounded-t-lg -mb-px
+                        className={`font-orbitron font-semibold text-sm px-3 sm:px-4 py-2 transition-all duration-300 rounded-t-lg -mb-px
                             ${activeTab === tab.id 
                                 ? 'border-b-2 border-cyan-400 bg-cyan-500/10 text-cyan-300' 
                                 : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'}`
@@ -424,12 +424,12 @@ const RatingsDisplay: FC<{ ratings: Ratings }> = ({ ratings }) => {
     ];
 
     return (
-        <div className="border-y border-cyan-400/20 py-6 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5">
+        <div className="border-y border-cyan-400/20 py-5 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5">
             {ratingCategories.map(({ key, label }) => (
                 <div key={key}>
                     <p className="text-sm text-gray-400 font-semibold mb-1">{label}</p>
                     <div className="flex items-center gap-2">
-                        <span className="font-orbitron font-bold text-lg text-white">{ratings[key]?.toFixed(1) || 'N/A'}</span>
+                        <span className="font-orbitron font-bold text-base text-white">{ratings[key]?.toFixed(1) || 'N/A'}</span>
                         <StarRating rating={ratings[key] || 0} />
                     </div>
                 </div>
@@ -442,18 +442,18 @@ const RatingsDisplay: FC<{ ratings: Ratings }> = ({ ratings }) => {
 // --- TAB COMPONENTS ---
 
 const SummaryTab: FC<{ review: ReviewResult }> = ({ review }) => (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
         <ReviewSection title="Ulasan Singkat">
-            <p className="text-gray-300 mb-6 text-justify">{review.quickReview.summary}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <p className="text-gray-300 mb-5 text-justify text-sm leading-relaxed">{review.quickReview.summary}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
                 <div>
-                    <h5 className="text-lg font-semibold text-green-400 mb-2">Kelebihan</h5>
+                    <h5 className="text-base font-semibold text-green-400 mb-2">Kelebihan</h5>
                     <ul className="list-disc list-inside space-y-1 text-gray-300 text-justify">
                         {review.quickReview.pros.map((pro, i) => <li key={`pro-${i}`}>{pro}</li>)}
                     </ul>
                 </div>
                 <div>
-                    <h5 className="text-lg font-semibold text-red-400 mb-2">Kekurangan</h5>
+                    <h5 className="text-base font-semibold text-red-400 mb-2">Kekurangan</h5>
                     <ul className="list-disc list-inside space-y-1 text-gray-300 text-justify">
                         {review.quickReview.cons.map((con, i) => <li key={`con-${i}`}>{con}</li>)}
                     </ul>
@@ -461,9 +461,9 @@ const SummaryTab: FC<{ review: ReviewResult }> = ({ review }) => (
             </div>
         </ReviewSection>
         <ReviewSection title="Spesifikasi Lengkap">
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                 {Object.entries(review.specs).map(([key, value]) => (
-                    <div key={key} className="flex justify-between border-b border-gray-700 py-2">
+                    <div key={key} className="flex justify-between border-b border-gray-700 py-1.5">
                         <span className="font-semibold capitalize text-gray-400">{key.replace(/([A-Z])/g, ' $1')}</span>
                         <span className="text-right text-gray-200">{value}</span>
                     </div>
@@ -471,22 +471,22 @@ const SummaryTab: FC<{ review: ReviewResult }> = ({ review }) => (
             </div>
         </ReviewSection>
         <ReviewSection title="Cocok Untuk Siapa">
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
                 {review.targetAudience.map((user, i) => (
-                    <span key={`user-${i}`} className="bg-cyan-500/10 text-cyan-300 text-sm font-medium px-3 py-1 rounded-full">{user}</span>
+                    <span key={`user-${i}`} className="bg-cyan-500/10 text-cyan-300 text-xs font-medium px-2.5 py-1 rounded-full">{user}</span>
                 ))}
             </div>
         </ReviewSection>
         <ReviewSection title="Ketersediaan Aksesoris">
-             <p className="text-gray-300 text-justify">{review.accessoryAvailability}</p>
+             <p className="text-gray-300 text-justify text-sm leading-relaxed">{review.accessoryAvailability}</p>
         </ReviewSection>
         <ReviewSection title="Perkiraan Harga Pasaran">
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-                 <div className="flex justify-between border-b border-gray-700 py-2">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                 <div className="flex justify-between border-b border-gray-700 py-1.5">
                     <span className="font-semibold capitalize text-gray-400">Indonesia</span>
                     <span className="text-right text-gray-200 font-bold">{review.marketPrice.indonesia}</span>
                 </div>
-                <div className="flex justify-between border-b border-gray-700 py-2">
+                <div className="flex justify-between border-b border-gray-700 py-1.5">
                     <span className="font-semibold capitalize text-gray-400">Global</span>
                     <span className="text-right text-gray-200 font-bold">{review.marketPrice.global}</span>
                 </div>
@@ -500,30 +500,30 @@ const PerformanceTab: FC<{ performance: ReviewResult['performance'], phoneName: 
     const maxScore = Math.max(...allPhones.map(p => p.antutuScore));
 
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-6 animate-fade-in">
             <ReviewSection title="Skor Benchmark">
-                <div className="flex flex-col sm:flex-row gap-8">
-                    <div className="text-center bg-gray-900/40 p-4 rounded-lg flex-1">
+                <div className="flex flex-col sm:flex-row gap-6">
+                    <div className="text-center bg-gray-900/40 p-3 rounded-lg flex-1">
                         <p className="text-sm text-gray-400">AnTuTu v10</p>
-                        <p className="font-orbitron text-4xl font-bold text-green-400">{performance.antutuScore.toLocaleString('id-ID')}</p>
+                        <p className="font-orbitron text-3xl font-bold text-green-400">{performance.antutuScore.toLocaleString('id-ID')}</p>
                     </div>
-                     <div className="text-center bg-gray-900/40 p-4 rounded-lg flex-1">
+                     <div className="text-center bg-gray-900/40 p-3 rounded-lg flex-1">
                         <p className="text-sm text-gray-400">Geekbench 6</p>
-                        <p className="font-orbitron text-2xl font-bold text-cyan-400">{performance.geekbenchScore}</p>
+                        <p className="font-orbitron text-xl font-bold text-cyan-400">{performance.geekbenchScore}</p>
                     </div>
                 </div>
             </ReviewSection>
              <ReviewSection title="Perbandingan AnTuTu vs Pesaing">
-                 <div className="space-y-4">
+                 <div className="space-y-3">
                     {allPhones.sort((a, b) => b.antutuScore - a.antutuScore).map(phone => {
                         const widthPercentage = (phone.antutuScore / maxScore) * 100;
                         const isMainPhone = phone.name === phoneName;
                         return (
-                            <div key={phone.name} className="flex items-center gap-4">
+                            <div key={phone.name} className="flex items-center gap-3">
                                 <div className="w-1/3 text-sm text-gray-300 truncate">{phone.name}</div>
-                                <div className="w-2/3 bg-gray-700/50 rounded-full h-6">
+                                <div className="w-2/3 bg-gray-700/50 rounded-full h-5">
                                     <div 
-                                        className={`h-6 rounded-full flex items-center justify-end pr-2 ${isMainPhone ? 'bg-gradient-to-r from-cyan-500 to-green-500' : 'bg-gray-500'}`}
+                                        className={`h-5 rounded-full flex items-center justify-end pr-2 ${isMainPhone ? 'bg-gradient-to-r from-cyan-500 to-green-500' : 'bg-gray-500'}`}
                                         style={{ width: `${widthPercentage}%` }}
                                     >
                                        <span className="text-xs font-bold text-white shadow-sm">{phone.antutuScore.toLocaleString('id-ID')}</span>
@@ -535,33 +535,33 @@ const PerformanceTab: FC<{ performance: ReviewResult['performance'], phoneName: 
                  </div>
             </ReviewSection>
             <ReviewSection title="Ulasan Performa Gaming">
-                <p className="text-gray-300 leading-relaxed text-justify">{performance.gamingReview}</p>
+                <p className="text-gray-300 leading-relaxed text-justify text-sm">{performance.gamingReview}</p>
             </ReviewSection>
         </div>
     )
 };
 
 const CameraTab: FC<{ assessment: ReviewResult['cameraAssessment'] }> = ({ assessment }) => (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
         {assessment.dxomarkScore && (
              <ReviewSection title="Skor Kamera (DXOMark)">
-                <div className="flex items-center justify-center gap-4 bg-gray-900/40 p-4 rounded-lg max-w-xs mx-auto">
-                    <span className="font-orbitron text-4xl font-bold text-gray-300">Skor</span>
-                    <p className="font-orbitron text-5xl font-bold text-yellow-400">{assessment.dxomarkScore}</p>
+                <div className="flex items-center justify-center gap-4 bg-gray-900/40 p-3 rounded-lg max-w-xs mx-auto">
+                    <span className="font-orbitron text-3xl font-bold text-gray-300">Skor</span>
+                    <p className="font-orbitron text-4xl font-bold text-yellow-400">{assessment.dxomarkScore}</p>
                 </div>
              </ReviewSection>
         )}
         <ReviewSection title="Penilaian Kualitas Foto">
-            <p className="text-gray-300 mb-6 text-justify">{assessment.photoSummary}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <p className="text-gray-300 mb-5 text-justify text-sm leading-relaxed">{assessment.photoSummary}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
                  <div>
-                    <h5 className="text-lg font-semibold text-green-400 mb-2">Kelebihan Foto</h5>
+                    <h5 className="text-base font-semibold text-green-400 mb-2">Kelebihan Foto</h5>
                     <ul className="list-disc list-inside space-y-1 text-gray-300 text-justify">
                         {assessment.photoPros.map((pro, i) => <li key={`photo-pro-${i}`}>{pro}</li>)}
                     </ul>
                 </div>
                 <div>
-                    <h5 className="text-lg font-semibold text-red-400 mb-2">Kekurangan Foto</h5>
+                    <h5 className="text-base font-semibold text-red-400 mb-2">Kekurangan Foto</h5>
                     <ul className="list-disc list-inside space-y-1 text-gray-300 text-justify">
                         {assessment.photoCons.map((con, i) => <li key={`photo-con-${i}`}>{con}</li>)}
                     </ul>
@@ -569,14 +569,14 @@ const CameraTab: FC<{ assessment: ReviewResult['cameraAssessment'] }> = ({ asses
             </div>
         </ReviewSection>
         <ReviewSection title="Penilaian Kualitas Video">
-             <p className="text-gray-300 text-justify">{assessment.videoSummary}</p>
+             <p className="text-gray-300 text-justify text-sm leading-relaxed">{assessment.videoSummary}</p>
         </ReviewSection>
     </div>
 );
 
 const ReviewSection: FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
-    <div className="border-t border-cyan-400/20 pt-6 first-of-type:border-t-0 first-of-type:pt-0">
-        <h3 className="font-orbitron text-xl font-bold text-cyan-400 mb-4">{title}</h3>
+    <div className="border-t border-cyan-400/20 pt-5 first-of-type:border-t-0 first-of-type:pt-0">
+        <h3 className="font-orbitron text-lg font-bold text-cyan-400 mb-3">{title}</h3>
         {children}
     </div>
 );

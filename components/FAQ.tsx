@@ -41,21 +41,21 @@ const FAQ: React.FC = () => {
   ];
 
   return (
-    <section id="faq" className="flex-grow flex flex-col items-center justify-center pt-28 pb-12 px-4 sm:px-8 md:px-16 w-full">
+    <section id="faq" className="flex-grow flex flex-col items-center justify-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
       <div className="container mx-auto max-w-4xl animate-fade-in">
-        <div className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-8 md:p-12 backdrop-blur-sm">
+        <div className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-6 md:p-10 backdrop-blur-sm">
           <div className="text-center mb-10">
-            <h1 className="font-orbitron text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
+            <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
               FAQ – Pertanyaan Umum
             </h1>
           </div>
-          <div className="space-y-8">
+          <div className="space-y-6">
             {faqItems.map((item, index) => (
-              <div key={index} className="border-b border-cyan-400/20 pb-6 last:border-b-0 last:pb-0">
-                <h3 className="font-orbitron text-xl font-bold text-cyan-300 mb-2">
+              <div key={index} className="border-b border-cyan-400/20 pb-5 last:border-b-0 last:pb-0">
+                <h3 className="font-orbitron text-lg font-bold text-cyan-300 mb-2">
                   {item.q}
                 </h3>
-                <p className="text-gray-300 leading-relaxed">
+                <p className="text-gray-300 leading-relaxed text-sm">
                   {item.a}
                 </p>
               </div>

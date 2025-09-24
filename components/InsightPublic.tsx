@@ -144,21 +144,21 @@ const InsightPublic: React.FC = () => {
     })).sort((a, b) => b.votes - a.votes);
 
     return (
-        <section id="insight" className="flex-grow flex flex-col items-center pt-28 pb-8 px-4 sm:px-8 md:px-16 w-full">
+        <section id="insight" className="flex-grow flex flex-col items-center pt-24 pb-6 px-4 sm:px-6 md:px-12 w-full">
             <div className="container mx-auto max-w-7xl animate-fade-in">
                 <div className="text-center mb-6">
-                    <h1 className="font-orbitron text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
+                    <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
                         Polling Netizen
                     </h1>
-                    <p className="text-lg text-gray-400 mt-4 pb-1">
+                    <p className="text-base text-gray-400 mt-4 pb-1">
                         Polling, Survei, dan Data Terkini Seputar Dunia Smartphone.
                     </p>
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-8">
                     <div className="w-full lg:flex-[2]">
-                        <div className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-6 md:p-8 backdrop-blur-sm h-full flex flex-col">
-                            <h2 className="font-orbitron text-2xl font-bold mb-2 text-cyan-300">Polling: HP dengan Ekosistem OS/UI Terbaik</h2>
+                        <div className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-5 md:p-6 backdrop-blur-sm h-full flex flex-col">
+                            <h2 className="font-orbitron text-xl font-bold mb-2 text-cyan-300">Polling: HP dengan Ekosistem OS/UI Terbaik</h2>
                             <div className="flex flex-col sm:flex-row justify-between items-center mb-6 min-h-[36px]">
                                 <p className="text-gray-400 text-sm text-center sm:text-left mb-2 sm:mb-0 flex-grow">
                                     {hasVoted 
@@ -309,7 +309,7 @@ const CustomYAxisTick: FC<any> = ({ x, y, payload, onVote, votedFor, isVoting })
 
 const DataCard: FC<{ title: string; subtitle: string; children: React.ReactNode }> = ({ title, subtitle, children }) => (
     <div className="bg-gray-800/30 border border-green-400/30 rounded-2xl p-6 backdrop-blur-sm h-full flex flex-col">
-        <h3 className="font-orbitron text-xl font-bold text-green-300">{title}</h3>
+        <h3 className="font-orbitron text-lg font-bold text-green-300">{title}</h3>
         <p className="text-sm text-gray-400 mb-4">{subtitle}</p>
         <div className="flex-grow">
             {children}

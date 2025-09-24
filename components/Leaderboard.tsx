@@ -37,19 +37,19 @@ const globalData2025: BrandData[] = [
 
 const Leaderboard: React.FC = () => {
     return (
-        <section id="leaderboard" className="flex-grow flex flex-col items-center pt-28 pb-12 px-4 sm:px-8 md:px-16">
+        <section id="leaderboard" className="flex-grow flex flex-col items-center pt-24 pb-10 px-4 sm:px-6 md:px-12">
             <div className="container mx-auto max-w-7xl text-center">
-                <h1 className="font-orbitron text-4xl md:text-5xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
+                <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
                     Papan Peringkat Brand
                 </h1>
-                <p className="text-lg text-gray-400 mb-8 pb-1">
+                <p className="text-base text-gray-400 mb-8 pb-1">
                     Lihat pangsa pasar brand smartphone teratas di Indonesia dan Dunia.
                 </p>
 
                 <div className="flex flex-col lg:flex-row items-stretch justify-center gap-8">
                     {/* INDONESIA LEADERBOARD */}
                     <div className="w-full lg:w-1/2 flex flex-col">
-                         <h2 className="font-orbitron text-2xl font-bold mb-4">Top Smartphone di Indonesia</h2>
+                         <h2 className="font-orbitron text-xl font-bold mb-4">Top Smartphone di Indonesia</h2>
                          <div className="flex-grow bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-4 backdrop-blur-sm flex flex-col justify-center">
                             <ChartDisplay data={indonesiaData2025} colors={COLORS_INDONESIA} />
                         </div>
@@ -62,7 +62,7 @@ const Leaderboard: React.FC = () => {
 
                     {/* GLOBAL LEADERBOARD */}
                     <div className="w-full lg:w-1/2 flex flex-col">
-                        <h2 className="font-orbitron text-2xl font-bold mb-4">Top Smartphone di Dunia</h2>
+                        <h2 className="font-orbitron text-xl font-bold mb-4">Top Smartphone di Dunia</h2>
                         <div className="flex-grow bg-gray-800/30 border border-green-400/30 rounded-2xl p-4 backdrop-blur-sm flex flex-col justify-center">
                             <ChartDisplay data={globalData2025} colors={COLORS_GLOBAL} />
                         </div>

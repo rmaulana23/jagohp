@@ -56,11 +56,11 @@ const App: React.FC = () => {
       {page !== 'home' && !isChatOpen && (
         <button
           onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-8 right-8 z-40 w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
+          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
                      shadow-lg shadow-cyan-500/30 hover:scale-110 transition-all duration-300 animate-fade-in"
           aria-label="Buka Tanya AI"
         >
-          <ChatBubbleIcon className="w-8 h-8" />
+          <ChatBubbleIcon className="w-7 h-7" />
         </button>
       )}
     </div>
