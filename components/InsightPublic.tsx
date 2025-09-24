@@ -223,7 +223,7 @@ const InsightPublic: React.FC = () => {
                                 )}
                             </div>
                             {errorPoll && <p className="text-red-400 text-center text-sm mb-4">{errorPoll}</p>}
-                            <div className="w-full flex-grow min-h-[240px]">
+                            <div className="w-full flex-grow min-h-[380px] lg:min-h-[240px]">
                                 {loadingPoll ? <div className="flex justify-center items-center h-full"><div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div></div> : (
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart

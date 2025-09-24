@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 // New "AI Core" visual component
@@ -43,7 +44,7 @@ const Hero: React.FC<{ setPage: (page: string) => void; openChat: () => void; }>
           JAGO-HP solusi biar Kalian gak bingung atau salah beli HP.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-start justify-center gap-4 sm:gap-8 mt-8">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mt-8">
           <div className="flex flex-col items-center text-center">
             <button 
               onClick={openChat}
