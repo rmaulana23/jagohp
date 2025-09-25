@@ -44,11 +44,11 @@ interface ReviewResult {
     global: string;
   };
   performance: {
-    antutuScore: number;
+    antutuScore: number | null;
     geekbenchScore: string;
     competitors: {
       name: string;
-      antutuScore: number;
+      antutuScore: number | null;
     }[];
     gamingReview: string;
   };
@@ -78,7 +78,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
     const schema = {
         type: Type.OBJECT,
         properties: {
-            phoneName: { type: Type.STRING, description: "Nama resmi dari perangkat yang diulas. Jika input bukan perangkat yang valid, field ini HARUS berisi pesan error." },
+            phoneName: { type: Type.STRING, description: "Nama resmi dari perangkat yang diulas. Jika input bukan perangkat yang valid atau tidak ditemukan, field ini HARUS berisi pesan kegagalan." },
             ratings: {
                 type: Type.OBJECT,
                 description: "Skor rating dari 1 hingga 5 untuk 6 kategori kunci. Skor bisa desimal.",
@@ -101,7 +101,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
                 type: Type.OBJECT,
                 description: "Analisis performa mendalam.",
                 properties: {
-                    antutuScore: { type: Type.INTEGER, description: "Skor benchmark AnTuTu v10 sebagai angka integer." },
+                    antutuScore: { type: Type.INTEGER, description: "Skor benchmark AnTuTu v10 sebagai angka integer. Jika tidak tersedia/relevan, kembalikan null.", nullable: true },
                     geekbenchScore: { type: Type.STRING, description: "Skor Geekbench 6. Contoh: 'Single: 2100, Multi: 5500'." },
                     competitors: {
                         type: Type.ARRAY,
@@ -110,7 +110,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
                             type: Type.OBJECT,
                             properties: {
                                 name: { type: Type.STRING },
-                                antutuScore: { type: Type.INTEGER },
+                                antutuScore: { type: Type.INTEGER, nullable: true },
                             }
                         }
                     },
@@ -205,34 +205,58 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
 
         const prompt = `**Konteks Waktu: ${today}**
 
-        Generate a comprehensive review in **Bahasa Indonesia** for the device: '${searchQuery}'. **Gunakan tanggal hari ini sebagai titik acuan untuk semua data.**
-        
+        Generate a comprehensive review in **Bahasa Indonesia** for the **gadget**: '${searchQuery}'. **Gunakan tanggal hari ini sebagai titik acuan untuk semua data.**
+
+        **Aturan Jangkauan Pengetahuan Universal (SANGAT PENTING):**
+        -   Tugas Anda adalah mengenali dan mengulas berbagai jenis **gadget komunikasi**, termasuk **smartphone modern, tablet, dan feature phone (ponsel jadul)**. Batasan "hanya smartphone/tablet" telah dihapus. Anda harus berusaha semaksimal mungkin untuk menemukan data untuk setiap gadget yang diminta.
+
         **Aturan Validasi Perangkat (SANGAT PENTING):**
         1.  **Analisis Query:** Periksa query pengguna ('${searchQuery}').
-        2.  **Jika BUKAN Smartphone atau Tablet:** Jika query merujuk pada perangkat lain yang bukan smartphone atau tablet (misalnya laptop, kamera), **hentikan proses review**. Kembalikan JSON di mana field \`phoneName\` berisi pesan error yang jelas, contoh: "Error: Fitur ini hanya untuk smartphone dan tablet. '${searchQuery}' adalah sebuah laptop."
-        3.  **Jika Smartphone atau Tablet:** Lanjutkan ke aturan berikutnya.
+        2.  **Jika BUKAN Gadget:** Hentikan proses review HANYA jika input jelas-jelas bukan gadget elektronik komunikasi (misalnya "mobil", "sepeda"). Kembalikan JSON di mana field \`phoneName\` berisi pesan kegagalan yang sopan, contoh: "Maaf: Fitur ini hanya untuk gadget seperti ponsel atau tablet. '${searchQuery}' adalah sebuah mobil."
 
-        **Aturan Pengenalan Nama Perangkat (SANGAT PENTING):**
-        - **Identifikasi Cerdas:** Dari query pengguna ('${searchQuery}'), identifikasi nama **smartphone atau tablet** yang resmi dan lengkap. Query pengguna bisa jadi hanya nama model (contoh: "S24 Ultra" atau "Redmi Pad SE"), nama alias, atau nama kode.
-        - **Output Konsisten:** Field \`phoneName\` dalam respons JSON **WAJIB** berisi nama resmi yang lengkap dan dikenali secara umum (misal: "Samsung Galaxy S24 Ultra" atau "Xiaomi Redmi Pad SE").
+        **Aturan Fleksibilitas Data untuk Gadget Jadul (SANGAT PENTING):**
+        -   **SANGAT PENTING:** Anda akan sering mengulas **feature phone** atau perangkat lama di mana beberapa data modern (seperti skor AnTuTu, Geekbench, DXOMark, atau bahkan OS modern) **tidak ada atau tidak relevan**.
+        -   **Aturan Pengisian Data Tidak Relevan:** Jika sebuah field dalam skema tidak berlaku untuk gadget yang diulas (contoh: \`antutuScore\` untuk Nokia 3310), Anda **WAJIB** mengisinya dengan **null** untuk angka (seperti \`antutuScore\`, \`dxomarkScore\`) atau string "N/A" atau "Tidak Ada" untuk teks.
+        -   **JANGAN GAGAL:** Anda **DILARANG KERAS** gagal memproses permintaan hanya karena beberapa field tidak dapat diisi. Fleksibilitas ini adalah kunci untuk mengulas perangkat lama dengan sukses.
 
+        **Aturan Pencarian & Pengambilan Data (SANGAT PENTING - WAJIB DIIKUTI SECARA BERURUTAN):**
+
+        **Langkah 1: Koreksi Typo & Identifikasi Nama Cerdas (WAJIB DILAKUKAN PERTAMA):**
+        -   **Analisis Input Pengguna:** Lihat input '${searchQuery}'. Input ini mungkin mengandung kesalahan ketik (typo), nama yang tidak lengkap, atau nama alias.
+        -   **Koreksi Otomatis:** Tugas pertama Anda adalah **memperbaiki typo secara proaktif**. Contoh: Jika input "samsun s24 ultra", Anda harus mengidentifikasinya sebagai "Samsung Galaxy S24 Ultra". Jika input "nokia 3310 lama", identifikasi sebagai "Nokia 3310 (2000)".
+        -   **Identifikasi Jenis Perangkat:** Secara cerdas, identifikasi apakah inputnya adalah **smartphone, tablet, atau feature phone**.
+        -   **Identifikasi Nama Resmi:** Dari input yang sudah dikoreksi dan diidentifikasi, tentukan nama resmi yang paling mungkin untuk dicari.
+
+        **Langkah 2: Pencarian Gigih & Berlapis:**
+        1.  **Tujuan Utama: Temukan Data.** Tujuan utama Anda adalah menemukan data **gadget** yang diminta. JANGAN menyerah terlalu cepat.
+        2.  **Sumber Primer (GSMArena sebagai KEBENARAN ABSOLUT):**
+            -   **Prioritas & Kewajiban Mutlak:** Mulai SEMUA pencarian dari **GSMArena**. Ini adalah prioritas pertama dan sumber data yang tidak bisa ditawar. GSMArena memiliki database yang sangat lengkap bahkan untuk ponsel-ponsel lama. Anda **DILARANG KERAS** menyatakan data tidak ditemukan sebelum melakukan pencarian yang sangat mendalam dan menyeluruh di GSMArena.
+            -   **Jangkauan Komprehensif:** Anda **WAJIB** dapat menemukan **SEMUA model smartphone, tablet, DAN feature phone** yang terdaftar di GSMArena.
+            -   **Variasi Nama:** Saat mencari di GSMArena, Anda **WAJIB** mencoba beberapa variasi nama dari hasil identifikasi di Langkah 1.
+            -   **Jika Ditemukan di GSMArena:** Jika **gadget** ditemukan, **WAJIB** ambil dan sajikan datanya sesuai skema (dengan mengingat aturan fleksibilitas data). Proses pencarian berhenti di sini.
+        3.  **Sumber Sekunder:**
+            -   **Jika TIDAK DITEMUKAN di GSMArena setelah pencarian mendalam:** Lanjutkan pencarian ke sumber data sekunder terpercaya lainnya, termasuk **Phone Arena, Jagat Review,** dan database benchmark resmi **AnTuTu** (jika relevan).
+
+        **Langkah 3: Jika Data Tidak Ditemukan Sama Sekali:**
+        -   Jika setelah melalui semua langkah pencarian (termasuk koreksi typo dan semua sumber data) data **gadget** benar-benar tidak ditemukan, kembalikan JSON di mana field \`phoneName\` berisi pesan kegagalan yang sopan, contoh: "Maaf: Data untuk '${searchQuery}' tidak dapat ditemukan saat ini."
+
+        **Output Konsisten:** Field \`phoneName\` dalam respons JSON **WAJIB** berisi nama resmi yang lengkap yang berhasil Anda temukan.
+        
         **Aturan Akurasi dan Verifikasi Data (SANGAT PENTING):**
-        - **Sumber Utama Spesifikasi:** Gunakan GSMArena sebagai referensi utama.
-        - **Versi Benchmark:** WAJIB gunakan skor dari **AnTuTu v10** dan **Geekbench 6 (Single/Multi-Core)**. JANGAN gunakan versi lain.
-        - **Verifikasi Skor:** Lakukan verifikasi silang (cross-reference) skor benchmark dengan setidaknya dua sumber terpercaya (misal: GSMArena, Kimovil, NanoReview) untuk akurasi maksimal.
-        - **Skor DXOMark:** Gunakan skor 'Camera' utama dari situs resmi DXOMark. Jika skor tidak tersedia untuk model ini, WAJIB kembalikan 'null'. JANGAN menebak.
+        - **Versi Benchmark:** Jika relevan, WAJIB gunakan skor dari **AnTuTu v10** dan **Geekbench 6 (Single/Multi-Core)**.
+        - **Skor DXOMark:** Jika relevan, gunakan skor 'Camera' utama dari situs resmi DXOMark. Jika skor tidak tersedia, WAJIB kembalikan 'null'.
 
         **Analisis Rating Kuantitatif (Skala 1-5, SANGAT PENTING):**
-        - Berdasarkan semua data yang terkumpul, berikan skor numerik (BOLEH desimal, contoh: 4.5) untuk 6 kategori berikut.
-            - **gaming, kamera, baterai, layarDesain, performa, storageRam.**
+        - Berdasarkan semua data yang terkumpul, berikan skor numerik (BOLEH desimal, contoh: 4.5) untuk 6 kategori berikut. Sesuaikan penilaian berdasarkan jenis perangkat (misal, rating 'gaming' untuk feature phone akan sangat rendah atau diisi 0).
 
         Sediakan analisis lengkap yang mencakup semua aspek sesuai skema, pastikan semua informasi mutakhir per hari ini.
         
         **Semua konten teks harus dalam Bahasa Indonesia.**`;
 
+
         try {
             const response = await ai.models.generateContent({
-                model: 'gem-2.5-flash',
+                model: 'gemini-2.5-flash',
                 contents: prompt,
                 config: {
                     responseMimeType: "application/json",
@@ -243,7 +267,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
             const resultText = response.text.trim();
             const parsedResult: ReviewResult = JSON.parse(resultText);
 
-            if (parsedResult.phoneName.toLowerCase().startsWith('error:')) {
+            if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
                 setError(parsedResult.phoneName);
                 setReview(null);
             } else {
@@ -493,7 +517,7 @@ const SummaryTab: FC<{ review: ReviewResult }> = ({ review }) => (
                 {Object.entries(review.specs).map(([key, value]) => (
                     <div key={key} className="flex justify-between border-b border-gray-700 py-1.5">
                         <span className="font-semibold capitalize text-gray-400">{key.replace(/([A-Z])/g, ' $1')}</span>
-                        <span className="text-right text-gray-200">{value}</span>
+                        <span className="text-right text-gray-200">{value || 'N/A'}</span>
                     </div>
                 ))}
             </div>
@@ -524,8 +548,12 @@ const SummaryTab: FC<{ review: ReviewResult }> = ({ review }) => (
 );
 
 const PerformanceTab: FC<{ performance: ReviewResult['performance'], phoneName: string }> = ({ performance, phoneName }) => {
-    const allPhones = [{ name: phoneName, antutuScore: performance.antutuScore }, ...performance.competitors];
-    const maxScore = Math.max(...allPhones.map(p => p.antutuScore));
+    const allPhonesWithScores = [
+        ...(performance.antutuScore ? [{ name: phoneName, antutuScore: performance.antutuScore }] : []),
+        ...performance.competitors.filter(c => c.antutuScore) as { name: string; antutuScore: number }[]
+    ];
+    
+    const maxScore = allPhonesWithScores.length > 0 ? Math.max(...allPhonesWithScores.map(p => p.antutuScore)) : 0;
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -533,41 +561,46 @@ const PerformanceTab: FC<{ performance: ReviewResult['performance'], phoneName: 
                 <div className="flex flex-col sm:flex-row gap-6">
                     <div className="text-center bg-gray-900/40 p-3 rounded-lg flex-1">
                         <p className="text-sm text-gray-400">AnTuTu v10</p>
-                        <p className="font-orbitron text-3xl font-bold text-fuchsia-400">{performance.antutuScore.toLocaleString('id-ID')}</p>
+                        <p className="font-orbitron text-3xl font-bold text-fuchsia-400">
+                            {performance.antutuScore ? performance.antutuScore.toLocaleString('id-ID') : 'N/A'}
+                        </p>
                     </div>
                      <div className="text-center bg-gray-900/40 p-3 rounded-lg flex-1">
                         <p className="text-sm text-gray-400">Geekbench 6</p>
-                        <p className="font-orbitron text-xl font-bold text-indigo-400">{performance.geekbenchScore}</p>
+                        <p className="font-orbitron text-xl font-bold text-indigo-400">{performance.geekbenchScore || 'N/A'}</p>
                     </div>
                 </div>
             </ReviewSection>
-             <ReviewSection title="Perbandingan AnTuTu vs Pesaing">
-                 <div className="space-y-3">
-                    {allPhones.sort((a, b) => b.antutuScore - a.antutuScore).map(phone => {
-                        const widthPercentage = (phone.antutuScore / maxScore) * 100;
-                        const isMainPhone = phone.name === phoneName;
-                        return (
-                            <div key={phone.name} className="flex items-center gap-3">
-                                <div className="w-1/3 text-sm text-gray-300 truncate">{phone.name}</div>
-                                <div className="w-2/3 bg-gray-700/50 rounded-full h-5">
-                                    <div 
-                                        className={`h-5 rounded-full flex items-center justify-end pr-2 ${isMainPhone ? 'bg-gradient-to-r from-indigo-500 to-fuchsia-500' : 'bg-gray-500'}`}
-                                        style={{ width: `${widthPercentage}%` }}
-                                    >
-                                       <span className="text-xs font-bold text-white shadow-sm">{phone.antutuScore.toLocaleString('id-ID')}</span>
+             {maxScore > 0 && (
+                 <ReviewSection title="Perbandingan AnTuTu vs Pesaing">
+                     <div className="space-y-3">
+                        {allPhonesWithScores.sort((a, b) => b.antutuScore - a.antutuScore).map(phone => {
+                            const widthPercentage = (phone.antutuScore / maxScore) * 100;
+                            const isMainPhone = phone.name === phoneName;
+                            return (
+                                <div key={phone.name} className="flex items-center gap-3">
+                                    <div className="w-1/3 text-sm text-gray-300 truncate">{phone.name}</div>
+                                    <div className="w-2/3 bg-gray-700/50 rounded-full h-5">
+                                        <div 
+                                            className={`h-5 rounded-full flex items-center justify-end pr-2 ${isMainPhone ? 'bg-gradient-to-r from-indigo-500 to-fuchsia-500' : 'bg-gray-500'}`}
+                                            style={{ width: `${widthPercentage}%` }}
+                                        >
+                                           <span className="text-xs font-bold text-white shadow-sm">{phone.antutuScore.toLocaleString('id-ID')}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )
-                    })}
-                 </div>
-            </ReviewSection>
+                            )
+                        })}
+                     </div>
+                </ReviewSection>
+             )}
             <ReviewSection title="Ulasan Performa Gaming">
-                <p className="text-gray-300 leading-relaxed text-justify text-sm">{performance.gamingReview}</p>
+                <p className="text-gray-300 leading-relaxed text-justify text-sm">{performance.gamingReview || 'N/A'}</p>
             </ReviewSection>
         </div>
     )
 };
+
 
 const CameraTab: FC<{ assessment: ReviewResult['cameraAssessment'] }> = ({ assessment }) => (
     <div className="space-y-6 animate-fade-in">
