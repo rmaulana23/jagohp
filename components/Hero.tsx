@@ -51,7 +51,7 @@ const Hero: React.FC<{ setPage: (page: string) => void; onSearch: (query: string
           </span>
         </h1>
         <p className="max-w-2xl mx-auto mt-4 text-base md:text-lg text-gray-300 font-light leading-relaxed">
-          JAGO-HP Bantu Pilihkan HP Terbaik untuk Kalian. Coba Sekarang GRATIS!
+          JAGO-HP Solusi Biar Gak Salah Beli HP, Coba Sekarang GRATIS!
         </p>
 
         {/* Mobile-only Leaderboard Button */}

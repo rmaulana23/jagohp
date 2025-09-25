@@ -66,7 +66,7 @@ const App: React.FC = () => {
           className="fixed bottom-6 right-6 z-40 flex items-center animate-fade-in"
           aria-label="Buka Tanya AI"
         >
-          <div className="bg-[#1e293b]/90 backdrop-blur-sm text-white text-sm rounded-full px-4 py-2 mr-2 shadow-md border border-indigo-500/20">
+          <div className="hidden lg:block bg-[#1e293b]/90 backdrop-blur-sm text-white text-sm rounded-full px-4 py-2 mr-2 shadow-md border border-indigo-500/20">
             Tanya dulu Kakak
           </div>
           <div
