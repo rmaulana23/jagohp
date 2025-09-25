@@ -78,7 +78,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
     const schema = {
         type: Type.OBJECT,
         properties: {
-            phoneName: { type: Type.STRING, description: "Nama resmi dari smartphone yang diulas. Jika input bukan smartphone, field ini HARUS berisi pesan error." },
+            phoneName: { type: Type.STRING, description: "Nama resmi dari perangkat yang diulas. Jika input bukan perangkat yang valid, field ini HARUS berisi pesan error." },
             ratings: {
                 type: Type.OBJECT,
                 description: "Skor rating dari 1 hingga 5 untuk 6 kategori kunci. Skor bisa desimal.",
@@ -136,7 +136,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
     fullSchema.properties.quickReview = {
         type: Type.OBJECT,
         properties: {
-            summary: { type: Type.STRING, description: "Ringkasan singkat satu paragraf tentang ponsel dalam Bahasa Indonesia." },
+            summary: { type: Type.STRING, description: "Ringkasan singkat satu paragraf tentang perangkat dalam Bahasa Indonesia." },
             pros: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Daftar 3 kelebihan utama dalam Bahasa Indonesia." },
             cons: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Daftar 3 kekurangan utama dalam Bahasa Indonesia." },
         },
@@ -156,7 +156,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
             os: { type: Type.STRING, description: "Sistem Operasi saat rilis. Contoh: 'Android 14, One UI 6.1'" },
         },
     };
-    fullSchema.properties.targetAudience = { type: Type.ARRAY, items: { type: Type.STRING }, description: "Daftar tipe pengguna ideal untuk ponsel ini (misalnya, Gamer, Fotografer) dalam Bahasa Indonesia." };
+    fullSchema.properties.targetAudience = { type: Type.ARRAY, items: { type: Type.STRING }, description: "Daftar tipe pengguna ideal untuk perangkat ini (misalnya, Gamer, Fotografer) dalam Bahasa Indonesia." };
     fullSchema.properties.accessoryAvailability = { type: Type.STRING, description: "Sebuah paragraf yang merangkum ketersediaan aksesori seperti casing, pelindung layar, dll., dalam Bahasa Indonesia." };
     fullSchema.properties.marketPrice = {
         type: Type.OBJECT,
@@ -209,12 +209,12 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
         
         **Aturan Validasi Perangkat (SANGAT PENTING):**
         1.  **Analisis Query:** Periksa query pengguna ('${searchQuery}').
-        2.  **Jika BUKAN Smartphone:** Jika query merujuk pada laptop, tablet, atau perangkat lain (BUKAN smartphone), **hentikan proses review**. Sebagai gantinya, kembalikan JSON di mana field \`phoneName\` berisi pesan error yang jelas, contoh: "Error: Fitur ini hanya untuk smartphone. '${searchQuery}' adalah sebuah laptop/tablet." dan isi field lainnya dengan data placeholder (misal, 0 untuk angka, string kosong untuk teks).
-        3.  **Jika Smartphone:** Lanjutkan ke aturan berikutnya.
+        2.  **Jika BUKAN Smartphone atau Tablet:** Jika query merujuk pada perangkat lain yang bukan smartphone atau tablet (misalnya laptop, kamera), **hentikan proses review**. Kembalikan JSON di mana field \`phoneName\` berisi pesan error yang jelas, contoh: "Error: Fitur ini hanya untuk smartphone dan tablet. '${searchQuery}' adalah sebuah laptop."
+        3.  **Jika Smartphone atau Tablet:** Lanjutkan ke aturan berikutnya.
 
-        **Aturan Pengenalan Nama Ponsel (SANGAT PENTING):**
-        - **Identifikasi Cerdas:** Dari query pengguna ('${searchQuery}'), identifikasi nama smartphone yang resmi dan lengkap. Query pengguna bisa jadi hanya nama model (contoh: "S24 Ultra"), nama alias, atau nama kode (contoh: "panther" untuk Google Pixel 7).
-        - **Output Konsisten:** Field \`phoneName\` dalam respons JSON **WAJIB** berisi nama resmi yang lengkap dan dikenali secara umum (misal: "Samsung Galaxy S24 Ultra").
+        **Aturan Pengenalan Nama Perangkat (SANGAT PENTING):**
+        - **Identifikasi Cerdas:** Dari query pengguna ('${searchQuery}'), identifikasi nama **smartphone atau tablet** yang resmi dan lengkap. Query pengguna bisa jadi hanya nama model (contoh: "S24 Ultra" atau "Redmi Pad SE"), nama alias, atau nama kode.
+        - **Output Konsisten:** Field \`phoneName\` dalam respons JSON **WAJIB** berisi nama resmi yang lengkap dan dikenali secara umum (misal: "Samsung Galaxy S24 Ultra" atau "Xiaomi Redmi Pad SE").
 
         **Aturan Akurasi dan Verifikasi Data (SANGAT PENTING):**
         - **Sumber Utama Spesifikasi:** Gunakan GSMArena sebagai referensi utama.
@@ -232,7 +232,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
 
         try {
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gem-2.5-flash',
                 contents: prompt,
                 config: {
                     responseMimeType: "application/json",

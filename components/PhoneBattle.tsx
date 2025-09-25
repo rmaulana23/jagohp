@@ -1,3 +1,4 @@
+
 import React, { useState, FC, useMemo } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
@@ -34,6 +35,7 @@ interface BattleResult {
     battleSummary: string;
     targetAudience: string;
     phones: PhoneData[];
+    winnerName?: string;
 }
 
 const PhoneBattle: React.FC = () => {
@@ -62,15 +64,15 @@ const PhoneBattle: React.FC = () => {
     const schema = {
         type: Type.OBJECT,
         properties: {
-            battleSummary: { type: Type.STRING, description: "SATU paragraf SANGAT RINGKAS (maksimal 2-3 kalimat) sebagai ringkasan perbandingan umum untuk SEMUA ponsel yang diadu, dalam Bahasa Indonesia. Jika input bukan smartphone, field ini HARUS berisi pesan error." },
-            targetAudience: { type: Type.STRING, description: "SATU paragraf SANGAT RINGKAS (maksimal 2-3 kalimat) sebagai analisis 'Cocok untuk siapa' untuk SEMUA ponsel, dalam Bahasa Indonesia." },
+            battleSummary: { type: Type.STRING, description: "SATU paragraf SANGAT RINGKAS (maksimal 2-3 kalimat) sebagai ringkasan perbandingan umum untuk SEMUA perangkat yang diadu, dalam Bahasa Indonesia. Jika input bukan gadget, field ini HARUS berisi pesan error." },
+            targetAudience: { type: Type.STRING, description: "SATU paragraf SANGAT RINGKAS (maksimal 2-3 kalimat) sebagai analisis 'Cocok untuk siapa' untuk SEMUA perangkat, dalam Bahasa Indonesia." },
             phones: {
                 type: Type.ARRAY,
-                description: "Sebuah array berisi data untuk setiap ponsel yang dibandingkan, dalam urutan yang sama seperti di prompt.",
+                description: "Sebuah array berisi data untuk setiap perangkat yang dibandingkan, dalam urutan yang sama seperti di prompt.",
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        name: { type: Type.STRING, description: "Nama resmi ponsel" },
+                        name: { type: Type.STRING, description: "Nama resmi perangkat" },
                         specs: {
                             type: Type.OBJECT,
                             properties: phoneSpecProperties
@@ -78,6 +80,10 @@ const PhoneBattle: React.FC = () => {
                     },
                     required: ["name", "specs"]
                 }
+            },
+            winnerName: {
+                type: Type.STRING,
+                description: "Nama resmi dari perangkat pemenang berdasarkan analisis holistik. Jika seri, isi dengan 'Seri'. Jika tidak ada pemenang yang jelas, biarkan kosong."
             }
         },
         required: ['battleSummary', 'targetAudience', 'phones']
@@ -102,7 +108,7 @@ const PhoneBattle: React.FC = () => {
     const handleBattle = async (e: React.FormEvent) => {
         e.preventDefault();
         if (phoneNames.some(name => !name.trim())) {
-            setError('Silakan masukkan nama untuk semua ponsel yang akan diadu.');
+            setError('Silakan masukkan nama untuk semua perangkat yang akan diadu.');
             return;
         }
         setLoading(true);
@@ -144,18 +150,28 @@ const PhoneBattle: React.FC = () => {
         
         **Aturan Validasi Perangkat (SANGAT PENTING):**
         1.  **Analisis Input:** Periksa setiap nama dalam daftar (${phoneList}).
-        2.  **Jika BUKAN Smartphone:** Jika salah satu atau semua input adalah laptop, tablet, atau perangkat lain (BUKAN smartphone), **hentikan proses perbandingan**. Sebagai gantinya, kembalikan JSON di mana field \`battleSummary\` berisi pesan error yang jelas, contoh: "Error: Battle Mode hanya untuk membandingkan smartphone. '[nama perangkat]' terdeteksi sebagai non-smartphone." Biarkan field \`targetAudience\` kosong dan array \`phones\` kosong.
-        3.  **Jika SEMUA Smartphone:** Lanjutkan ke aturan berikutnya.
+        2.  **Jika Perangkat Berbeda Jenis:** Jika input berisi campuran jenis perangkat (misalnya smartphone vs tablet, seperti "iPhone 15 Pro vs Redmi Pad SE"), **tetap lanjutkan proses perbandingan**. Namun, di dalam field \`battleSummary\`, **WAJIB** berikan catatan di awal paragraf yang menyatakan bahwa ini adalah perbandingan antar perangkat yang berbeda kategori, contoh: "Ini adalah perbandingan unik antara smartphone dan tablet. Berikut analisisnya:".
+        3.  **Jika Input BUKAN Gadget:** Jika salah satu input adalah sesuatu yang jelas bukan gadget (misalnya "mobil", "sepeda"), HENTIKAN proses dan kembalikan JSON di mana field \`battleSummary\` berisi pesan error.
 
-        **Aturan Pengenalan Nama Ponsel (SANGAT PENTING):**
-        - **Identifikasi Cerdas:** Untuk setiap nama dalam daftar (${phoneList}), identifikasi nama smartphone yang resmi dan lengkap. Nama yang diberikan bisa jadi hanya nama model (contoh: "F6"), nama alias, atau nama kode.
-        - **Output Konsisten:** Field \`name\` untuk setiap objek ponsel dalam array \`phones\` **WAJIB** berisi nama resmi yang lengkap.
+        **Aturan Pengenalan Nama Perangkat (SANGAT PENTING):**
+        - **Identifikasi Cerdas:** Untuk setiap nama dalam daftar (${phoneList}), identifikasi nama perangkat yang resmi dan lengkap, termasuk tablet (misal: "Redmi Pad SE"). Nama yang diberikan bisa jadi hanya nama model, alias, atau kode.
+        - **Output Konsisten:** Field \`name\` untuk setiap objek dalam array \`phones\` **WAJIB** berisi nama resmi yang lengkap.
 
         **Sumber Data dan Aturan Akurasi (SANGAT PENTING):**
         - **Spesifikasi Umum:** Prioritaskan data dari GSMArena.
-        - **Performa (SANGAT PENTING):** Untuk perbandingan yang adil, WAJIB gunakan skor dari **AnTuTu v10** dan **Geekbench 6**. Rujuk pada sumber seperti GSMArena, Kimovil, atau NanoReview. **Sertakan skor AnTuTu v10 sebagai angka integer di field \`antutuScore\` dalam objek \`specs\` untuk setiap ponsel.**
+        - **Performa (SANGAT PENTING):** Untuk perbandingan yang adil, WAJIB gunakan skor dari **AnTuTu v10** dan **Geekbench 6**. Rujuk pada sumber seperti GSMArena, Kimovil, atau NanoReview. **Sertakan skor AnTuTu v10 sebagai angka integer di field \`antutuScore\` dalam objek \`specs\` untuk setiap perangkat.**
         - **Konsistensi:** Pastikan semua data (terutama skor benchmark) berasal dari sumber dan metodologi yang sama untuk menjaga objektivitas perbandingan.
-        - **Data Terbaru:** Selalu gunakan data yang paling relevan per tanggal hari ini.
+        
+        **Aturan Penentuan Pemenang (SANGAT PENTING):**
+        1.  **Analisis Holistik:** Setelah mengumpulkan semua data, lakukan analisis perbandingan yang komprehensif. **JANGAN hanya mengandalkan skor AnTuTu.** Pertimbangkan **nilai keseluruhan (overall value)** dari setiap perangkat.
+        2.  **Faktor Penilaian:** Faktor yang harus dipertimbangkan termasuk:
+            -   Performa Chipset (Skor benchmark, efisiensi, gaming).
+            -   Kualitas Layar (Teknologi, refresh rate, kecerahan).
+            -   Kemampuan Kamera (Kualitas sensor, fitur, hasil foto/video).
+            -   Daya Tahan Baterai & Kecepatan Pengisian Daya.
+            -   **Harga & Value for Money** (Sangat penting).
+            -   Fitur Tambahan (NFC, kualitas build, OS, ekosistem).
+        3.  **Deklarasi Pemenang:** Berdasarkan analisis holistik Anda, tentukan **satu pemenang**. Isi field \`winnerName\` dengan nama resmi dari perangkat pemenang. Jika pertarungannya sangat seimbang atau seri, Anda boleh mengisi \`winnerName\` dengan string 'Seri'.
 
         **Instruksi Penting:**
         - Kembalikan data dalam array 'phones' dengan urutan yang SAMA PERSIS seperti daftar di prompt.
@@ -164,7 +180,7 @@ const PhoneBattle: React.FC = () => {
         1. Bandingkan semua spesifikasi teknis utama sesuai skema.
         2. Buat **dua paragraf SANGAT RINGKAS dan PADAT (maksimal 2-3 kalimat per paragraf)** untuk kesimpulan:
             - \`battleSummary\`: Ringkasan umum perbandingan.
-            - \`targetAudience\`: Analisis "Cocok untuk siapa" untuk masing-masing ponsel.`;
+            - \`targetAudience\`: Analisis "Cocok untuk siapa" untuk masing-masing perangkat.`;
 
         try {
             const response = await ai.models.generateContent({
@@ -195,7 +211,7 @@ const PhoneBattle: React.FC = () => {
 
         } catch (e) {
             console.error(e);
-            setError('Terjadi kesalahan saat menganalisis ponsel. Silakan coba lagi.');
+            setError('Terjadi kesalahan saat menganalisis perangkat. Silakan coba lagi.');
         } finally {
             setLoading(false);
         }
@@ -210,7 +226,7 @@ const PhoneBattle: React.FC = () => {
             <div className="container mx-auto max-w-5xl relative z-10">
                 <div className="text-center mb-6">
                     <h2 className="font-orbitron text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
-                        Adu Spesifikasi HP
+                        Adu Spesifikasi
                     </h2>
                     <p className="text-base text-gray-400 pb-1">Adu spesifikasi tipe HP kesukaan Kalian, biar gak salah pilih.</p>
                 </div>
@@ -328,29 +344,11 @@ const BattleSkeleton: FC<{ phoneCount: number }> = ({ phoneCount }) => (
 const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
     const gridColsClass = result.phones.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2';
 
-    const winnerIndex = useMemo(() => {
-        if (!result?.phones || result.phones.length === 0) return -1;
-
-        let maxScore = -1;
-        let winnerIdx = -1;
-
-        result.phones.forEach((phone, index) => {
-            const score = phone.specs.antutuScore;
-            if (score && score > maxScore) {
-                maxScore = score;
-                winnerIdx = index;
-            }
-        });
-        
-        // Only declare a winner if at least one phone has a valid score > 0
-        return maxScore > 0 ? winnerIdx : -1;
-    }, [result]);
-
     return (
         <div className="space-y-10 animate-fade-in">
             <div className={`grid grid-cols-1 ${gridColsClass} gap-6`}>
                 {result.phones.map((phone, index) => (
-                     <ResultCard key={index} phone={phone} isWinner={index === winnerIndex} />
+                     <ResultCard key={index} phone={phone} isWinner={result.winnerName === phone.name} />
                 ))}
             </div>
             <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
