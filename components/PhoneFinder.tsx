@@ -11,6 +11,7 @@ interface Recommendation {
   reason: string;
   keyFeatures: string[];
   estimatedPrice: string;
+  rilis?: string;
 }
 
 const activityOptions = [
@@ -50,8 +51,9 @@ const PhoneFinder: React.FC = () => {
         reason: { type: Type.STRING, description: "Satu paragraf singkat dan sangat personal alasan mengapa ponsel ini direkomendasikan (atau mengapa tidak ada rekomendasi) berdasarkan input pengguna." },
         keyFeatures: { type: Type.ARRAY, description: "3-4 fitur unggulan utama. Jika tidak ada rekomendasi, kembalikan array kosong.", items: { type: Type.STRING } },
         estimatedPrice: { type: Type.STRING, description: "Perkiraan harga pasaran di Indonesia dalam IDR. Jika tidak ada rekomendasi, isi string kosong." },
+        rilis: { type: Type.STRING, description: "Bulan dan tahun rilis. Contoh: 'September 2024'. Jika tidak ada rekomendasi, isi string kosong." },
     },
-    required: ["phoneName", "reason", "keyFeatures", "estimatedPrice"]
+    required: ["phoneName", "reason", "keyFeatures", "estimatedPrice", "rilis"]
   };
 
   const handleActivityChange = (activity: string) => {
@@ -151,6 +153,7 @@ const PhoneFinder: React.FC = () => {
 
     **LANGKAH 5: Output**
     -   Berikan **SATU** rekomendasi smartphone tunggal berdasarkan seluruh analisis di atas.
+    -   Sertakan bulan dan tahun rilis di field 'rilis'.
     -   Pastikan 'estimatedPrice' akurat untuk pasar Indonesia.
     -   Kembalikan hasil dalam format JSON yang valid sesuai skema.`;
 
@@ -332,6 +335,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
         <div className="max-w-xl mx-auto">
           <div className="bg-gray-800/30 border-2 border-indigo-500/30 rounded-2xl p-5 flex flex-col shadow-lg shadow-indigo-500/10">
             <h3 className="font-orbitron text-xl font-bold text-white">{result.phoneName}</h3>
+            {result.rilis && <p className="text-indigo-300 text-sm mb-1">Rilis: {result.rilis}</p>}
             {result.estimatedPrice && <p className="text-fuchsia-400 font-semibold mb-3">{result.estimatedPrice}</p>}
             <p className="text-gray-300 text-sm mb-4 flex-grow text-justify leading-relaxed">{result.reason}</p>
             {result.keyFeatures && result.keyFeatures.length > 0 && (

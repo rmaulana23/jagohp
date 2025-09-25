@@ -1,3 +1,4 @@
+
 import React, { useState, FC, useMemo } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
@@ -11,6 +12,7 @@ import CrownIcon from './icons/CrownIcon';
 
 // --- INTERFACES (UPDATED FOR ARRAY) ---
 interface SpecDetails {
+    rilis?: string;
     os?: string;
     processor?: string;
     antutuScore?: number | null;
@@ -46,6 +48,7 @@ const PhoneBattle: React.FC = () => {
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
 
     const phoneSpecProperties = {
+        rilis: { type: Type.STRING, description: "Bulan dan tahun rilis. Contoh: 'September 2024'" },
         os: { type: Type.STRING },
         processor: { type: Type.STRING },
         antutuScore: { type: Type.INTEGER, description: "Skor benchmark AnTuTu v10 sebagai angka integer. Jika tidak tersedia/relevan (misal untuk feature phone), kembalikan null.", nullable: true },
@@ -166,7 +169,7 @@ const PhoneBattle: React.FC = () => {
 
         **Execution Steps & Rules (Strictly Follow):**
         1.  **Identify Gadgets:** For each name in ${phoneList}, identify the official name and device type (smartphone, tablet, feature phone).
-        2.  **Extract Data for All:** Perform your core data extraction role for **every single gadget** in the list, prioritizing GSMArena.
+        2.  **Extract Data for All:** Perform your core data extraction role for **every single gadget** in the list, prioritizing GSMArena. Include the release month and year in the 'rilis' field.
         3.  **Handle Cross-Category Battles:** If the devices are from different categories (e.g., smartphone vs. tablet), state this clearly in the \`battleSummary\`. The comparison should still proceed.
         4.  **Handle Missing Data:** When comparing, if a spec is missing for one device (e.g., AnTuTu score for a feature phone), you **MUST** use \`null\` in the JSON output for that field. The comparison should focus on the available specs. **DO NOT FAIL** the request.
         5.  **Holistic Analysis & Winner Determination:**
@@ -376,7 +379,7 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
 
 const ResultCard: FC<{ phone: PhoneData; isWinner: boolean; }> = ({ phone, isWinner }) => {
     const specOrder: { key: keyof SpecDetails; label: string }[] = [
-        { key: 'os', label: 'OS' }, { key: 'processor', label: 'Prosesor' }, { key: 'antutuScore', label: 'AnTuTu v10' },
+        { key: 'rilis', label: 'Rilis' }, { key: 'os', label: 'OS' }, { key: 'processor', label: 'Prosesor' }, { key: 'antutuScore', label: 'AnTuTu v10' },
         { key: 'jaringan', label: 'Jaringan' }, { key: 'wifi', label: 'Wi-Fi' }, { key: 'display', label: 'Display' },
         { key: 'camera', label: 'Kamera' }, { key: 'battery', label: 'Baterai' }, { key: 'charging', label: 'Charging' },
         { key: 'koneksi', label: 'Koneksi' }, { key: 'nfc', label: 'NFC' },

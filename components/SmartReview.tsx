@@ -26,6 +26,7 @@ interface ReviewResult {
     cons: string[];
   };
   specs: {
+    rilis?: string;
     processor: string;
     ram: string;
     camera: string;
@@ -139,6 +140,7 @@ const SmartReview: React.FC = () => {
     fullSchema.properties.specs = {
         type: Type.OBJECT,
         properties: {
+            rilis: { type: Type.STRING, description: "Bulan dan tahun rilis. Contoh: 'September 2024'" },
             processor: { type: Type.STRING },
             ram: { type: Type.STRING, description: "Contoh: '8GB, 12GB'" },
             camera: { type: Type.STRING, description: "Contoh: 'Utama: 50MP, Ultrawide: 12MP'" },
@@ -223,7 +225,7 @@ const SmartReview: React.FC = () => {
         1.  **Identify Gadget:** First, identify the official name of '${searchQuery}', correcting any typos. Determine if it's a smartphone, tablet, or feature phone.
         2.  **Extract Data:** Mentally (or actually) perform your core role by extracting all relevant specifications for the identified gadget, primarily from GSMArena. If not found, use secondary sources like Phone Arena or Jagat Review.
         3.  **Handle Missing Data:** For older devices (like feature phones), many modern specs (AnTuTu, DXOMark) will be unavailable. For these, you **MUST** use \`null\` for numbers or "N/A" for strings in the JSON output. **DO NOT FAIL** the request because a field is empty. This is crucial.
-        4.  **Generate Review Content:** Using the extracted data, populate the JSON schema.
+        4.  **Generate Review Content:** Using the extracted data, populate the JSON schema. Include the release month and year in the 'rilis' field.
             -   **Ratings:** Provide a 1-5 score for each category, being realistic for the device type (e.g., a feature phone will have a low gaming score).
             -   **Summaries & Analysis:** Write all textual content (summaries, pros/cons, reviews) based on the objective data you've extracted.
         5.  **Failure Condition:** If, after an exhaustive search on all specified sources, the gadget cannot be found, populate the \`phoneName\` field with a polite "Maaf: ..." message and nothing else.
@@ -393,7 +395,12 @@ const ReviewResultDisplay: FC<{ review: ReviewResult }> = ({ review }) => {
 
     return (
         <div className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-5 md:p-6 text-left backdrop-blur-sm animate-fade-in space-y-6">
-            <h2 className="font-orbitron text-2xl font-bold text-center mb-2">{review.phoneName}</h2>
+            <div className="text-center">
+                <h2 className="font-orbitron text-2xl font-bold mb-1">{review.phoneName}</h2>
+                {review.specs.rilis && (
+                    <p className="text-sm text-indigo-300 font-semibold">Rilis: {review.specs.rilis}</p>
+                )}
+            </div>
 
             <RatingsDisplay ratings={review.ratings} />
 
