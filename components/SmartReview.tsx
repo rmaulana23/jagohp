@@ -4,6 +4,7 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
 import SearchIcon from './icons/SearchIcon';
 import StarIcon from './icons/StarIcon';
+import ShareButtons from './ShareButtons';
 
 // --- NEW RATINGS INTERFACE ---
 interface Ratings {
@@ -384,6 +385,10 @@ const ReviewResultDisplay: FC<{ review: ReviewResult }> = ({ review }) => {
         { id: 'performa', label: 'Performa' },
         { id: 'foto-video', label: 'Foto & Video' },
     ];
+    
+    const shareText = `Cek review AI untuk ${review.phoneName} di JAGO-HP!\n\nRingkasan: ${review.quickReview.summary}`;
+    const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
+
 
     return (
         <div className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-5 md:p-6 text-left backdrop-blur-sm animate-fade-in space-y-6">
@@ -414,6 +419,8 @@ const ReviewResultDisplay: FC<{ review: ReviewResult }> = ({ review }) => {
                 {activeTab === 'performa' && <PerformanceTab performance={review.performance} phoneName={review.phoneName} />}
                 {activeTab === 'foto-video' && <CameraTab assessment={review.cameraAssessment} />}
             </div>
+            
+            <ShareButtons shareText={shareText} shareUrl={shareUrl} />
         </div>
     );
 };

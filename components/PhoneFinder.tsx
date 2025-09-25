@@ -3,6 +3,7 @@ import React, { useState, useMemo, FC } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
 import SparklesIcon from './icons/SparklesIcon';
+import ShareButtons from './ShareButtons';
 
 // --- INTERFACES ---
 interface Recommendation {
@@ -10,10 +11,6 @@ interface Recommendation {
   reason: string;
   keyFeatures: string[];
   estimatedPrice: string;
-}
-
-interface AIResponse {
-  recommendations: Recommendation[];
 }
 
 const activityOptions = [
@@ -40,29 +37,19 @@ const PhoneFinder: React.FC = () => {
   const [otherPrefs, setOtherPrefs] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<AIResponse | null>(null);
+  const [result, setResult] = useState<Recommendation | null>(null);
 
   const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
 
   const schema: any = {
     type: Type.OBJECT,
     properties: {
-      recommendations: {
-        type: Type.ARRAY,
-        description: "Daftar 3 rekomendasi smartphone teratas.",
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            phoneName: { type: Type.STRING, description: "Nama resmi smartphone." },
-            reason: { type: Type.STRING, description: "Satu paragraf singkat alasan mengapa ponsel ini direkomendasikan berdasarkan input pengguna." },
-            keyFeatures: { type: Type.ARRAY, description: "3-4 fitur unggulan utama.", items: { type: Type.STRING } },
-            estimatedPrice: { type: Type.STRING, description: "Perkiraan harga pasaran di Indonesia dalam IDR." },
-          },
-          required: ["phoneName", "reason", "keyFeatures", "estimatedPrice"]
-        }
-      }
+        phoneName: { type: Type.STRING, description: "Nama resmi smartphone. Jika tidak ada yang cocok, isi dengan 'Tidak ada rekomendasi yang cocok'." },
+        reason: { type: Type.STRING, description: "Satu paragraf singkat dan sangat personal alasan mengapa ponsel ini direkomendasikan (atau mengapa tidak ada rekomendasi) berdasarkan input pengguna." },
+        keyFeatures: { type: Type.ARRAY, description: "3-4 fitur unggulan utama. Jika tidak ada rekomendasi, kembalikan array kosong.", items: { type: Type.STRING } },
+        estimatedPrice: { type: Type.STRING, description: "Perkiraan harga pasaran di Indonesia dalam IDR. Jika tidak ada rekomendasi, isi string kosong." },
     },
-    required: ["recommendations"]
+    required: ["phoneName", "reason", "keyFeatures", "estimatedPrice"]
   };
 
   const handleActivityChange = (activity: string) => {
@@ -81,7 +68,7 @@ const PhoneFinder: React.FC = () => {
     }
     setLoading(true);
     setError(null);
-    setResults(null);
+    setResult(null);
     
     // Create a canonical cache key from the form inputs
     const cacheKey = [
@@ -101,7 +88,7 @@ const PhoneFinder: React.FC = () => {
                 .single();
             
             if (data && data.result_data) {
-                setResults(data.result_data as AIResponse);
+                setResult(data.result_data as Recommendation);
                 setLoading(false);
                 return; // Cache hit, skip AI call
             }
@@ -117,7 +104,7 @@ const PhoneFinder: React.FC = () => {
     const nfcRequired = activities.includes("Butuh NFC");
     const mainActivities = activities.filter(act => act !== "Butuh NFC").join(', ') || "Tidak ada preferensi spesifik";
 
-    const prompt = `**Peran Anda:** Anda adalah seorang Ahli Rekomendasi Gadget yang sangat cerdas dan berpengalaman, dengan fokus utama pada pasar smartphone di Indonesia. Tugas Anda adalah memberikan 3 rekomendasi smartphone yang paling TEPAT, bukan hanya yang paling mahal atau populer, berdasarkan kuesioner pengguna.
+    const prompt = `**Peran Anda:** Anda adalah seorang Ahli Rekomendasi Gadget yang sangat cerdas dan berpengalaman, dengan fokus utama pada pasar smartphone di Indonesia. Tugas Anda adalah memberikan **SATU rekomendasi smartphone TUNGGAL** yang paling TEPAT dan PRESISI, bukan hanya yang paling mahal atau populer, berdasarkan kuesioner pengguna.
 
     **Konteks Waktu:** Hari ini adalah ${today}. Semua data harga dan ketersediaan harus relevan dengan tanggal ini.
 
@@ -135,37 +122,32 @@ const PhoneFinder: React.FC = () => {
 
     **PROSES ANALISIS DAN ATURAN WAJIB (SANGAT PENTING):**
 
-    **1. Analisis Logika Prioritas (Inti Kecerdasan Anda):**
+    **1. Aturan Filter Merek (Prioritas Tertinggi):**
+      - **Analisis Preferensi:** Periksa input 'Preferensi Lainnya'. Jika pengguna menyebutkan nama merek (contoh: "Suka merk Samsung", "harus Oppo", "selain iPhone"), Anda **WAJIB** mematuhi preferensi ini.
+      - **Filter Mutlak:** Rekomendasi **HARUS** berasal dari merek yang diminta. Jika tidak ada HP dari merek tersebut yang cocok dengan kriteria lain (budget, aktivitas), Anda **WAJIB** menjelaskannya di field 'reason' dan jangan merekomendasikan merek lain sama sekali. Field 'phoneName' bisa berisi "Tidak ada rekomendasi yang cocok".
+
+    **2. Analisis Logika Prioritas (Inti Kecerdasan Anda):**
       - **Timbang Bobot:** Analisis setiap jawaban pengguna untuk menentukan bobot prioritas.
       - **Jika "Gaming Berat" dipilih:** Secara **AGRESIF**, prioritaskan ponsel dengan:
         1.  **Chipset Performa Tertinggi** di kelas harganya (misal: Snapdragon 8 series, Dimensity 9000 series).
         2.  **Layar** dengan Refresh Rate **120Hz ke atas** dan response time cepat.
-        3.  Sistem **pendingin** yang baik.
-        4.  **Baterai besar** dengan fast charging.
+        3.  Sistem **pendingin** yang baik dan **baterai besar**.
       - **Jika "Fotografi & Videografi" dipilih ATAU Prioritas Kamera Sangat Penting (4-5/5):**
-        1.  Fokus pada kualitas **sensor kamera utama** (ukuran sensor, OIS/EIS).
-        2.  Pertimbangkan keberadaan kamera **ultrawide & telephoto** yang mumpuni.
-        3.  Periksa **reputasi pemrosesan gambar** dari brand tersebut.
-      - **Jika "Sosial Media & Browsing" atau "Streaming":** Prioritaskan **kualitas layar** (AMOLED, kecerahan tinggi) dan **efisiensi baterai**.
-      - **Aturan Budget:** Budget adalah **BATASAN KERAS**. Jangan pernah merekomendasikan ponsel di luar budget yang ditetapkan, bahkan jika hanya selisih sedikit.
-
-    **2. Penanganan Konflik & Trade-off (SANGAT PENTING):**
-      - **Identifikasi Konflik:** Kenali jika permintaan pengguna sulit dipenuhi. Contoh: "Gaming Berat" dengan "Budget Kurang dari 2 Juta IDR".
-      - **Berikan Kompromi Terbaik:** Jika ada konflik, jangan berikan rekomendasi yang tidak masuk akal. Akui tantangan tersebut dalam field 'reason' dan berikan **rekomendasi kompromi terbaik** yang ada.
-      - **Jelaskan Trade-off:** Dalam 'reason', jelaskan trade-off yang harus diterima pengguna. Contoh: "Dengan budget ini, untuk gaming berat kita fokus pada chipset paling kencang, namun mungkin harus kompromi di kualitas kamera."
+        1.  Fokus pada kualitas **sensor kamera utama** (ukuran sensor, OIS/EIS) dan **reputasi pemrosesan gambar** brand tersebut.
+      - **Aturan Budget:** Budget adalah **BATASAN KERAS**. Jangan pernah merekomendasikan ponsel di luar budget.
 
     **3. Personalisasi Alasan (WAJIB):**
-      - Field 'reason' **TIDAK BOLEH GENERIC**. Hubungkan setiap alasan secara langsung dengan input pengguna.
+      - Field 'reason' **TIDAK BOLEH GENERIC**. Hubungkan setiap alasan secara eksplisit dengan input pengguna.
       - **Contoh Buruk:** "Ponsel ini bagus untuk multitasking."
-      - **Contoh BAIK:** "Karena kamu memprioritaskan fotografi, ponsel ini punya sensor kamera utama terbesar di kelasnya dan sudah dilengkapi OIS, cocok untuk kebutuhanmu."
+      - **Contoh BAIK:** "Karena kamu memprioritaskan fotografi dengan budget ${budget}, ponsel ini punya sensor kamera utama terbesar di kelasnya dan sudah dilengkapi OIS, sangat cocok untuk kebutuhanmu."
 
     **4. Aturan Fitur Wajib (NFC):**
-      - ${nfcRequired ? `**PENTING:** Pengguna secara eksplisit meminta NFC. SEMUA (3) rekomendasi WAJIB memiliki fitur NFC. Ini adalah syarat mutlak.` : 'Tidak ada permintaan fitur wajib spesifik.'}
+      - ${nfcRequired ? `**PENTING:** Pengguna meminta NFC. Rekomendasi WAJIB memiliki fitur NFC. Ini adalah syarat mutlak.` : 'Tidak ada permintaan fitur wajib spesifik.'}
 
     **5. Output:**
-      - Berikan 3 rekomendasi smartphone.
+      - Berikan **SATU** rekomendasi smartphone tunggal.
       - Pastikan 'estimatedPrice' akurat untuk pasar Indonesia.
-      - Kembalikan hasil dalam format JSON yang valid sesuai skema yang disediakan.`;
+      - Kembalikan hasil dalam format JSON yang valid sesuai skema yang disediakan (sebuah objek tunggal, BUKAN array).`;
 
     try {
       const response = await ai.models.generateContent({
@@ -174,8 +156,8 @@ const PhoneFinder: React.FC = () => {
         config: { responseMimeType: "application/json", responseSchema: schema }
       });
       const resultText = response.text.trim();
-      const parsedResult = JSON.parse(resultText);
-      setResults(parsedResult);
+      const parsedResult: Recommendation = JSON.parse(resultText);
+      setResult(parsedResult);
 
        // 3. Save new result to cache
         if (supabase) {
@@ -212,7 +194,7 @@ const PhoneFinder: React.FC = () => {
         </div>
         
         <div className="max-w-4xl mx-auto w-full">
-            {!results && !loading && (
+            {!result && !loading && (
               <form onSubmit={handleSubmit} className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-6 md:p-8 backdrop-blur-sm">
                   <div className="space-y-4">
                       <QuestionSection title="1. Apa aktivitas & kebutuhan utamamu?">
@@ -279,7 +261,7 @@ const PhoneFinder: React.FC = () => {
             
             <div className="animate-fade-in">
                 {loading && <ResultsSkeleton />}
-                {results && <ResultsDisplay results={results} />}
+                {result && <ResultsDisplay result={result} />}
             </div>
         </div>
       </div>
@@ -308,9 +290,8 @@ const Checkbox: FC<{ label: string; checked: boolean; onChange: () => void }> = 
 const ResultsSkeleton: FC = () => (
   <div className="mt-8 animate-pulse">
     <div className="h-7 bg-gray-700/50 rounded-md w-1/2 mx-auto mb-6"></div>
-    <div className="grid md:grid-cols-3 gap-6">
-      {[...Array(3)].map((_, i) => (
-        <div key={i} className="bg-gray-800/30 border border-gray-700 rounded-2xl p-5 space-y-4">
+    <div className="max-w-md mx-auto">
+        <div className="bg-gray-800/30 border border-gray-700 rounded-2xl p-5 space-y-4">
           <div className="h-6 bg-gray-700/50 rounded-md w-3/4"></div>
           <div className="h-5 bg-gray-600/50 rounded-md w-1/3"></div>
           <div className="h-4 bg-gray-600/50 rounded-md w-full"></div>
@@ -319,30 +300,35 @@ const ResultsSkeleton: FC = () => (
           <div className="h-4 bg-gray-600/50 rounded-md w-full"></div>
           <div className="h-4 bg-gray-600/50 rounded-md w-full"></div>
         </div>
-      ))}
     </div>
   </div>
 );
 
-const ResultsDisplay: FC<{ results: AIResponse }> = ({ results }) => (
-  <div className="mt-8 animate-fade-in">
-    <h2 className="font-orbitron text-2xl font-bold text-center mb-6 text-indigo-300">Rekomendasi Terbaik Untukmu</h2>
-    <div className="grid md:grid-cols-3 gap-6">
-      {results.recommendations.map((rec, i) => (
-        <div key={i} className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-5 flex flex-col">
-          <h3 className="font-orbitron text-xl font-bold text-white">{rec.phoneName}</h3>
-          <p className="text-fuchsia-400 font-semibold mb-3">{rec.estimatedPrice}</p>
-          <p className="text-gray-400 text-sm mb-4 flex-grow text-justify">{rec.reason}</p>
-          <div>
-            <h4 className="font-semibold text-indigo-400 mb-2 text-sm">Fitur Unggulan:</h4>
-            <ul className="list-disc list-inside space-y-1 text-sm text-gray-300">
-              {rec.keyFeatures.map((feat, j) => <li key={j}>{feat}</li>)}
-            </ul>
+const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
+    const shareText = `AI JAGO-HP merekomendasikan ${result.phoneName} untukku!\n\nAlasannya: ${result.reason}\n\nCari HP impianmu juga di JAGO-HP.`;
+    const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
+
+    return (
+      <div className="mt-8 animate-fade-in">
+        <h2 className="font-orbitron text-2xl font-bold text-center mb-6 text-indigo-300">Rekomendasi Terbaik Untukmu</h2>
+        <div className="max-w-md mx-auto">
+          <div className="bg-gray-800/30 border-2 border-indigo-500/30 rounded-2xl p-5 flex flex-col shadow-lg shadow-indigo-500/10">
+            <h3 className="font-orbitron text-xl font-bold text-white">{result.phoneName}</h3>
+            {result.estimatedPrice && <p className="text-fuchsia-400 font-semibold mb-3">{result.estimatedPrice}</p>}
+            <p className="text-gray-300 text-sm mb-4 flex-grow text-justify leading-relaxed">{result.reason}</p>
+            {result.keyFeatures && result.keyFeatures.length > 0 && (
+              <div className="mb-4">
+                <h4 className="font-semibold text-indigo-400 mb-2 text-sm">Fitur Unggulan:</h4>
+                <ul className="list-disc list-inside space-y-1 text-sm text-gray-300">
+                  {result.keyFeatures.map((feat, j) => <li key={j}>{feat}</li>)}
+                </ul>
+              </div>
+            )}
+            <ShareButtons shareText={shareText} shareUrl={shareUrl} />
           </div>
         </div>
-      ))}
-    </div>
-  </div>
-);
+      </div>
+    );
+};
 
 export default PhoneFinder;
