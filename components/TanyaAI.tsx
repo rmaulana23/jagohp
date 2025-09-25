@@ -15,7 +15,6 @@ interface Message {
 interface TanyaAIProps {
     isOpen: boolean;
     onClose: () => void;
-    isHomePage?: boolean;
 }
 
 const quickQuestions = [
@@ -24,7 +23,7 @@ const quickQuestions = [
     'HP daily driver yang oke tahun 2025'
 ];
 
-const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }) => {
+const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -167,9 +166,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
     
     if (!isOpen) return null;
     
-    const positionClasses = isHomePage
-        ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'
-        : 'bottom-8 right-8';
+    const positionClasses = 'bottom-24 right-6';
 
     const transitionClasses = isOpen
         ? 'opacity-100 scale-100'

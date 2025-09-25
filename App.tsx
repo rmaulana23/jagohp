@@ -56,7 +56,6 @@ const App: React.FC = () => {
       <TanyaAI 
         isOpen={isChatOpen} 
         onClose={() => setIsChatOpen(false)} 
-        isHomePage={page === 'home'}
       />
 
       {/* Floating Chat Bubble */}
