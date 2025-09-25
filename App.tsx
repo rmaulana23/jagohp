@@ -66,12 +66,12 @@ const App: React.FC = () => {
           className="fixed bottom-6 right-6 z-40 flex items-center animate-fade-in"
           aria-label="Buka Tanya AI"
         >
-          <div className="bg-[#1e293b]/90 backdrop-blur-sm text-white text-sm rounded-full px-4 py-2 mr-2 shadow-md border border-cyan-400/20">
+          <div className="bg-[#1e293b]/90 backdrop-blur-sm text-white text-sm rounded-full px-4 py-2 mr-2 shadow-md border border-indigo-500/20">
             Tanya dulu Kakak
           </div>
           <div
-            className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
-                       shadow-lg shadow-cyan-500/30"
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white flex items-center justify-center
+                       shadow-lg shadow-indigo-500/30"
           >
             <SparklesIcon className="w-7 h-7" />
           </div>

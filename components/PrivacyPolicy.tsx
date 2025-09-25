@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 const PrivacyPolicy: React.FC = () => {
@@ -50,17 +51,17 @@ const PrivacyPolicy: React.FC = () => {
   return (
     <section id="privacy" className="flex-grow flex flex-col items-center justify-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
       <div className="container mx-auto max-w-4xl animate-fade-in">
-        <div className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-6 md:p-10 backdrop-blur-sm">
+        <div className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-6 md:p-10 backdrop-blur-sm">
           <div className="text-center mb-10">
-            <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
+            <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
               Kebijakan Privasi
             </h1>
           </div>
           <div className="space-y-6 text-sm">
             <p className="text-gray-300 leading-relaxed text-center">Selamat datang di JAGO-HP. Privasi pengunjung adalah hal yang sangat penting bagi kami. Dokumen Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi informasi yang diperoleh dari pengguna situs.</p>
             {policySections.map((section, index) => (
-              <div key={index} className="border-t border-cyan-400/20 pt-5">
-                <h3 className="font-orbitron text-lg font-bold text-cyan-300 mb-2">
+              <div key={index} className="border-t border-indigo-500/20 pt-5">
+                <h3 className="font-orbitron text-lg font-bold text-indigo-300 mb-2">
                   {section.title}
                 </h3>
                 <p className="text-gray-300 leading-relaxed">

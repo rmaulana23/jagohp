@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, FC } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -201,7 +202,7 @@ const PhoneFinder: React.FC = () => {
       <div className="w-full">
         <div className="max-w-4xl mx-auto text-center">
             <div className="mb-4">
-              <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
+              <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
                 Smart Pick
               </h1>
               <p className="text-base text-gray-400 mt-2 pb-1">
@@ -212,7 +213,7 @@ const PhoneFinder: React.FC = () => {
         
         <div className="max-w-4xl mx-auto w-full">
             {!results && !loading && (
-              <form onSubmit={handleSubmit} className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-6 md:p-8 backdrop-blur-sm">
+              <form onSubmit={handleSubmit} className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-6 md:p-8 backdrop-blur-sm">
                   <div className="space-y-4">
                       <QuestionSection title="1. Apa aktivitas & kebutuhan utamamu?">
                           <div className="grid grid-cols-2 gap-3">
@@ -234,16 +235,16 @@ const PhoneFinder: React.FC = () => {
                                   max="5"
                                   value={cameraPriority}
                                   onChange={e => setCameraPriority(parseInt(e.target.value))}
-                                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-cyan-400"
+                                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-indigo-400"
                               />
-                              <span className="mt-1 text-cyan-300 font-semibold text-sm">{["Tidak Penting", "Kurang Penting", "Cukup Penting", "Penting", "Sangat Penting"][cameraPriority - 1]}</span>
+                              <span className="mt-1 text-indigo-300 font-semibold text-sm">{["Tidak Penting", "Kurang Penting", "Cukup Penting", "Penting", "Sangat Penting"][cameraPriority - 1]}</span>
                           </div>
                       </QuestionSection>
                       <QuestionSection title="3. Berapa budget maksimalmu?">
                           <select
                               value={budget}
                               onChange={e => setBudget(e.target.value)}
-                              className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-lg p-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all"
+                              className="w-full bg-gray-900/50 border-2 border-indigo-500/50 rounded-lg p-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
                           >
                               {budgetOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                           </select>
@@ -255,7 +256,7 @@ const PhoneFinder: React.FC = () => {
                               value={otherPrefs}
                               onChange={e => setOtherPrefs(e.target.value)}
                               placeholder="Misal: Suka merk Samsung..."
-                              className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-lg p-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all"
+                              className="w-full bg-gray-900/50 border-2 border-indigo-500/50 rounded-lg p-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
                           />
                       </QuestionSection>
                   </div>
@@ -264,7 +265,7 @@ const PhoneFinder: React.FC = () => {
                       <button
                           type="submit"
                           disabled={loading}
-                          className="font-orbitron text-lg font-bold w-full max-w-sm h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group bg-gradient-to-r from-cyan-500 to-green-500 disabled:opacity-50"
+                          className="font-orbitron text-lg font-bold w-full max-w-sm h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group bg-gradient-to-r from-indigo-500 to-fuchsia-500 disabled:opacity-50"
                       >
                           <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center gap-3">
                               {loading ? 'Menganalisis...' : 'Cari Rekomendasi'}
@@ -289,15 +290,15 @@ const PhoneFinder: React.FC = () => {
 // --- Sub-components ---
 const QuestionSection: FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <div>
-    <h3 className="font-orbitron text-base font-bold text-cyan-300 mb-2">{title}</h3>
+    <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">{title}</h3>
     {children}
   </div>
 );
 
 const Checkbox: FC<{ label: string; checked: boolean; onChange: () => void }> = ({ label, checked, onChange }) => (
-  <label className={`flex items-center p-2 rounded-lg cursor-pointer transition-all duration-200 border-2 ${checked ? 'bg-cyan-500/20 border-cyan-400' : 'bg-gray-900/50 border-gray-700 hover:border-gray-500'}`}>
+  <label className={`flex items-center p-2 rounded-lg cursor-pointer transition-all duration-200 border-2 ${checked ? 'bg-indigo-500/20 border-indigo-400' : 'bg-gray-900/50 border-gray-700 hover:border-gray-500'}`}>
     <input type="checkbox" checked={checked} onChange={onChange} className="hidden" />
-    <div className={`w-5 h-5 rounded border-2 ${checked ? 'bg-cyan-400 border-cyan-400' : 'border-gray-500'} flex items-center justify-center mr-3 flex-shrink-0`}>
+    <div className={`w-5 h-5 rounded border-2 ${checked ? 'bg-indigo-400 border-indigo-400' : 'border-gray-500'} flex items-center justify-center mr-3 flex-shrink-0`}>
       {checked && <svg className="w-3 h-3 text-gray-900" viewBox="0 0 24 24" fill="currentColor"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg>}
     </div>
     <span className="text-sm">{label}</span>
@@ -325,15 +326,15 @@ const ResultsSkeleton: FC = () => (
 
 const ResultsDisplay: FC<{ results: AIResponse }> = ({ results }) => (
   <div className="mt-8 animate-fade-in">
-    <h2 className="font-orbitron text-2xl font-bold text-center mb-6 text-cyan-300">Rekomendasi Terbaik Untukmu</h2>
+    <h2 className="font-orbitron text-2xl font-bold text-center mb-6 text-indigo-300">Rekomendasi Terbaik Untukmu</h2>
     <div className="grid md:grid-cols-3 gap-6">
       {results.recommendations.map((rec, i) => (
-        <div key={i} className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-5 flex flex-col">
+        <div key={i} className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-5 flex flex-col">
           <h3 className="font-orbitron text-xl font-bold text-white">{rec.phoneName}</h3>
-          <p className="text-green-400 font-semibold mb-3">{rec.estimatedPrice}</p>
+          <p className="text-fuchsia-400 font-semibold mb-3">{rec.estimatedPrice}</p>
           <p className="text-gray-400 text-sm mb-4 flex-grow text-justify">{rec.reason}</p>
           <div>
-            <h4 className="font-semibold text-cyan-400 mb-2 text-sm">Fitur Unggulan:</h4>
+            <h4 className="font-semibold text-indigo-400 mb-2 text-sm">Fitur Unggulan:</h4>
             <ul className="list-disc list-inside space-y-1 text-sm text-gray-300">
               {rec.keyFeatures.map((feat, j) => <li key={j}>{feat}</li>)}
             </ul>

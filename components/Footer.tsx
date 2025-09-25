@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface FooterProps {
@@ -14,21 +15,21 @@ const Footer: React.FC<FooterProps> = ({ setPage }) => {
         <span className="hidden sm:inline text-gray-600">|</span>
         <button
           onClick={() => setPage('faq')}
-          className="text-sm text-gray-400 hover:text-cyan-400 transition-colors duration-300"
+          className="text-sm text-gray-400 hover:text-indigo-400 transition-colors duration-300"
         >
           FAQ
         </button>
         <span className="hidden sm:inline text-gray-600">|</span>
         <button
           onClick={() => setPage('partnership')}
-          className="text-sm text-gray-400 hover:text-cyan-400 transition-colors duration-300"
+          className="text-sm text-gray-400 hover:text-indigo-400 transition-colors duration-300"
         >
           Partnership
         </button>
         <span className="hidden sm:inline text-gray-600">|</span>
         <button
           onClick={() => setPage('privacy')}
-          className="text-sm text-gray-400 hover:text-cyan-400 transition-colors duration-300"
+          className="text-sm text-gray-400 hover:text-indigo-400 transition-colors duration-300"
         >
           Privacy Policy
         </button>

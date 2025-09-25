@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
@@ -285,7 +286,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
             <div className="w-full">
                 <div className="max-w-4xl mx-auto text-center">
                      <div className="mb-6">
-                        <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
+                        <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
                             Ulasan Cepat
                         </h1>
                         <p className="text-base text-gray-400 max-w-4xl mx-auto mt-2 pb-1">
@@ -300,15 +301,15 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Tuliskan tipe HP untuk direview, misal: iPhone 17..."
-                            className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-full py-3 pl-5 pr-16 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-300"
+                            placeholder="Tuliskan tipe HP, misal: iPhone 17..."
+                            className="w-full bg-gray-900/50 border-2 border-indigo-500/50 rounded-full py-3 pl-5 pr-16 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-300"
                             aria-label="Smartphone search input"
                         />
                         <button
                             type="submit"
                             disabled={loading}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
-                                       hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white flex items-center justify-center
+                                       hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Search for smartphone review"
                         >
                             {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <SearchIcon />}
@@ -359,7 +360,7 @@ const ReviewSkeleton: FC = () => (
 
         {/* Tabs Skeleton */}
         <div className="flex space-x-4 border-b border-gray-700">
-             <div className="h-9 bg-cyan-500/20 rounded-t-md w-24"></div>
+             <div className="h-9 bg-indigo-500/20 rounded-t-md w-24"></div>
             <div className="h-9 bg-gray-700/50 rounded-t-md w-24"></div>
             <div className="h-9 bg-gray-700/50 rounded-t-md w-24"></div>
         </div>
@@ -385,20 +386,20 @@ const ReviewResultDisplay: FC<{ review: ReviewResult }> = ({ review }) => {
     ];
 
     return (
-        <div className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-5 md:p-6 text-left backdrop-blur-sm animate-fade-in space-y-6">
+        <div className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-5 md:p-6 text-left backdrop-blur-sm animate-fade-in space-y-6">
             <h2 className="font-orbitron text-2xl font-bold text-center mb-2">{review.phoneName}</h2>
 
             <RatingsDisplay ratings={review.ratings} />
 
             {/* Tab Navigation */}
-            <div className="border-b border-cyan-400/20 flex space-x-2 sm:space-x-4">
+            <div className="border-b border-indigo-500/20 flex space-x-2 sm:space-x-4">
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`font-orbitron font-semibold text-sm px-3 sm:px-4 py-2 transition-all duration-300 rounded-t-lg -mb-px
                             ${activeTab === tab.id 
-                                ? 'border-b-2 border-cyan-400 bg-cyan-500/10 text-cyan-300' 
+                                ? 'border-b-2 border-indigo-400 bg-indigo-500/10 text-indigo-300' 
                                 : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'}`
                         }
                     >
@@ -444,7 +445,7 @@ const RatingsDisplay: FC<{ ratings: Ratings }> = ({ ratings }) => {
     ];
 
     return (
-        <div className="border-y border-cyan-400/20 py-5 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5">
+        <div className="border-y border-indigo-500/20 py-5 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5">
             {ratingCategories.map(({ key, label }) => (
                 <div key={key}>
                     <p className="text-sm text-gray-400 font-semibold mb-1">{label}</p>
@@ -467,7 +468,7 @@ const SummaryTab: FC<{ review: ReviewResult }> = ({ review }) => (
             <p className="text-gray-300 mb-5 text-justify text-sm leading-relaxed">{review.quickReview.summary}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
                 <div>
-                    <h5 className="text-base font-semibold text-green-400 mb-2">Kelebihan</h5>
+                    <h5 className="text-base font-semibold text-fuchsia-400 mb-2">Kelebihan</h5>
                     <ul className="list-disc list-inside space-y-1 text-gray-300 text-justify">
                         {review.quickReview.pros.map((pro, i) => <li key={`pro-${i}`}>{pro}</li>)}
                     </ul>
@@ -493,7 +494,7 @@ const SummaryTab: FC<{ review: ReviewResult }> = ({ review }) => (
         <ReviewSection title="Cocok Untuk Siapa">
             <div className="flex flex-wrap gap-2">
                 {review.targetAudience.map((user, i) => (
-                    <span key={`user-${i}`} className="bg-cyan-500/10 text-cyan-300 text-xs font-medium px-2.5 py-1 rounded-full">{user}</span>
+                    <span key={`user-${i}`} className="bg-indigo-500/10 text-indigo-300 text-xs font-medium px-2.5 py-1 rounded-full">{user}</span>
                 ))}
             </div>
         </ReviewSection>
@@ -525,11 +526,11 @@ const PerformanceTab: FC<{ performance: ReviewResult['performance'], phoneName: 
                 <div className="flex flex-col sm:flex-row gap-6">
                     <div className="text-center bg-gray-900/40 p-3 rounded-lg flex-1">
                         <p className="text-sm text-gray-400">AnTuTu v10</p>
-                        <p className="font-orbitron text-3xl font-bold text-green-400">{performance.antutuScore.toLocaleString('id-ID')}</p>
+                        <p className="font-orbitron text-3xl font-bold text-fuchsia-400">{performance.antutuScore.toLocaleString('id-ID')}</p>
                     </div>
                      <div className="text-center bg-gray-900/40 p-3 rounded-lg flex-1">
                         <p className="text-sm text-gray-400">Geekbench 6</p>
-                        <p className="font-orbitron text-xl font-bold text-cyan-400">{performance.geekbenchScore}</p>
+                        <p className="font-orbitron text-xl font-bold text-indigo-400">{performance.geekbenchScore}</p>
                     </div>
                 </div>
             </ReviewSection>
@@ -543,7 +544,7 @@ const PerformanceTab: FC<{ performance: ReviewResult['performance'], phoneName: 
                                 <div className="w-1/3 text-sm text-gray-300 truncate">{phone.name}</div>
                                 <div className="w-2/3 bg-gray-700/50 rounded-full h-5">
                                     <div 
-                                        className={`h-5 rounded-full flex items-center justify-end pr-2 ${isMainPhone ? 'bg-gradient-to-r from-cyan-500 to-green-500' : 'bg-gray-500'}`}
+                                        className={`h-5 rounded-full flex items-center justify-end pr-2 ${isMainPhone ? 'bg-gradient-to-r from-indigo-500 to-fuchsia-500' : 'bg-gray-500'}`}
                                         style={{ width: `${widthPercentage}%` }}
                                     >
                                        <span className="text-xs font-bold text-white shadow-sm">{phone.antutuScore.toLocaleString('id-ID')}</span>
@@ -575,7 +576,7 @@ const CameraTab: FC<{ assessment: ReviewResult['cameraAssessment'] }> = ({ asses
             <p className="text-gray-300 mb-5 text-justify text-sm leading-relaxed">{assessment.photoSummary}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
                  <div>
-                    <h5 className="text-base font-semibold text-green-400 mb-2">Kelebihan Foto</h5>
+                    <h5 className="text-base font-semibold text-fuchsia-400 mb-2">Kelebihan Foto</h5>
                     <ul className="list-disc list-inside space-y-1 text-gray-300 text-justify">
                         {assessment.photoPros.map((pro, i) => <li key={`photo-pro-${i}`}>{pro}</li>)}
                     </ul>
@@ -595,8 +596,8 @@ const CameraTab: FC<{ assessment: ReviewResult['cameraAssessment'] }> = ({ asses
 );
 
 const ReviewSection: FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
-    <div className="border-t border-cyan-400/20 pt-5 first-of-type:border-t-0 first-of-type:pt-0">
-        <h3 className="font-orbitron text-lg font-bold text-cyan-400 mb-3">{title}</h3>
+    <div className="border-t border-indigo-500/20 pt-5 first-of-type:border-t-0 first-of-type:pt-0">
+        <h3 className="font-orbitron text-lg font-bold text-indigo-400 mb-3">{title}</h3>
         {children}
     </div>
 );

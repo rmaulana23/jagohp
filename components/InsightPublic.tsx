@@ -1,3 +1,4 @@
+
 import React, { FC, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, LabelList } from 'recharts';
@@ -19,7 +20,7 @@ const pollOptions: Omit<PollData, 'votes'>[] = [
     { name: 'Android Lainnya', emoji: '🤖' },
 ];
 
-const COLORS = ['#22d3ee', '#34d399', '#a78bfa', '#f87171', '#fbbf24', '#60a5fa', '#f472b6', '#818cf8'];
+const COLORS = ['#818cf8', '#d946ef', '#c084fc', '#fb7185', '#fbbf24', '#38bdf8', '#a78bfa', '#64748b'];
 
 const InsightPublic: React.FC = () => {
     const [pollData, setPollData] = useState<PollData[]>([]);
@@ -138,7 +139,7 @@ const InsightPublic: React.FC = () => {
         <section id="insight" className="flex-grow flex flex-col items-center pt-24 pb-4 px-4 sm:px-6 md:px-12 w-full">
             <div className="container mx-auto max-w-7xl animate-fade-in">
                 <div className="text-center mb-4">
-                    <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
+                    <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
                         Polling Netizen
                     </h1>
                     <p className="text-base text-gray-400 mt-2 pb-1">
@@ -147,8 +148,8 @@ const InsightPublic: React.FC = () => {
                 </div>
 
                 <div className="w-full">
-                    <div className="bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-5 md:p-6 backdrop-blur-sm flex flex-col">
-                        <h2 className="font-orbitron text-xl font-bold mb-1 text-cyan-300">Polling: HP dengan Ekosistem OS/UI Terbaik</h2>
+                    <div className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-5 md:p-6 backdrop-blur-sm flex flex-col">
+                        <h2 className="font-orbitron text-xl font-bold mb-1 text-indigo-300">Polling: HP dengan Ekosistem OS/UI Terbaik</h2>
                         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 min-h-[36px]">
                             <p className="text-gray-400 text-sm text-center sm:text-left mb-2 sm:mb-0 flex-grow">
                                 {hasVoted 
@@ -160,7 +161,7 @@ const InsightPublic: React.FC = () => {
                         </div>
                         {errorPoll && <p className="text-red-400 text-center text-sm mb-4">{errorPoll}</p>}
                         <div className="w-full h-[340px]">
-                            {loadingPoll ? <div className="flex justify-center items-center h-full"><div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div></div> : (
+                            {loadingPoll ? <div className="flex justify-center items-center h-full"><div className="w-8 h-8 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin"></div></div> : (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart
                                         data={chartData}
@@ -187,7 +188,7 @@ const InsightPublic: React.FC = () => {
                                                     return (
                                                         <div className="bg-gray-900/80 backdrop-blur-sm p-3 border border-gray-600 rounded-lg shadow-lg">
                                                             <p className="font-bold text-white">{`${data.name}`}</p>
-                                                            <p className="text-cyan-400">{`Pilihan Publik: ${data.percentage}%`}</p>
+                                                            <p className="text-indigo-400">{`Pilihan Publik: ${data.percentage}%`}</p>
                                                             <p className="text-gray-400 text-xs">{`(${data.votes.toLocaleString('id-ID')} suara)`}</p>
                                                         </div>
                                                     );
@@ -210,7 +211,7 @@ const InsightPublic: React.FC = () => {
                                                     key={`cell-${index}`} 
                                                     fill={
                                                         hasVoted
-                                                            ? (entry.name === votedFor ? '#34d399' : '#4b5563')
+                                                            ? (entry.name === votedFor ? '#d946ef' : '#4b5563')
                                                             : COLORS[index % COLORS.length]
                                                     }
                                                     className="transition-opacity duration-300"
@@ -244,7 +245,7 @@ const CustomYAxisTick: FC<any> = ({ x, y, payload, onVote, votedFor, isVoting })
                          <button 
                             onClick={() => onVote(brandName)}
                             disabled={isVoting}
-                            className="text-xs font-bold text-cyan-400 hover:text-white bg-cyan-500/10 hover:bg-cyan-500/20 px-2 py-0.5 rounded-md transition-colors disabled:opacity-50"
+                            className="text-xs font-bold text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-0.5 rounded-md transition-colors disabled:opacity-50"
                         >
                             Vote
                         </button>

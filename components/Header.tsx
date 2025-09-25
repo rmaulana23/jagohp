@@ -21,7 +21,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
   };
 
   return (
-    <header className="py-3 px-6 md:px-12 backdrop-blur-sm bg-[#0a0f1f]/60 border-b border-cyan-400/20 fixed top-0 left-0 right-0 z-50">
+    <header className="py-3 px-6 md:px-12 backdrop-blur-sm bg-[#0a0f1f]/60 border-b border-indigo-500/20 fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
         {/* Left: Logo & Title */}
         <a href="#" className="flex items-center space-x-3 cursor-pointer" onClick={(e) => handleNavClick(e, 'home')}>
@@ -30,7 +30,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
             <span className="font-orbitron text-xl font-bold tracking-wider text-white leading-tight">
               JAGO-HP
             </span>
-            <span className="hidden md:inline text-xs font-normal tracking-wide text-cyan-400/70">
+            <span className="hidden md:inline text-xs font-normal tracking-wide text-indigo-400/70">
               #1 Review HP with AI di Indonesia
             </span>
           </div>
@@ -46,10 +46,10 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
                   <a
                     href="#"
                     onClick={(e) => handleNavClick(e, item.key)}
-                    className={`transition-colors duration-300 text-sm font-semibold tracking-wide relative group ${isActive ? 'text-cyan-400' : 'text-gray-300 hover:text-cyan-400'}`}
+                    className={`transition-colors duration-300 text-sm font-semibold tracking-wide relative group ${isActive ? 'text-indigo-400' : 'text-gray-300 hover:text-indigo-400'}`}
                   >
                     {item.label}
-                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-cyan-400 transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-indigo-400 transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                   </a>
                 </li>
               )
@@ -64,8 +64,8 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
                   setPage('leaderboard');
                   setIsMobileMenuOpen(false);
               }}
-              className="hidden lg:inline-flex bg-green-500/10 border border-green-400 text-green-400 px-5 py-1.5 rounded-full text-sm font-bold 
-                         hover:bg-green-400 hover:text-[#0a0f1f] hover:shadow-lg hover:shadow-green-400/40 
+              className="hidden lg:inline-flex bg-fuchsia-500/10 border border-fuchsia-400 text-fuchsia-400 px-5 py-1.5 rounded-full text-sm font-bold 
+                         hover:bg-fuchsia-400 hover:text-[#0a0f1f] hover:shadow-lg hover:shadow-fuchsia-400/40 
                          transition-all duration-300 ease-in-out"
             >
               Top Leaderboard
@@ -99,7 +99,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
                   <a
                     href="#"
                     onClick={(e) => handleNavClick(e, item.key)}
-                    className={`transition-colors duration-300 text-base font-semibold ${isActive ? 'text-cyan-400' : 'text-gray-300 hover:text-cyan-400'}`}
+                    className={`transition-colors duration-300 text-base font-semibold ${isActive ? 'text-indigo-400' : 'text-gray-300 hover:text-indigo-400'}`}
                   >
                     {item.label}
                   </a>

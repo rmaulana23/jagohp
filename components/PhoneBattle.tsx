@@ -1,3 +1,4 @@
+
 import React, { useState, FC, useMemo } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
@@ -201,12 +202,12 @@ const PhoneBattle: React.FC = () => {
     return (
         <section id="battle" className="flex-grow flex flex-col items-center pt-24 pb-10 px-4 sm:px-6 md:px-12 relative overflow-hidden">
             <div className="absolute inset-0 z-0 opacity-10">
-                 <div className="absolute -top-24 -left-24 w-96 h-96 bg-cyan-500/20 rounded-full filter blur-3xl"></div>
-                 <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-green-500/20 rounded-full filter blur-3xl"></div>
+                 <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/20 rounded-full filter blur-3xl"></div>
+                 <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-fuchsia-500/20 rounded-full filter blur-3xl"></div>
             </div>
             <div className="container mx-auto relative z-10">
                 <div className="text-center mb-6">
-                    <h2 className="font-orbitron text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
+                    <h2 className="font-orbitron text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
                         Adu Spesifikasi HP
                     </h2>
                     <p className="text-base text-gray-400 pb-1">Adu spesifikasi tipe HP kesukaan Kalian, biar gak salah pilih.</p>
@@ -220,7 +221,7 @@ const PhoneBattle: React.FC = () => {
                                     phoneName={name}
                                     setPhoneName={(value) => handlePhoneNameChange(index, value)}
                                     placeholder="Tuliskan tipe HP"
-                                    borderColor={index === 0 ? "border-cyan-500" : index === 1 ? "border-green-500" : "border-purple-500"}
+                                    borderColor={index === 0 ? "border-indigo-500" : index === 1 ? "border-fuchsia-500" : "border-purple-500"}
                                     label={`Penantang ${index + 1}`}
                                     onRemove={index === 2 ? () => handleRemovePhone(index) : undefined}
                                 />
@@ -231,7 +232,7 @@ const PhoneBattle: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={handleAddPhone}
-                                className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors duration-300 group mt-4 lg:mt-0"
+                                className="flex items-center gap-2 text-gray-400 hover:text-indigo-400 transition-colors duration-300 group mt-4 lg:mt-0"
                                 aria-label="Tambah HP Lain"
                             >
                                 <PlusCircleIcon className="w-8 h-8"/>
@@ -245,9 +246,9 @@ const PhoneBattle: React.FC = () => {
                             disabled={loading}
                             aria-busy={loading}
                             className="font-orbitron text-lg font-bold w-64 h-14 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
-                                       bg-gradient-to-r from-cyan-500 via-purple-500 to-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                       bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <span className="absolute w-full h-full bg-gradient-to-br from-cyan-500 via-purple-500 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                            <span className="absolute w-full h-full bg-gradient-to-br from-indigo-500 via-purple-500 to-fuchsia-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                             <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
                                 {loading ? 'Membandingkan...' : 'Battle Compare'}
                             </span>
@@ -332,16 +333,16 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
                 ))}
             </div>
             <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                <div className="bg-gray-800/30 border border-cyan-400/20 rounded-2xl p-5 backdrop-blur-sm">
+                <div className="bg-gray-800/30 border border-indigo-500/20 rounded-2xl p-5 backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-3">
-                        <LightbulbIcon className="w-6 h-6 text-cyan-400"/>
+                        <LightbulbIcon className="w-6 h-6 text-indigo-400"/>
                         <h4 className="font-orbitron text-lg font-bold">Kesimpulan Hasil</h4>
                     </div>
                     <p className="text-gray-300 leading-relaxed text-sm">{result.battleSummary}</p>
                 </div>
-                <div className="bg-gray-800/30 border border-green-400/20 rounded-2xl p-5 backdrop-blur-sm">
+                <div className="bg-gray-800/30 border border-fuchsia-500/20 rounded-2xl p-5 backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-3">
-                        <UsersIcon className="w-6 h-6 text-green-400"/>
+                        <UsersIcon className="w-6 h-6 text-fuchsia-400"/>
                         <h4 className="font-orbitron text-lg font-bold">Cocok Untuk Siapa</h4>
                     </div>
                     <p className="text-gray-300 leading-relaxed text-sm whitespace-pre-line">{result.targetAudience}</p>
@@ -363,7 +364,7 @@ const ResultCard: FC<{ phone: PhoneData }> = ({ phone }) => {
         <div className={`bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-5`}>
             <h4 className="font-orbitron text-xl font-bold mb-5 truncate">{phone.name}</h4>
             <div className="mt-4">
-                 <h5 className="text-base font-semibold text-cyan-400 mb-3 font-orbitron">Spesifikasi Utama</h5>
+                 <h5 className="text-base font-semibold text-indigo-400 mb-3 font-orbitron">Spesifikasi Utama</h5>
                  <div className="space-y-1 text-sm">
                     {specOrder.map(({ key, label }, index) => {
                         const value = phone.specs[key];

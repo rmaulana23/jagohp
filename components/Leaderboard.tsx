@@ -1,3 +1,4 @@
+
 import React, { FC } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, LabelList } from 'recharts';
 
@@ -7,8 +8,7 @@ interface BrandData {
     [key: string]: any;
 }
 
-const COLORS_INDONESIA = ['#22d3ee', '#34d399', '#a78bfa', '#f87171', '#fbbf24', '#60a5fa', '#f472b6'];
-const COLORS_GLOBAL = ['#f472b6', '#60a5fa', '#a78bfa', '#f87171', '#fbbf24', '#34d399', '#9ca3af'];
+const NEW_COLORS = ['#818cf8', '#d946ef', '#c084fc', '#fb7185', '#fbbf24', '#38bdf8', '#a78bfa'];
 
 
 // --- DATA PROYEKSI 2025 ---
@@ -39,7 +39,7 @@ const Leaderboard: React.FC = () => {
     return (
         <section id="leaderboard" className="flex-grow flex flex-col items-center pt-24 pb-10 px-4 sm:px-6 md:px-12">
             <div className="container mx-auto max-w-7xl text-center">
-                <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
+                <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
                     Papan Peringkat Brand
                 </h1>
                 <p className="text-base text-gray-400 mb-8 pb-1">
@@ -50,8 +50,8 @@ const Leaderboard: React.FC = () => {
                     {/* INDONESIA LEADERBOARD */}
                     <div className="w-full lg:w-1/2 flex flex-col">
                          <h2 className="font-orbitron text-xl font-bold mb-4">Top Smartphone di Indonesia</h2>
-                         <div className="flex-grow bg-gray-800/30 border border-cyan-400/30 rounded-2xl p-4 backdrop-blur-sm flex flex-col justify-center">
-                            <ChartDisplay data={indonesiaData2025} colors={COLORS_INDONESIA} />
+                         <div className="flex-grow bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-4 backdrop-blur-sm flex flex-col justify-center">
+                            <ChartDisplay data={indonesiaData2025} colors={NEW_COLORS} />
                         </div>
                          <p className="text-xs text-gray-500 mt-3 text-center">
                             Data merupakan proyeksi 2025 berdasarkan tren Top Brand Index.
@@ -63,8 +63,8 @@ const Leaderboard: React.FC = () => {
                     {/* GLOBAL LEADERBOARD */}
                     <div className="w-full lg:w-1/2 flex flex-col">
                         <h2 className="font-orbitron text-xl font-bold mb-4">Top Smartphone di Dunia</h2>
-                        <div className="flex-grow bg-gray-800/30 border border-green-400/30 rounded-2xl p-4 backdrop-blur-sm flex flex-col justify-center">
-                            <ChartDisplay data={globalData2025} colors={COLORS_GLOBAL} />
+                        <div className="flex-grow bg-gray-800/30 border border-fuchsia-500/30 rounded-2xl p-4 backdrop-blur-sm flex flex-col justify-center">
+                            <ChartDisplay data={globalData2025} colors={[...NEW_COLORS].reverse()} />
                         </div>
                         <p className="text-xs text-gray-500 mt-3 text-center">
                             Data merupakan proyeksi 2025 berdasarkan tren pangsa pasar global.
@@ -84,7 +84,7 @@ const ChartDisplay: FC<{ data: BrandData[]; colors: string[] }> = ({ data, color
             return (
                 <div className="bg-gray-900/80 backdrop-blur-sm p-3 border border-gray-600 rounded-lg shadow-lg">
                     <p className="font-bold text-white">{`${payload[0].payload.name}`}</p>
-                    <p className="text-cyan-400">{`Market Share: ${payload[0].value}%`}</p>
+                    <p className="text-indigo-400">{`Market Share: ${payload[0].value}%`}</p>
                 </div>
             );
         }

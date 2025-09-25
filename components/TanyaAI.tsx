@@ -183,12 +183,12 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
                 aria-hidden="true"
             ></div>
             <section 
-                className={`fixed ${positionClasses} z-50 w-[calc(100%-4rem)] max-w-md h-[70vh] max-h-[550px] flex flex-col bg-[#0f172a]/80 backdrop-blur-xl border-2 border-cyan-400/30 rounded-2xl shadow-2xl shadow-cyan-500/20
+                className={`fixed ${positionClasses} z-50 w-[calc(100%-4rem)] max-w-md h-[70vh] max-h-[550px] flex flex-col bg-[#0f172a]/80 backdrop-blur-xl border-2 border-indigo-500/30 rounded-2xl shadow-2xl shadow-indigo-500/20
                            transition-all duration-300 ease-out ${transitionClasses}`}
                 aria-modal="true"
                 role="dialog"
             >
-                 <div className="flex items-center justify-between p-4 border-b border-cyan-400/20">
+                 <div className="flex items-center justify-between p-4 border-b border-indigo-500/20">
                     <div className="flex items-center gap-2">
                         <LogoIcon />
                         <h2 className="font-orbitron text-base font-bold text-white">AI Sales Assistant</h2>
@@ -209,7 +209,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
                                 <button
                                     key={i}
                                     onClick={() => sendMessage(q)}
-                                    className="text-left text-sm text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-3 py-2 rounded-lg hover:bg-cyan-500/20 transition-colors"
+                                    className="text-left text-sm text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-2 rounded-lg hover:bg-indigo-500/20 transition-colors"
                                 >
                                     {q}
                                 </button>
@@ -218,7 +218,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
                     )}
                     {loading && messages[messages.length-1]?.role !== 'model' && (
                          <div className="flex justify-start gap-3">
-                             <div className="bg-cyan-500/10 border border-cyan-400/20 p-2 rounded-full h-10 w-10 flex items-center justify-center">
+                             <div className="bg-indigo-500/10 border border-indigo-500/20 p-2 rounded-full h-10 w-10 flex items-center justify-center">
                                 <LogoIcon />
                             </div>
                             <div className="bg-gray-800/50 rounded-2xl rounded-tl-none p-4 max-w-xl self-start flex items-center">
@@ -230,7 +230,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
                 </div>
                 
                 {/* Input Form */}
-                <div className="p-4 border-t border-cyan-400/20">
+                <div className="p-4 border-t border-indigo-500/20">
                      <form onSubmit={handleFormSubmit} className="relative">
                         <textarea
                             value={input}
@@ -242,7 +242,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
                                 }
                             }}
                             placeholder="Ketik pertanyaan Anda..."
-                            className="w-full bg-gray-900/50 border-2 border-cyan-400/50 rounded-xl py-2.5 pl-4 pr-14 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 resize-none transition-all duration-300"
+                            className="w-full bg-gray-900/50 border-2 border-indigo-500/50 rounded-xl py-2.5 pl-4 pr-14 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none transition-all duration-300"
                             rows={1}
                             style={{ minHeight: '48px' }}
                             aria-label="Chat input"
@@ -250,8 +250,8 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
                         <button
                             type="submit"
                             disabled={loading || !input.trim()}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
-                                       hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white flex items-center justify-center
+                                       hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Send message"
                         >
                             <SendIcon />
@@ -270,7 +270,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
                     background-size: auto 6px;
                     background-repeat: no-repeat;
                     animation: typing-anim 1s infinite;
-                    color: #67e8f9;
+                    color: #818cf8;
                 }
                 @keyframes typing-anim {
                     0%, 100% { background-position: 3px 12px, 12px 12px, 21px 12px; }
@@ -279,8 +279,8 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, isHomePage = false }
                     75% { background-position: 3px 12px, 12px 12px, 21px 6px; }
                 }
                 .prose { color: #d1d5db; }
-                .prose strong { color: #a5f3fc; }
-                .prose ul > li::before { background-color: #2dd4bf; }
+                .prose strong { color: #a5b4fc; }
+                .prose ul > li::before { background-color: #818cf8; }
              `}</style>
         </section>
         </>
@@ -295,7 +295,7 @@ const ChatMessage: FC<{ message: Message }> = ({ message }) => {
         // This is a placeholder for the streaming response, render a typing indicator
         return (
             <div className="flex justify-start gap-3 animate-fade-in">
-                <div className="bg-cyan-500/10 border border-cyan-400/20 p-2 rounded-full h-10 w-10 flex items-center justify-center">
+                <div className="bg-indigo-500/10 border border-indigo-500/20 p-2 rounded-full h-10 w-10 flex items-center justify-center">
                     <LogoIcon />
                 </div>
                 <div className="bg-gray-800/50 rounded-2xl rounded-tl-none p-4 max-w-xl self-start flex items-center">
@@ -318,14 +318,14 @@ const ChatMessage: FC<{ message: Message }> = ({ message }) => {
     return (
         <div className={`flex items-start gap-3 ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}>
             {!isUser && (
-                <div className="bg-cyan-500/10 border border-cyan-400/20 p-2 rounded-full h-10 w-10 flex items-center justify-center flex-shrink-0">
+                <div className="bg-indigo-500/10 border border-indigo-500/20 p-2 rounded-full h-10 w-10 flex items-center justify-center flex-shrink-0">
                     <LogoIcon />
                 </div>
             )}
             <div
                 className={`rounded-2xl p-3 max-w-full break-words ${
                     isUser
-                        ? 'bg-cyan-500/20 rounded-br-none'
+                        ? 'bg-indigo-500/20 rounded-br-none'
                         : 'bg-gray-800/50 rounded-tl-none prose'
                 }`}
             >
