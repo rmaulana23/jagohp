@@ -1,4 +1,3 @@
-
 import React, { useState, FC, useMemo } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
@@ -7,12 +6,14 @@ import LightbulbIcon from './icons/LightbulbIcon';
 import UsersIcon from './icons/UsersIcon';
 import PlusCircleIcon from './icons/PlusCircleIcon';
 import XCircleIcon from './icons/XCircleIcon';
+import CrownIcon from './icons/CrownIcon';
 
 
 // --- INTERFACES (UPDATED FOR ARRAY) ---
 interface SpecDetails {
     os?: string;
     processor?: string;
+    antutuScore?: number;
     jaringan?: string;
     wifi?: string;
     display?: string;
@@ -21,7 +22,7 @@ interface SpecDetails {
     charging?: string;
     koneksi?: string;
     nfc?: string;
-    [key: string]: string | undefined;
+    [key: string]: string | number | undefined;
 }
 
 interface PhoneData {
@@ -46,6 +47,7 @@ const PhoneBattle: React.FC = () => {
     const phoneSpecProperties = {
         os: { type: Type.STRING },
         processor: { type: Type.STRING },
+        antutuScore: { type: Type.INTEGER, description: "Skor benchmark AnTuTu v10 sebagai angka integer." },
         jaringan: { type: Type.STRING },
         wifi: { type: Type.STRING, description: "Standar Wi-Fi yang didukung. Contoh: 'Wi-Fi 6e, 7'" },
         display: { type: Type.STRING },
@@ -151,7 +153,7 @@ const PhoneBattle: React.FC = () => {
 
         **Sumber Data dan Aturan Akurasi (SANGAT PENTING):**
         - **Spesifikasi Umum:** Prioritaskan data dari GSMArena.
-        - **Performa:** Untuk perbandingan yang adil, WAJIB gunakan skor dari **AnTuTu v10** dan **Geekbench 6** untuk SEMUA ponsel. Rujuk pada sumber seperti GSMArena, Kimovil, atau NanoReview.
+        - **Performa (SANGAT PENTING):** Untuk perbandingan yang adil, WAJIB gunakan skor dari **AnTuTu v10** dan **Geekbench 6**. Rujuk pada sumber seperti GSMArena, Kimovil, atau NanoReview. **Sertakan skor AnTuTu v10 sebagai angka integer di field \`antutuScore\` dalam objek \`specs\` untuk setiap ponsel.**
         - **Konsistensi:** Pastikan semua data (terutama skor benchmark) berasal dari sumber dan metodologi yang sama untuk menjaga objektivitas perbandingan.
         - **Data Terbaru:** Selalu gunakan data yang paling relevan per tanggal hari ini.
 
@@ -325,11 +327,30 @@ const BattleSkeleton: FC<{ phoneCount: number }> = ({ phoneCount }) => (
 
 const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
     const gridColsClass = result.phones.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2';
+
+    const winnerIndex = useMemo(() => {
+        if (!result?.phones || result.phones.length === 0) return -1;
+
+        let maxScore = -1;
+        let winnerIdx = -1;
+
+        result.phones.forEach((phone, index) => {
+            const score = phone.specs.antutuScore;
+            if (score && score > maxScore) {
+                maxScore = score;
+                winnerIdx = index;
+            }
+        });
+        
+        // Only declare a winner if at least one phone has a valid score > 0
+        return maxScore > 0 ? winnerIdx : -1;
+    }, [result]);
+
     return (
         <div className="space-y-10 animate-fade-in">
             <div className={`grid grid-cols-1 ${gridColsClass} gap-6`}>
                 {result.phones.map((phone, index) => (
-                     <ResultCard key={index} phone={phone} />
+                     <ResultCard key={index} phone={phone} isWinner={index === winnerIndex} />
                 ))}
             </div>
             <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
@@ -352,27 +373,37 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
     );
 };
 
-const ResultCard: FC<{ phone: PhoneData }> = ({ phone }) => {
+const ResultCard: FC<{ phone: PhoneData; isWinner: boolean; }> = ({ phone, isWinner }) => {
     const specOrder: { key: keyof SpecDetails; label: string }[] = [
-        { key: 'os', label: 'OS' }, { key: 'processor', label: 'Prosesor' }, { key: 'jaringan', label: 'Jaringan' },
-        { key: 'wifi', label: 'Wi-Fi' }, { key: 'display', label: 'Display' }, { key: 'camera', label: 'Kamera' },
-        { key: 'battery', label: 'Baterai' }, { key: 'charging', label: 'Charging' }, { key: 'koneksi', label: 'Koneksi' },
-        { key: 'nfc', label: 'NFC' },
+        { key: 'os', label: 'OS' }, { key: 'processor', label: 'Prosesor' }, { key: 'antutuScore', label: 'AnTuTu v10' },
+        { key: 'jaringan', label: 'Jaringan' }, { key: 'wifi', label: 'Wi-Fi' }, { key: 'display', label: 'Display' },
+        { key: 'camera', label: 'Kamera' }, { key: 'battery', label: 'Baterai' }, { key: 'charging', label: 'Charging' },
+        { key: 'koneksi', label: 'Koneksi' }, { key: 'nfc', label: 'NFC' },
     ];
 
     return (
-        <div className={`bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-5`}>
-            <h4 className="font-orbitron text-xl font-bold mb-5 truncate">{phone.name}</h4>
+        <div className={`relative bg-gray-800/20 border-2 rounded-2xl p-5 transition-all duration-300 ${isWinner ? 'border-yellow-400 shadow-lg shadow-yellow-400/20' : 'border-gray-700'}`}>
+            {isWinner && (
+                <div className="absolute top-2 right-2">
+                    <CrownIcon className="w-6 h-6 text-yellow-400" />
+                </div>
+            )}
+            <h4 className="font-orbitron text-xl font-bold mb-5 truncate pr-8">{phone.name}</h4>
             <div className="mt-4">
                  <h5 className="text-base font-semibold text-indigo-400 mb-3 font-orbitron">Spesifikasi Utama</h5>
                  <div className="space-y-1 text-sm">
                     {specOrder.map(({ key, label }, index) => {
                         const value = phone.specs[key];
                         if (!value) return null;
+
+                        const formattedValue = key === 'antutuScore' && typeof value === 'number'
+                            ? value.toLocaleString('id-ID')
+                            : value;
+                        
                         return (
                             <div key={key} className={`flex justify-between gap-4 p-2 rounded-md ${index % 2 === 0 ? 'bg-gray-700/20' : ''}`}>
                                 <span className="font-semibold text-gray-400">{label}</span>
-                                <span className="text-right text-white font-medium">{value}</span>
+                                <span className="text-right text-white font-medium">{formattedValue}</span>
                             </div>
                         )
                     })}
