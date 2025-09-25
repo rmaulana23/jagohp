@@ -103,8 +103,8 @@ const PhoneFinder: React.FC = () => {
     const cameraPriorityText = ["Tidak penting", "Kurang penting", "Cukup penting", "Penting", "Sangat penting"][cameraPriority - 1];
     const today = new Date().toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
-    const nfcRequired = activities.includes("Butuh NFC");
-    const mainActivities = activities.filter(act => act !== "Butuh NFC").join(', ') || "Tidak ada preferensi spesifik";
+    const nfcRequired = activities.includes("Koneksi NFC");
+    const mainActivities = activities.filter(act => act !== "Koneksi NFC").join(', ') || "Tidak ada preferensi spesifik";
 
     const prompt = `**Peran Anda:** Anda adalah seorang Ahli Rekomendasi Gadget yang sangat cerdas dan berpengalaman, dengan fokus utama pada pasar smartphone di Indonesia. Tugas Anda adalah memberikan **SATU rekomendasi smartphone TUNGGAL** yang paling TEPAT dan PRESISI, bukan hanya yang paling mahal atau populer, berdasarkan kuesioner pengguna.
 
@@ -115,7 +115,7 @@ const PhoneFinder: React.FC = () => {
     ---
 
     **Kuesioner Pengguna (Input):**
-    - **Aktivitas Utama:** ${mainActivities}
+    - **Aktivitas Utama & Kebutuhan Fitur:** ${mainActivities}
     - **Prioritas Kualitas Kamera:** ${cameraPriorityText} (skala ${cameraPriority}/5)
     - **Budget Maksimal:** ${budget}
     - **Preferensi Lainnya:** ${otherPrefs || "Tidak ada"}
@@ -124,33 +124,35 @@ const PhoneFinder: React.FC = () => {
 
     **PROSES ANALISIS DAN ATURAN WAJIB (SANGAT PENTING):**
 
-    **1. Aturan Filter Merek (Prioritas Tertinggi):**
-      - **Analisis Preferensi:** Periksa input 'Preferensi Lainnya'. Jika pengguna menyebutkan nama merek (contoh: "Suka merk Samsung", "harus Oppo", "selain iPhone"), Anda **WAJIB** mematuhi preferensi ini.
-      - **Filter Mutlak:** Rekomendasi **HARUS** berasal dari merek yang diminta. Jika tidak ada HP dari merek tersebut yang cocok dengan kriteria lain (budget, aktivitas), Anda **WAJIB** menjelaskannya di field 'reason' dan jangan merekomendasikan merek lain sama sekali. Field 'phoneName' bisa berisi "Tidak ada rekomendasi yang cocok".
+    **LANGKAH 1: SINTESIS PROFIL PENGGUNA (Langkah Wajib Pertama)**
+    -   Sebelum mencari HP, Anda **WAJIB** membuat profil singkat pengguna di dalam "pikiran" Anda. Sintesiskan semua input menjadi sebuah persona.
+    -   **Contoh Profil Mental:** "Pengguna ini adalah seorang *visual enthusiast* dengan budget menengah yang memprioritaskan estetika dan pengalaman scrolling mulus (dari pilihan 'Desain Cantik, Layar 120 Hz'), namun tidak terlalu peduli dengan kamera (dari skala prioritas kamera yang rendah)." ATAU "Pengguna ini adalah seorang *power user* yang butuh baterai super awet untuk produktivitas, budget terbatas."
 
-    **2. Analisis Logika Prioritas (Inti Kecerdasan Anda):**
-      - **Timbang Bobot:** Analisis setiap jawaban pengguna untuk menentukan bobot prioritas.
-      - **Jika "Gaming Berat" dipilih:** Secara **AGRESIF**, prioritaskan ponsel dengan:
-        1.  **Chipset Performa Tertinggi** di kelas harganya (misal: Snapdragon 8 series, Dimensity 9000 series).
-        2.  **Layar** dengan Refresh Rate **120Hz ke atas** dan response time cepat.
-        3.  Sistem **pendingin** yang baik dan **baterai besar**.
-      - **Jika "Fotografi & Videografi" dipilih ATAU Prioritas Kamera Sangat Penting (4-5/5):**
-        1.  Fokus pada kualitas **sensor kamera utama** (ukuran sensor, OIS/EIS) dan **reputasi pemrosesan gambar** brand tersebut.
-      - **Jika "Baterai Besar" dipilih:** Prioritaskan ponsel dengan kapasitas baterai di atas rata-rata (misalnya, 5000mAh ke atas) dan efisiensi daya chipset yang baik.
-      - **Aturan Budget:** Budget adalah **BATASAN KERAS**. Jangan pernah merekomendasikan ponsel di luar budget.
+    **LANGKAH 2: ATURAN FILTER & LOGIKA PRIORITAS (Berdasarkan Profil)**
 
-    **3. Personalisasi Alasan (WAJIB):**
-      - Field 'reason' **TIDAK BOLEH GENERIC**. Hubungkan setiap alasan secara eksplisit dengan input pengguna.
-      - **Contoh Buruk:** "Ponsel ini bagus untuk multitasking."
-      - **Contoh BAIK:** "Karena kamu memprioritaskan fotografi dengan budget ${budget}, ponsel ini punya sensor kamera utama terbesar di kelasnya dan sudah dilengkapi OIS, sangat cocok untuk kebutuhanmu."
+    1.  **Aturan Filter Merek (Prioritas Tertinggi):**
+        -   Analisis Preferensi: Periksa input 'Preferensi Lainnya'. Jika pengguna menyebutkan nama merek (contoh: "Suka merk Samsung", "harus Oppo", "selain iPhone"), Anda **WAJIB** mematuhi preferensi ini.
+        -   Filter Mutlak: Rekomendasi **HARUS** berasal dari merek yang diminta. Jika tidak ada HP dari merek tersebut yang cocok dengan kriteria lain, jelaskan di 'reason' dan jangan merekomendasikan merek lain.
 
-    **4. Aturan Fitur Wajib (NFC):**
-      - ${nfcRequired ? `**PENTING:** Pengguna meminta NFC. Rekomendasi WAJIB memiliki fitur NFC. Ini adalah syarat mutlak.` : 'Tidak ada permintaan fitur wajib spesifik.'}
+    2.  **Analisis Logika Prioritas (Inti Kecerdasan Anda):**
+        -   **Jika "Desain Cantik, Layar 120 Hz" dipilih:** Secara **AGRESIF**, prioritaskan ponsel dengan reputasi desain premium (material, build quality) dan layar dengan refresh rate **minimal 120Hz** sebagai faktor penentu utama.
+        -   **Jika "Baterai Besar" dipilih:** Filter ponsel dengan kapasitas baterai di atas rata-rata (misalnya, 5000mAh ke atas) sebagai syarat mutlak.
+        -   **Jika "Gaming Berat" dipilih:** Secara **AGRESIF**, prioritaskan ponsel dengan chipset performa tertinggi di kelas harganya, layar 120Hz ke atas, dan sistem pendingin yang baik.
+        -   **Jika "Fotografi & Videografi" dipilih ATAU Prioritas Kamera Sangat Penting (4-5/5):** Fokus pada kualitas sensor kamera utama (ukuran sensor, OIS/EIS) dan reputasi pemrosesan gambar brand.
+        -   **Aturan Budget:** Budget adalah **BATASAN KERAS**. Jangan pernah merekomendasikan ponsel di luar budget.
 
-    **5. Output:**
-      - Berikan **SATU** rekomendasi smartphone tunggal.
-      - Pastikan 'estimatedPrice' akurat untuk pasar Indonesia.
-      - Kembalikan hasil dalam format JSON yang valid sesuai skema yang disediakan (sebuah objek tunggal, BUKAN array).`;
+    **LANGKAH 3: PERSONALIASI ALASAN (WAJIB)**
+    -   Field 'reason' **TIDAK BOLEH GENERIC**. **Wajib merujuk kembali ke profil pengguna** yang telah Anda sintesis di Langkah 1.
+    -   **Contoh Buruk:** "Ponsel ini bagus untuk multitasking."
+    -   **Contoh BAIK:** "Melihat profilmu sebagai *visual enthusiast* yang butuh layar 120Hz dan desain premium, ponsel ini adalah pilihan paling pas di budget-mu karena bodinya yang tipis dan layarnya yang sangat mulus untuk sosial media."
+
+    **LANGKAH 4: ATURAN FITUR WAJIB (NFC)**
+    -   ${nfcRequired ? `**PENTING:** Pengguna meminta NFC. Rekomendasi WAJIB memiliki fitur NFC. Ini adalah syarat mutlak.` : 'Tidak ada permintaan fitur wajib spesifik.'}
+
+    **LANGKAH 5: Output**
+    -   Berikan **SATU** rekomendasi smartphone tunggal berdasarkan seluruh analisis di atas.
+    -   Pastikan 'estimatedPrice' akurat untuk pasar Indonesia.
+    -   Kembalikan hasil dalam format JSON yang valid sesuai skema.`;
 
     try {
       const response = await ai.models.generateContent({
