@@ -37,7 +37,7 @@ const FAQ: React.FC = () => {
     },
     {
       q: 'Bagaimana cara menghubungi tim JAGO-HP?',
-      a: '📧 Email: support@jago-hp.id'
+      a: '📧 Email: timjagohp@gmail.com'
     }
   ];
 

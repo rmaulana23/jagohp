@@ -49,6 +49,19 @@ const Partnership: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <div className="text-center pt-4">
+          <a
+            href="mailto:timjagohp@gmail.com"
+            className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                       bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500"
+          >
+            <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+              Hubungi Kami via Email
+            </span>
+          </a>
+        </div>
+
       </div>
     </section>
   );
