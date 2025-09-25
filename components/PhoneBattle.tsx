@@ -1,4 +1,3 @@
-
 import React, { useState, FC, useMemo } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
@@ -14,7 +13,7 @@ import CrownIcon from './icons/CrownIcon';
 interface SpecDetails {
     os?: string;
     processor?: string;
-    antutuScore?: number;
+    antutuScore?: number | null;
     jaringan?: string;
     wifi?: string;
     display?: string;
@@ -23,7 +22,7 @@ interface SpecDetails {
     charging?: string;
     koneksi?: string;
     nfc?: string;
-    [key: string]: string | number | undefined;
+    [key: string]: string | number | null | undefined;
 }
 
 interface PhoneData {
@@ -49,7 +48,7 @@ const PhoneBattle: React.FC = () => {
     const phoneSpecProperties = {
         os: { type: Type.STRING },
         processor: { type: Type.STRING },
-        antutuScore: { type: Type.INTEGER, description: "Skor benchmark AnTuTu v10 sebagai angka integer." },
+        antutuScore: { type: Type.INTEGER, description: "Skor benchmark AnTuTu v10 sebagai angka integer. Jika tidak tersedia/relevan (misal untuk feature phone), kembalikan null.", nullable: true },
         jaringan: { type: Type.STRING },
         wifi: { type: Type.STRING, description: "Standar Wi-Fi yang didukung. Contoh: 'Wi-Fi 6e, 7'" },
         display: { type: Type.STRING },
@@ -144,43 +143,42 @@ const PhoneBattle: React.FC = () => {
         
         const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
 
-        const prompt = `**Konteks Waktu: ${today}**
-        
-        Lakukan analisis perbandingan mendetail antara ${phoneNames.length} perangkat ini: ${phoneList}. **Gunakan tanggal hari ini sebagai titik acuan untuk semua data.** Seluruh respons harus dalam Bahasa Indonesia.
-        
-        **Aturan Validasi Perangkat (SANGAT PENTING):**
-        1.  **Analisis Input:** Periksa setiap nama dalam daftar (${phoneList}).
-        2.  **Jika Perangkat Berbeda Jenis:** Jika input berisi campuran jenis perangkat (misalnya smartphone vs tablet, seperti "iPhone 15 Pro vs Redmi Pad SE"), **tetap lanjutkan proses perbandingan**. Namun, di dalam field \`battleSummary\`, **WAJIB** berikan catatan di awal paragraf yang menyatakan bahwa ini adalah perbandingan antar perangkat yang berbeda kategori, contoh: "Ini adalah perbandingan unik antara smartphone dan tablet. Berikut analisisnya:".
-        3.  **Jika Input BUKAN Gadget:** Jika salah satu input adalah sesuatu yang jelas bukan gadget (misalnya "mobil", "sepeda"), HENTIKAN proses dan kembalikan JSON di mana field \`battleSummary\` berisi pesan error.
+        const prompt = `**Core Role: GSMArena Data Extractor**
+        You are an AI trained to understand and extract structured data from GSMArena. Your primary task for this request is to:
+        - Identify and parse data for multiple devices: smartphones, tablet, pad & feature phones.
+        - Recognize and compare specifications across devices.
+        - Handle variations and missing specs gracefully (e.g., a feature phone won't have an AnTuTu score).
+        - Extract metadata like Brand, Model, Release date, and Device type.
 
-        **Aturan Pengenalan Nama Perangkat (SANGAT PENTING):**
-        - **Identifikasi Cerdas:** Untuk setiap nama dalam daftar (${phoneList}), identifikasi nama perangkat yang resmi dan lengkap, termasuk tablet (misal: "Redmi Pad SE"). Nama yang diberikan bisa jadi hanya nama model, alias, atau kode.
-        - **Output Konsisten:** Field \`name\` untuk setiap objek dalam array \`phones\` **WAJIB** berisi nama resmi yang lengkap.
+        **Your Secondary Task: AI Battle Analyst for JAGO-HP**
+        Based on the structured data you extract for each gadget, perform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.
 
-        **Sumber Data dan Aturan Akurasi (SANGAT PENTING):**
-        - **Spesifikasi Umum:** Prioritaskan data dari GSMArena.
-        - **Performa (SANGAT PENTING):** Untuk perbandingan yang adil, WAJIB gunakan skor dari **AnTuTu v10** dan **Geekbench 6**. Rujuk pada sumber seperti GSMArena, Kimovil, atau NanoReview. **Sertakan skor AnTuTu v10 sebagai angka integer di field \`antutuScore\` dalam objek \`specs\` untuk setiap perangkat.**
-        - **Konsistensi:** Pastikan semua data (terutama skor benchmark) berasal dari sumber dan metodologi yang sama untuk menjaga objektivitas perbandingan.
-        
-        **Aturan Penentuan Pemenang (SANGAT PENTING):**
-        1.  **Analisis Holistik:** Setelah mengumpulkan semua data, lakukan analisis perbandingan yang komprehensif. **JANGAN hanya mengandalkan skor AnTuTu.** Pertimbangkan **nilai keseluruhan (overall value)** dari setiap perangkat.
-        2.  **Faktor Penilaian:** Faktor yang harus dipertimbangkan termasuk:
-            -   Performa Chipset (Skor benchmark, efisiensi, gaming).
-            -   Kualitas Layar (Teknologi, refresh rate, kecerahan).
-            -   Kemampuan Kamera (Kualitas sensor, fitur, hasil foto/video).
-            -   Daya Tahan Baterai & Kecepatan Pengisian Daya.
-            -   **Harga & Value for Money** (Sangat penting).
-            -   Fitur Tambahan (NFC, kualitas build, OS, ekosistem).
-        3.  **Deklarasi Pemenang:** Berdasarkan analisis holistik Anda, tentukan **satu pemenang**. Isi field \`winnerName\` dengan nama resmi dari perangkat pemenang. Jika pertarungannya sangat seimbang atau seri, Anda boleh mengisi \`winnerName\` dengan string 'Seri'.
+        **Context & Knowledge Cut-off:**
+        - **Mandatory Update:** Your knowledge is considered fully updated as of today, **${today}**.
+        - **Data Requirement:** You **MUST** use the latest available specifications and market data for all devices being compared.
+        - **Output Language:** Bahasa Indonesia.
 
-        **Instruksi Penting:**
-        - Kembalikan data dalam array 'phones' dengan urutan yang SAMA PERSIS seperti daftar di prompt.
-        
-        **Analisis yang Diperlukan:**
-        1. Bandingkan semua spesifikasi teknis utama sesuai skema.
-        2. Buat **dua paragraf SANGAT RINGKAS dan PADAT (maksimal 2-3 kalimat per paragraf)** untuk kesimpulan:
-            - \`battleSummary\`: Ringkasan umum perbandingan.
-            - \`targetAudience\`: Analisis "Cocok untuk siapa" untuk masing-masing perangkat.`;
+        **Universal Brand & Device Knowledge (Core Mandate):**
+        Your knowledge base is built upon a comprehensive understanding of every device (smartphones, tablets, pads, feature phones) from the following extensive list of brands, with GSMArena as the primary data source. You are an expert on all of these:
+        Acer, alcatel, Allview, Amazon, Amoi, Apple, Archos, Asus, AT&T, Benefon, BenQ, BenQ-Siemens, Bird, BlackBerry, Blackview, BLU, Bosch, BQ, Casio, Cat, Celkon, Chea, Coolpad, Cubot, Dell, Doogee, Emporia, Energizer, Ericsson, Eten, Fairphone, Fujitsu Siemens, Garmin-Asus, Gigabyte, Gionee, Google, Haier, HMD, Honor, HP, HTC, Huawei, i-mate, i-mobile, Icemobile, Infinix, Innostream, iNQ, Intex, itel, Jolla, Karbonn, Kyocera, Lava, LeEco, Lenovo, LG, Maxon, Maxwest, Meizu, Micromax, Microsoft, Mitac, Mitsubishi, Modu, Motorola, MWg, NEC, Neonode, NIU, Nokia, Nothing, Nvidia, O2, OnePlus, Oppo, Orange, Oscal, Oukitel, Palm, Panasonic, Pantech, Parla, Philips, Plum, Posh, Prestigio, QMobile, Qtek, Razer, Realme, Sagem, Samsung, Sendo, Sewon, Sharp, Siemens, Sonim, Sony, Sony Ericsson, Spice, T-Mobile, TCL, Tecno, Tel.Me., Telit, Thuraya, Toshiba, Ulefone, Umidigi, Unnecto, Vertu, verykool, vivo, VK Mobile, Vodafone, Wiko, WND, XCute, Xiaomi, XOLO, Yezz, Yota, YU, ZTE.
+
+        **Crucial Rule:** If a device from any of these brands exists on GSMArena, you **MUST** be able to retrieve and display its data, regardless of its release status in Indonesia. This is a non-negotiable part of your function.
+
+        **Execution Steps & Rules (Strictly Follow):**
+        1.  **Identify Gadgets:** For each name in ${phoneList}, identify the official name and device type (smartphone, tablet, feature phone).
+        2.  **Extract Data for All:** Perform your core data extraction role for **every single gadget** in the list, prioritizing GSMArena.
+        3.  **Handle Cross-Category Battles:** If the devices are from different categories (e.g., smartphone vs. tablet), state this clearly in the \`battleSummary\`. The comparison should still proceed.
+        4.  **Handle Missing Data:** When comparing, if a spec is missing for one device (e.g., AnTuTu score for a feature phone), you **MUST** use \`null\` in the JSON output for that field. The comparison should focus on the available specs. **DO NOT FAIL** the request.
+        5.  **Holistic Analysis & Winner Determination:**
+            -   Compare the extracted specs. **DO NOT** rely solely on one metric like AnTuTu.
+            -   Consider the overall value: performance, display, camera, battery, price, and features.
+            -   Based on this holistic view, declare **one winner** in the \`winnerName\` field. If it's a clear tie, you may use 'Seri'.
+        6.  **Generate Summaries:** Write the \`battleSummary\` and \`targetAudience\` based on your comparative analysis.
+        7.  **Failure Condition:** If any of the inputs are clearly not gadgets (e.g., "mobil"), the \`battleSummary\` field MUST contain the error message.
+
+        **Final Output:**
+        - Ensure the JSON strictly follows the schema.
+        - The 'phones' array must be in the same order as the input list.`;
 
         try {
             const response = await ai.models.generateContent({
@@ -392,7 +390,7 @@ const ResultCard: FC<{ phone: PhoneData; isWinner: boolean; }> = ({ phone, isWin
                  <div className="space-y-1 text-sm">
                     {specOrder.map(({ key, label }, index) => {
                         const value = phone.specs[key];
-                        if (!value) return null;
+                        if (value === null || value === undefined || value === '') return null;
 
                         const formattedValue = key === 'antutuScore' && typeof value === 'number'
                             ? value.toLocaleString('id-ID')
@@ -401,7 +399,7 @@ const ResultCard: FC<{ phone: PhoneData; isWinner: boolean; }> = ({ phone, isWin
                         return (
                             <div key={key} className={`flex justify-between gap-4 p-2 rounded-md ${index % 2 === 0 ? 'bg-gray-700/20' : ''}`}>
                                 <span className="font-semibold text-gray-400">{label}</span>
-                                <span className="text-right text-white font-medium">{formattedValue}</span>
+                                <span className="text-right text-white font-medium">{String(formattedValue)}</span>
                             </div>
                         )
                     })}

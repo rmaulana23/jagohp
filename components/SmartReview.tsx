@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
@@ -203,55 +202,39 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
             year: 'numeric'
         });
 
-        const prompt = `**Konteks Waktu: ${today}**
+        const prompt = `**Core Role: GSMArena Data Extractor**
+        You are an AI trained to understand and extract structured data from GSMArena. Your primary task is to:
+        - Identify and parse all available phone data (smartphones, tablet, pad & feature phones).
+        - Recognize tables, categories, and specifications (e.g., Launch, Network, Body, Display, Platform, Memory, Camera, etc.).
+        - Handle variations and missing specs gracefully.
+        - Extract metadata like Brand, Model, Release date, and Device type (smartphone, tablet/pad or feature phone).
 
-        Generate a comprehensive review in **Bahasa Indonesia** for the **gadget**: '${searchQuery}'. **Gunakan tanggal hari ini sebagai titik acuan untuk semua data.**
+        **Your Secondary Task: AI Gadget Reviewer for JAGO-HP**
+        Based on the structured data you extract, generate a comprehensive review in **Bahasa Indonesia** for the **gadget**: '${searchQuery}'.
 
-        **Aturan Jangkauan Pengetahuan Universal (SANGAT PENTING):**
-        -   Tugas Anda adalah mengenali dan mengulas berbagai jenis **gadget komunikasi**, termasuk **smartphone modern, tablet, dan feature phone (ponsel jadul)**. Batasan "hanya smartphone/tablet" telah dihapus. Anda harus berusaha semaksimal mungkin untuk menemukan data untuk setiap gadget yang diminta.
+        **Context & Knowledge Cut-off:**
+        - **Mandatory Update:** Your knowledge is considered fully updated as of today, **${today}**.
+        - **Data Requirement:** You **MUST** use the latest available information for all data points, especially market prices (in IDR for Indonesia), software versions, and product availability. Prioritize data relevant to this date.
+        - **Output Language:** Bahasa Indonesia.
 
-        **Aturan Validasi Perangkat (SANGAT PENTING):**
-        1.  **Analisis Query:** Periksa query pengguna ('${searchQuery}').
-        2.  **Jika BUKAN Gadget:** Hentikan proses review HANYA jika input jelas-jelas bukan gadget elektronik komunikasi (misalnya "mobil", "sepeda"). Kembalikan JSON di mana field \`phoneName\` berisi pesan kegagalan yang sopan, contoh: "Maaf: Fitur ini hanya untuk gadget seperti ponsel atau tablet. '${searchQuery}' adalah sebuah mobil."
+        **Universal Brand & Device Knowledge (Core Mandate):**
+        Your knowledge base is built upon a comprehensive understanding of every device (smartphones, tablets, pads, feature phones) from the following extensive list of brands, with GSMArena as the primary data source. You are an expert on all of these:
+        Acer, alcatel, Allview, Amazon, Amoi, Apple, Archos, Asus, AT&T, Benefon, BenQ, BenQ-Siemens, Bird, BlackBerry, Blackview, BLU, Bosch, BQ, Casio, Cat, Celkon, Chea, Coolpad, Cubot, Dell, Doogee, Emporia, Energizer, Ericsson, Eten, Fairphone, Fujitsu Siemens, Garmin-Asus, Gigabyte, Gionee, Google, Haier, HMD, Honor, HP, HTC, Huawei, i-mate, i-mobile, Icemobile, Infinix, Innostream, iNQ, Intex, itel, Jolla, Karbonn, Kyocera, Lava, LeEco, Lenovo, LG, Maxon, Maxwest, Meizu, Micromax, Microsoft, Mitac, Mitsubishi, Modu, Motorola, MWg, NEC, Neonode, NIU, Nokia, Nothing, Nvidia, O2, OnePlus, Oppo, Orange, Oscal, Oukitel, Palm, Panasonic, Pantech, Parla, Philips, Plum, Posh, Prestigio, QMobile, Qtek, Razer, Realme, Sagem, Samsung, Sendo, Sewon, Sharp, Siemens, Sonim, Sony, Sony Ericsson, Spice, T-Mobile, TCL, Tecno, Tel.Me., Telit, Thuraya, Toshiba, Ulefone, Umidigi, Unnecto, Vertu, verykool, vivo, VK Mobile, Vodafone, Wiko, WND, XCute, Xiaomi, XOLO, Yezz, Yota, YU, ZTE.
 
-        **Aturan Fleksibilitas Data untuk Gadget Jadul (SANGAT PENTING):**
-        -   **SANGAT PENTING:** Anda akan sering mengulas **feature phone** atau perangkat lama di mana beberapa data modern (seperti skor AnTuTu, Geekbench, DXOMark, atau bahkan OS modern) **tidak ada atau tidak relevan**.
-        -   **Aturan Pengisian Data Tidak Relevan:** Jika sebuah field dalam skema tidak berlaku untuk gadget yang diulas (contoh: \`antutuScore\` untuk Nokia 3310), Anda **WAJIB** mengisinya dengan **null** untuk angka (seperti \`antutuScore\`, \`dxomarkScore\`) atau string "N/A" atau "Tidak Ada" untuk teks.
-        -   **JANGAN GAGAL:** Anda **DILARANG KERAS** gagal memproses permintaan hanya karena beberapa field tidak dapat diisi. Fleksibilitas ini adalah kunci untuk mengulas perangkat lama dengan sukses.
+        **Crucial Rule:** If a device from any of these brands exists on GSMArena, you **MUST** be able to retrieve and display its data, regardless of its release status in Indonesia. This is a non-negotiable part of your function.
 
-        **Aturan Pencarian & Pengambilan Data (SANGAT PENTING - WAJIB DIIKUTI SECARA BERURUTAN):**
+        **Execution Steps & Rules (Strictly Follow):**
+        1.  **Identify Gadget:** First, identify the official name of '${searchQuery}', correcting any typos. Determine if it's a smartphone, tablet, or feature phone.
+        2.  **Extract Data:** Mentally (or actually) perform your core role by extracting all relevant specifications for the identified gadget, primarily from GSMArena. If not found, use secondary sources like Phone Arena or Jagat Review.
+        3.  **Handle Missing Data:** For older devices (like feature phones), many modern specs (AnTuTu, DXOMark) will be unavailable. For these, you **MUST** use \`null\` for numbers or "N/A" for strings in the JSON output. **DO NOT FAIL** the request because a field is empty. This is crucial.
+        4.  **Generate Review Content:** Using the extracted data, populate the JSON schema.
+            -   **Ratings:** Provide a 1-5 score for each category, being realistic for the device type (e.g., a feature phone will have a low gaming score).
+            -   **Summaries & Analysis:** Write all textual content (summaries, pros/cons, reviews) based on the objective data you've extracted.
+        5.  **Failure Condition:** If, after an exhaustive search on all specified sources, the gadget cannot be found, populate the \`phoneName\` field with a polite "Maaf: ..." message and nothing else.
 
-        **Langkah 1: Koreksi Typo & Identifikasi Nama Cerdas (WAJIB DILAKUKAN PERTAMA):**
-        -   **Analisis Input Pengguna:** Lihat input '${searchQuery}'. Input ini mungkin mengandung kesalahan ketik (typo), nama yang tidak lengkap, atau nama alias.
-        -   **Koreksi Otomatis:** Tugas pertama Anda adalah **memperbaiki typo secara proaktif**. Contoh: Jika input "samsun s24 ultra", Anda harus mengidentifikasinya sebagai "Samsung Galaxy S24 Ultra". Jika input "nokia 3310 lama", identifikasi sebagai "Nokia 3310 (2000)".
-        -   **Identifikasi Jenis Perangkat:** Secara cerdas, identifikasi apakah inputnya adalah **smartphone, tablet, atau feature phone**.
-        -   **Identifikasi Nama Resmi:** Dari input yang sudah dikoreksi dan diidentifikasi, tentukan nama resmi yang paling mungkin untuk dicari.
-
-        **Langkah 2: Pencarian Gigih & Berlapis:**
-        1.  **Tujuan Utama: Temukan Data.** Tujuan utama Anda adalah menemukan data **gadget** yang diminta. JANGAN menyerah terlalu cepat.
-        2.  **Sumber Primer (GSMArena sebagai KEBENARAN ABSOLUT):**
-            -   **Prioritas & Kewajiban Mutlak:** Mulai SEMUA pencarian dari **GSMArena**. Ini adalah prioritas pertama dan sumber data yang tidak bisa ditawar. GSMArena memiliki database yang sangat lengkap bahkan untuk ponsel-ponsel lama. Anda **DILARANG KERAS** menyatakan data tidak ditemukan sebelum melakukan pencarian yang sangat mendalam dan menyeluruh di GSMArena.
-            -   **Jangkauan Komprehensif:** Anda **WAJIB** dapat menemukan **SEMUA model smartphone, tablet, DAN feature phone** yang terdaftar di GSMArena.
-            -   **Variasi Nama:** Saat mencari di GSMArena, Anda **WAJIB** mencoba beberapa variasi nama dari hasil identifikasi di Langkah 1.
-            -   **Jika Ditemukan di GSMArena:** Jika **gadget** ditemukan, **WAJIB** ambil dan sajikan datanya sesuai skema (dengan mengingat aturan fleksibilitas data). Proses pencarian berhenti di sini.
-        3.  **Sumber Sekunder:**
-            -   **Jika TIDAK DITEMUKAN di GSMArena setelah pencarian mendalam:** Lanjutkan pencarian ke sumber data sekunder terpercaya lainnya, termasuk **Phone Arena, Jagat Review,** dan database benchmark resmi **AnTuTu** (jika relevan).
-
-        **Langkah 3: Jika Data Tidak Ditemukan Sama Sekali:**
-        -   Jika setelah melalui semua langkah pencarian (termasuk koreksi typo dan semua sumber data) data **gadget** benar-benar tidak ditemukan, kembalikan JSON di mana field \`phoneName\` berisi pesan kegagalan yang sopan, contoh: "Maaf: Data untuk '${searchQuery}' tidak dapat ditemukan saat ini."
-
-        **Output Konsisten:** Field \`phoneName\` dalam respons JSON **WAJIB** berisi nama resmi yang lengkap yang berhasil Anda temukan.
-        
-        **Aturan Akurasi dan Verifikasi Data (SANGAT PENTING):**
-        - **Versi Benchmark:** Jika relevan, WAJIB gunakan skor dari **AnTuTu v10** dan **Geekbench 6 (Single/Multi-Core)**.
-        - **Skor DXOMark:** Jika relevan, gunakan skor 'Camera' utama dari situs resmi DXOMark. Jika skor tidak tersedia, WAJIB kembalikan 'null'.
-
-        **Analisis Rating Kuantitatif (Skala 1-5, SANGAT PENTING):**
-        - Berdasarkan semua data yang terkumpul, berikan skor numerik (BOLEH desimal, contoh: 4.5) untuk 6 kategori berikut. Sesuaikan penilaian berdasarkan jenis perangkat (misal, rating 'gaming' untuk feature phone akan sangat rendah atau diisi 0).
-
-        Sediakan analisis lengkap yang mencakup semua aspek sesuai skema, pastikan semua informasi mutakhir per hari ini.
-        
-        **Semua konten teks harus dalam Bahasa Indonesia.**`;
+        **Final Output:**
+        - Ensure the final JSON output strictly adheres to the provided schema.
+        - The \`phoneName\` field must contain the official, full name of the device.`;
 
 
         try {
@@ -514,12 +497,15 @@ const SummaryTab: FC<{ review: ReviewResult }> = ({ review }) => (
         </ReviewSection>
         <ReviewSection title="Spesifikasi Lengkap">
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                {Object.entries(review.specs).map(([key, value]) => (
-                    <div key={key} className="flex justify-between border-b border-gray-700 py-1.5">
-                        <span className="font-semibold capitalize text-gray-400">{key.replace(/([A-Z])/g, ' $1')}</span>
-                        <span className="text-right text-gray-200">{value || 'N/A'}</span>
-                    </div>
-                ))}
+                {Object.entries(review.specs).map(([key, value]) => {
+                    const displayValue = value === null || value === undefined ? 'N/A' : String(value);
+                    return (
+                        <div key={key} className="flex justify-between border-b border-gray-700 py-1.5">
+                            <span className="font-semibold capitalize text-gray-400">{key.replace(/([A-Z])/g, ' $1')}</span>
+                            <span className="text-right text-gray-200">{displayValue}</span>
+                        </div>
+                    );
+                })}
             </div>
         </ReviewSection>
         <ReviewSection title="Cocok Untuk Siapa">
