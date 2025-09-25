@@ -203,7 +203,7 @@ const PhoneFinder: React.FC = () => {
         <div className="max-w-4xl mx-auto text-center">
             <div className="mb-4">
               <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
-                Smart Pick
+                Temukan HP Impianmu
               </h1>
               <p className="text-base text-gray-400 mt-2 pb-1">
                 Jawab beberapa pertanyaan ini, dan biarkan Kami menemukan HP yang paling pas untukmu.

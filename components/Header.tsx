@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import LogoIcon from './icons/LogoIcon';
 
@@ -8,8 +7,8 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
   const navItems = [
     { label: 'Home', key: 'home' },
     { label: 'Smart Review', key: 'review' },
-    { label: 'Smart Pick', key: 'finder' },
     { label: 'Battle Mode', key: 'battle' },
+    { label: 'Finder', key: 'finder' },
     { label: 'Insight Public', key: 'insight' },
     { label: 'About', key: 'about' }
   ];
