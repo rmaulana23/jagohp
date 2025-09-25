@@ -69,7 +69,7 @@ const Hero: React.FC<{ setPage: (page: string) => void; }> = ({ setPage }) => {
                   Smart Review AI
               </span>
             </button>
-            <p className="text-xs text-gray-400 mt-2">Ulasan HP Singkat, Jelas, dan Akurat.</p>
+            <p className="text-xs text-gray-400 mt-2">Ulasan HP Cerdas, Singkat, dan Akurat.</p>
           </div>
           
           {/* CTA 2: Finder */}
