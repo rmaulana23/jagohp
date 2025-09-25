@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -12,7 +13,7 @@ import Partnership from './components/Partnership';
 import FAQ from './components/FAQ';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import PhoneFinder from './components/PhoneFinder'; // Import baru
-import ChatBubbleIcon from './components/icons/ChatBubbleIcon';
+import SparklesIcon from './components/icons/SparklesIcon';
 
 const App: React.FC = () => {
   const [page, setPage] = useState('home');
@@ -72,7 +73,7 @@ const App: React.FC = () => {
             className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-400 to-green-500 text-white flex items-center justify-center
                        shadow-lg shadow-cyan-500/30"
           >
-            <ChatBubbleIcon className="w-7 h-7" />
+            <SparklesIcon className="w-7 h-7" />
           </div>
         </button>
       )}
