@@ -324,6 +324,12 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
                         </button>
                     </form>
 
+                    {loading && (
+                        <p className="text-sm text-gray-400 text-center -mt-8 mb-8 animate-pulse">
+                            Tunggu sebentar ya, jangan pindah menu dulu...
+                        </p>
+                    )}
+
                     <div aria-live="polite">
                         {loading && <ReviewSkeleton />}
                         {error && <div className="text-center text-red-400 border border-red-400/50 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}

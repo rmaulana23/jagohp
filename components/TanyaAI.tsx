@@ -225,16 +225,6 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose }) => {
                             ))}
                         </div>
                     )}
-                    {loading && messages[messages.length-1]?.role !== 'model' && (
-                         <div className="flex justify-start gap-3">
-                             <div className="bg-indigo-500/10 border border-indigo-500/20 p-2 rounded-full h-10 w-10 flex items-center justify-center">
-                                <LogoIcon />
-                            </div>
-                            <div className="bg-gray-800/50 rounded-2xl rounded-tl-none p-4 max-w-xl self-start flex items-center">
-                                <span className="typing-indicator"></span>
-                            </div>
-                        </div>
-                    )}
                     <div ref={messagesEndRef} />
                 </div>
                 
@@ -269,24 +259,6 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose }) => {
                     {error && !loading && <p className="text-red-400 text-sm text-center mt-2">{error}</p>}
                 </div>
              <style>{`
-                .typing-indicator {
-                    display: inline-block;
-                    width: 24px;
-                    height: 24px;
-                    background-image: radial-gradient(circle at 3px 12px, currentColor 6px, transparent 0),
-                                      radial-gradient(circle at 12px 12px, currentColor 6px, transparent 0),
-                                      radial-gradient(circle at 21px 12px, currentColor 6px, transparent 0);
-                    background-size: auto 6px;
-                    background-repeat: no-repeat;
-                    animation: typing-anim 1s infinite;
-                    color: #818cf8;
-                }
-                @keyframes typing-anim {
-                    0%, 100% { background-position: 3px 12px, 12px 12px, 21px 12px; }
-                    25% { background-position: 3px 6px, 12px 12px, 21px 12px; }
-                    50% { background-position: 3px 12px, 12px 6px, 21px 12px; }
-                    75% { background-position: 3px 12px, 12px 12px, 21px 6px; }
-                }
                 .prose { color: #d1d5db; }
                 .prose strong { color: #a5b4fc; }
                 .prose ul > li::before { background-color: #818cf8; }
@@ -301,14 +273,14 @@ const ChatMessage: FC<{ message: Message }> = ({ message }) => {
     const hasContent = message.text && message.text.trim() !== '';
 
     if (!hasContent && !isUser) {
-        // This is a placeholder for the streaming response, render a typing indicator
+        // This is a placeholder for the streaming response, render a "typing..." indicator
         return (
             <div className="flex justify-start gap-3 animate-fade-in">
-                <div className="bg-indigo-500/10 border border-indigo-500/20 p-2 rounded-full h-10 w-10 flex items-center justify-center">
+                <div className="bg-indigo-500/10 border border-indigo-500/20 p-2 rounded-full h-10 w-10 flex items-center justify-center flex-shrink-0">
                     <LogoIcon />
                 </div>
-                <div className="bg-gray-800/50 rounded-2xl rounded-tl-none p-4 max-w-xl self-start flex items-center">
-                    <span className="typing-indicator"></span>
+                <div className="bg-gray-800/50 rounded-2xl rounded-tl-none p-3 max-w-full self-start flex items-center">
+                    <p className="text-white text-sm animate-pulse">Sedang mengetik...</p>
                 </div>
             </div>
         );

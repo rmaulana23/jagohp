@@ -17,9 +17,11 @@ const activityOptions = [
   "Sosial Media & Browsing",
   "Gaming Berat",
   "Fotografi & Videografi",
-  "Produktivitas (Email, Dokumen)",
+  "Produktivitas (Email, Doc.)",
   "Streaming Film & Video",
-  "Butuh NFC"
+  "Baterai Besar",
+  "Desain Cantik, Layar 120 Hz",
+  "Koneksi NFC"
 ];
 
 const budgetOptions = [
@@ -134,6 +136,7 @@ const PhoneFinder: React.FC = () => {
         3.  Sistem **pendingin** yang baik dan **baterai besar**.
       - **Jika "Fotografi & Videografi" dipilih ATAU Prioritas Kamera Sangat Penting (4-5/5):**
         1.  Fokus pada kualitas **sensor kamera utama** (ukuran sensor, OIS/EIS) dan **reputasi pemrosesan gambar** brand tersebut.
+      - **Jika "Baterai Besar" dipilih:** Prioritaskan ponsel dengan kapasitas baterai di atas rata-rata (misalnya, 5000mAh ke atas) dan efisiensi daya chipset yang baik.
       - **Aturan Budget:** Budget adalah **BATASAN KERAS**. Jangan pernah merekomendasikan ponsel di luar budget.
 
     **3. Personalisasi Alasan (WAJIB):**
@@ -262,6 +265,11 @@ const PhoneFinder: React.FC = () => {
                               {!loading && <SparklesIcon className="w-6 h-6" />}
                           </span>
                       </button>
+                      {loading && (
+                        <p className="text-sm text-gray-400 mt-3 animate-pulse">
+                            Tunggu sebentar ya, jangan pindah menu dulu...
+                        </p>
+                      )}
                       {error && <p className="text-red-400 mt-3 text-sm">{error}</p>}
                   </div>
               </form>
@@ -298,7 +306,7 @@ const Checkbox: FC<{ label: string; checked: boolean; onChange: () => void }> = 
 const ResultsSkeleton: FC = () => (
   <div className="mt-8 animate-pulse">
     <div className="h-7 bg-gray-700/50 rounded-md w-1/2 mx-auto mb-6"></div>
-    <div className="max-w-md mx-auto">
+    <div className="max-w-xl mx-auto">
         <div className="bg-gray-800/30 border border-gray-700 rounded-2xl p-5 space-y-4">
           <div className="h-6 bg-gray-700/50 rounded-md w-3/4"></div>
           <div className="h-5 bg-gray-600/50 rounded-md w-1/3"></div>
@@ -319,7 +327,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
     return (
       <div className="mt-8 animate-fade-in">
         <h2 className="font-orbitron text-2xl font-bold text-center mb-6 text-indigo-300">Rekomendasi Terbaik Untukmu</h2>
-        <div className="max-w-md mx-auto">
+        <div className="max-w-xl mx-auto">
           <div className="bg-gray-800/30 border-2 border-indigo-500/30 rounded-2xl p-5 flex flex-col shadow-lg shadow-indigo-500/10">
             <h3 className="font-orbitron text-xl font-bold text-white">{result.phoneName}</h3>
             {result.estimatedPrice && <p className="text-fuchsia-400 font-semibold mb-3">{result.estimatedPrice}</p>}

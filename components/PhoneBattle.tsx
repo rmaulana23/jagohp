@@ -269,6 +269,11 @@ const PhoneBattle: React.FC = () => {
                                 {loading ? 'Membandingkan...' : 'Battle Compare'}
                             </span>
                         </button>
+                        {loading && (
+                            <p className="text-sm text-gray-400 mt-3 animate-pulse">
+                                Tunggu sebentar ya, jangan pindah menu dulu...
+                            </p>
+                        )}
                     </div>
                 </form>
                 
