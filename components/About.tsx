@@ -37,7 +37,7 @@ const About: React.FC = () => {
             Tentang JAGO-HP
           </h1>
           <p className="text-base text-gray-300 leading-normal max-w-3xl mx-auto">
-            JAGO-HP adalah platform review smartphone berbasis AI yang dirancang untuk membantumu menemukan HP terbaik sesuai kebutuhan. Cukup sekali klik, kamu bisa dapat review singkat, jelas, dan akurat.
+            JAGO-HP adalah platform review smartphone berbasis AI. Kami merangkum ribuan ulasan jadi satu ulasan singkat, jelas, dan akurat biar Kalian lebih mudah menemukan HP terbaik.
           </p>
         </div>
 
