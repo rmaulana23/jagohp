@@ -80,7 +80,7 @@ const Hero: React.FC<{ setPage: (page: string) => void; }> = ({ setPage }) => {
                          bg-gradient-to-r from-purple-500 to-fuchsia-500"
             >
                <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                  Finder Phone AI
+                  Phone Match AI
               </span>
             </button>
             <p className="text-xs text-gray-400 mt-2">Bantu Rekomendasikan HP Impianmu.</p>
