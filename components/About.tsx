@@ -7,66 +7,61 @@ import UsersIcon from './icons/UsersIcon';
 
 const pillars = [
   {
-    icon: <SparklesIcon className="w-8 h-8 text-fuchsia-400" />,
-    title: 'Analisis AI Cepat & Cerdas',
-    description: 'Dapatkan rating dan ulasan smartphone dalam hitungan detik. Teknologi AI kami memproses ribuan data untuk memberikanmu kesimpulan yang ringkas dan to-the-point.',
+    icon: <SparklesIcon className="w-6 h-6 text-fuchsia-400" />,
+    title: 'Analisis AI',
+    description: 'Dapatkan ulasan smartphone ringkas dalam hitungan detik. AI kami memproses ribuan data untukmu.',
   },
   {
-    icon: <ScaleIcon className="w-8 h-8 text-fuchsia-400" />,
-    title: 'Data Objektif & Terpercaya',
-    description: 'Tidak ada lagi review bias. AI kami mengacu pada data benchmark terstandarisasi (AnTuTu, Geekbench) dan spesifikasi teknis dari sumber terpercaya untuk hasil yang adil.',
+    icon: <ScaleIcon className="w-6 h-6 text-fuchsia-400" />,
+    title: 'Data Terpercaya',
+    description: 'AI mengacu pada data benchmark terstandarisasi (AnTuTu, Geekbench) untuk hasil yang adil.',
   },
   {
-    icon: <ChartBarIcon className="w-8 h-8 text-fuchsia-400" />,
-    title: 'Insight Tren & Pangsa Pasar',
-    description: 'Pahami dinamika pasar dengan data pangsa pasar global & Indonesia, serta polling publik. Selalu jadi yang pertama tahu brand mana yang sedang naik daun.',
+    icon: <ChartBarIcon className="w-6 h-6 text-fuchsia-400" />,
+    title: 'Pangsa Pasar',
+    description: 'Pahami dinamika pasar dengan data pangsa pasar global.',
   },
   {
-    icon: <UsersIcon className="w-8 h-8 text-fuchsia-400" />,
+    icon: <UsersIcon className="w-6 h-6 text-fuchsia-400" />,
     title: 'Jembatan Komunitas & Teknologi',
-    description: 'Kami bukan hanya platform review. Kami adalah wadah bagi para tech enthusiast untuk berbagi opini dan mendapatkan rekomendasi terbaik, menjembatani pengguna dengan teknologi.',
+    description: 'Wadah bagi para tech enthusiast untuk berbagi opini dan mendapatkan rekomendasi terbaik.',
   }
 ];
 
 const About: React.FC = () => {
   return (
-    // Vertically center content and ensure it clears the header, making it more compact.
     <section id="about" className="flex-grow flex flex-col items-center justify-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
-      {/* Reduced vertical spacing from space-y-12 to space-y-8 */}
       <div className="container mx-auto max-w-5xl animate-fade-in space-y-8">
         <div className="text-center">
           <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
             Tentang JAGO-HP
           </h1>
-          {/* Reduced line height from leading-relaxed to leading-normal */}
           <p className="text-base text-gray-300 leading-normal max-w-3xl mx-auto">
-            JAGO-HP adalah platform review smartphone berbasis AI yang dirancang untuk membantu kamu menemukan HP terbaik sesuai kebutuhan. Kami percaya bahwa memilih smartphone tidak perlu ribet cukup sekali klik, kamu bisa dapat review singkat, jelas, dan akurat.
+            JAGO-HP adalah platform review smartphone berbasis AI yang dirancang untuk membantumu menemukan HP terbaik sesuai kebutuhan. Cukup sekali klik, kamu bisa dapat review singkat, jelas, dan akurat.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {pillars.map((pillar, index) => (
-            <div 
-              key={index} 
-              // Reduced padding from p-6 to p-5 for a more compact card
-              className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-5 backdrop-blur-sm 
-                         transform transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400 hover:shadow-2xl hover:shadow-indigo-500/10"
-            >
-              {/* Reduced margin-bottom from mb-4 to mb-3 */}
-              <div className="flex items-center gap-4 mb-3">
-                <div className="bg-indigo-900/40 p-3 rounded-full">
+        <div className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-6 backdrop-blur-sm">
+          <div className="space-y-5">
+            {pillars.map((pillar, index) => (
+              <div 
+                key={index} 
+                className="flex items-start gap-4"
+              >
+                <div className="bg-indigo-900/40 p-2 rounded-full mt-1 flex-shrink-0">
                   {pillar.icon}
                 </div>
-                <h2 className="font-orbitron text-lg font-bold text-indigo-300">
-                  {pillar.title}
-                </h2>
+                <div>
+                  <h2 className="font-orbitron text-base font-bold text-indigo-300">
+                    {pillar.title}
+                  </h2>
+                  <p className="text-gray-400 text-sm leading-snug">
+                    {pillar.description}
+                  </p>
+                </div>
               </div>
-              {/* Reduced line height from leading-relaxed to leading-normal */}
-              <p className="text-gray-400 text-sm leading-normal">
-                {pillar.description}
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>
