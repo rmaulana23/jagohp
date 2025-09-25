@@ -137,7 +137,7 @@ const InsightPublic: React.FC = () => {
 
     return (
         <section id="insight" className="flex-grow flex flex-col items-center pt-24 pb-4 px-4 sm:px-6 md:px-12 w-full">
-            <div className="container mx-auto max-w-7xl animate-fade-in">
+            <div className="container mx-auto max-w-5xl animate-fade-in">
                 <div className="text-center mb-4">
                     <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
                         Polling Netizen

@@ -12,7 +12,7 @@ const Partnership: React.FC = () => {
 
   return (
     <section id="partnership" className="flex-grow flex flex-col items-center justify-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
-      <div className="container mx-auto max-w-4xl animate-fade-in space-y-10">
+      <div className="container mx-auto max-w-5xl animate-fade-in space-y-10">
         <div className="text-center">
           <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
             Partnership or Sponsorship

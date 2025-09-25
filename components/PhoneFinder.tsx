@@ -182,7 +182,7 @@ const PhoneFinder: React.FC = () => {
   return (
     <section id="finder" className="flex-grow flex flex-col items-center pt-24 pb-4 px-4 sm:px-6 md:px-12 w-full">
       <div className="w-full">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-5xl mx-auto text-center">
             <div className="mb-4">
               <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
                 Temukan HP Impianmu
@@ -193,7 +193,7 @@ const PhoneFinder: React.FC = () => {
             </div>
         </div>
         
-        <div className="max-w-4xl mx-auto w-full">
+        <div className="max-w-5xl mx-auto w-full">
             {!result && !loading && (
               <form onSubmit={handleSubmit} className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-6 md:p-8 backdrop-blur-sm">
                   <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-10 gap-y-6">

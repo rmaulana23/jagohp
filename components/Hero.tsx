@@ -42,7 +42,7 @@ const Hero: React.FC<{ setPage: (page: string) => void; onSearch: (query: string
       <AICore />
 
       {/* Hero Content */}
-      <div className="relative z-10 text-center animate-fade-in w-full max-w-3xl">
+      <div className="relative z-10 text-center animate-fade-in w-full max-w-5xl">
 
         {/* Mobile-only Leaderboard Button - Moved to top */}
         <div className="mb-6 lg:hidden">

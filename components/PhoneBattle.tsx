@@ -207,7 +207,7 @@ const PhoneBattle: React.FC = () => {
                  <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/20 rounded-full filter blur-3xl"></div>
                  <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-fuchsia-500/20 rounded-full filter blur-3xl"></div>
             </div>
-            <div className="container mx-auto relative z-10">
+            <div className="container mx-auto max-w-5xl relative z-10">
                 <div className="text-center mb-6">
                     <h2 className="font-orbitron text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
                         Adu Spesifikasi HP

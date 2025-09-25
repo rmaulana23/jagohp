@@ -38,7 +38,7 @@ const globalData2025: BrandData[] = [
 const Leaderboard: React.FC = () => {
     return (
         <section id="leaderboard" className="flex-grow flex flex-col items-center pt-24 pb-10 px-4 sm:px-6 md:px-12">
-            <div className="container mx-auto max-w-7xl text-center">
+            <div className="container mx-auto max-w-5xl text-center">
                 <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
                     Papan Peringkat Brand
                 </h1>

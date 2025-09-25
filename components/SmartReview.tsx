@@ -285,18 +285,18 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
     return (
         <section id="review" className="flex-grow flex flex-col items-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
             <div className="w-full">
-                <div className="max-w-4xl mx-auto text-center">
+                <div className="max-w-5xl mx-auto text-center">
                      <div className="mb-6">
                         <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
                             Ulasan Cepat
                         </h1>
-                        <p className="text-base text-gray-400 max-w-4xl mx-auto mt-2 pb-1">
+                        <p className="text-base text-gray-400 max-w-5xl mx-auto mt-2 pb-1">
                             Tulis tipe HP yang ingin direview, hanya dalam beberapa detik Kami langsung buat.
                         </p>
                     </div>
                 </div>
 
-                <div className="max-w-4xl mx-auto text-center mt-6">
+                <div className="max-w-5xl mx-auto text-center mt-6">
                     <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto mb-12">
                         <input
                             type="text"

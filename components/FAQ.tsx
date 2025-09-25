@@ -43,7 +43,7 @@ const FAQ: React.FC = () => {
 
   return (
     <section id="faq" className="flex-grow flex flex-col items-center justify-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
-      <div className="container mx-auto max-w-4xl animate-fade-in">
+      <div className="container mx-auto max-w-5xl animate-fade-in">
         <div className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-6 md:p-10 backdrop-blur-sm">
           <div className="text-center mb-10">
             <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">

@@ -30,13 +30,16 @@ const pillars = [
 
 const About: React.FC = () => {
   return (
-    <section id="about" className="flex-grow flex flex-col items-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
-      <div className="container mx-auto max-w-5xl animate-fade-in space-y-12">
+    // Vertically center content and ensure it clears the header, making it more compact.
+    <section id="about" className="flex-grow flex flex-col items-center justify-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
+      {/* Reduced vertical spacing from space-y-12 to space-y-8 */}
+      <div className="container mx-auto max-w-5xl animate-fade-in space-y-8">
         <div className="text-center">
-          <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
+          <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
             Tentang JAGO-HP
           </h1>
-          <p className="text-base text-gray-300 leading-relaxed max-w-3xl mx-auto">
+          {/* Reduced line height from leading-relaxed to leading-normal */}
+          <p className="text-base text-gray-300 leading-normal max-w-3xl mx-auto">
             JAGO-HP adalah platform review smartphone berbasis AI yang dirancang untuk membantu kamu menemukan HP terbaik sesuai kebutuhan. Kami percaya bahwa memilih smartphone tidak perlu ribet cukup sekali klik, kamu bisa dapat review singkat, jelas, dan akurat.
           </p>
         </div>
@@ -45,10 +48,12 @@ const About: React.FC = () => {
           {pillars.map((pillar, index) => (
             <div 
               key={index} 
-              className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-6 backdrop-blur-sm 
+              // Reduced padding from p-6 to p-5 for a more compact card
+              className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-5 backdrop-blur-sm 
                          transform transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400 hover:shadow-2xl hover:shadow-indigo-500/10"
             >
-              <div className="flex items-center gap-4 mb-4">
+              {/* Reduced margin-bottom from mb-4 to mb-3 */}
+              <div className="flex items-center gap-4 mb-3">
                 <div className="bg-indigo-900/40 p-3 rounded-full">
                   {pillar.icon}
                 </div>
@@ -56,7 +61,8 @@ const About: React.FC = () => {
                   {pillar.title}
                 </h2>
               </div>
-              <p className="text-gray-400 text-sm leading-relaxed">
+              {/* Reduced line height from leading-relaxed to leading-normal */}
+              <p className="text-gray-400 text-sm leading-normal">
                 {pillar.description}
               </p>
             </div>
