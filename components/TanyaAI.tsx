@@ -238,7 +238,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose }) => {
                                     handleFormSubmit(e);
                                 }
                             }}
-                            placeholder="Ketik pertanyaan Anda..."
+                            placeholder="Tulis disini mau tanya apa..."
                             className="w-full bg-gray-900/50 border-2 border-indigo-500/50 rounded-xl py-2.5 pl-4 pr-14 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none transition-all duration-300"
                             rows={1}
                             style={{ minHeight: '48px' }}
