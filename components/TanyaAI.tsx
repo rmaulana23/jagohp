@@ -188,7 +188,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose }) => {
                  <div className="flex items-center justify-between p-4 border-b border-indigo-500/20">
                     <div className="flex items-center gap-2">
                         <LogoIcon />
-                        <h2 className="font-orbitron text-base font-bold text-white">AI Sales Assistant</h2>
+                        <h2 className="font-orbitron text-base font-bold text-white">AI JagoBuddy</h2>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors" aria-label="Tutup obrolan">
                         <XMarkIcon className="w-6 h-6" />
