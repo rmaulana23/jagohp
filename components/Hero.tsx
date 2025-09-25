@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import SearchIcon from './icons/SearchIcon';
 
@@ -56,11 +57,11 @@ const Hero: React.FC<{ setPage: (page: string) => void; onSearch: (query: string
             </button>
         </div>
 
-        <h1 className="font-orbitron text-4xl md:text-6xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-gray-200 via-white to-gray-300 drop-shadow-lg">
+        <h1 className="font-orbitron text-3xl md:text-5xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-gray-200 via-white to-gray-300 drop-shadow-lg">
           Your AI Expert
           <br />
           <span className="bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">
-           Untuk Pilih Smartphone
+          Cara Cerdas Pilih Smartphone
           </span>
         </h1>
         <p className="max-w-2xl mx-auto mt-4 text-base md:text-lg text-gray-300 font-light leading-relaxed">
