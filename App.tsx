@@ -18,12 +18,6 @@ import SparklesIcon from './components/icons/SparklesIcon';
 const App: React.FC = () => {
   const [page, setPage] = useState('home');
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [reviewQuery, setReviewQuery] = useState('');
-
-  const handleHeroSearch = (query: string) => {
-    setReviewQuery(query);
-    setPage('review');
-  };
 
   return (
     <div className="min-h-screen bg-[#0a0f1f] text-gray-200 overflow-x-hidden flex flex-col">
@@ -38,9 +32,9 @@ const App: React.FC = () => {
       
       {/* Main content wrapper that grows */}
       <main className="relative z-10 flex-grow flex">
-        {page === 'home' && <Hero setPage={setPage} onSearch={handleHeroSearch} />}
+        {page === 'home' && <Hero setPage={setPage} />}
         {page === 'battle' && <PhoneBattle />}
-        {page === 'review' && <SmartReview initialQuery={reviewQuery} clearInitialQuery={() => setReviewQuery('')} />}
+        {page === 'review' && <SmartReview />}
         {page === 'finder' && <PhoneFinder />} {/* Halaman baru ditambahkan */}
         {page === 'leaderboard' && <Leaderboard />}
         {page === 'insight' && <InsightPublic />}

@@ -1,7 +1,5 @@
 
-
-import React, { useState } from 'react';
-import SearchIcon from './icons/SearchIcon';
+import React from 'react';
 
 // New "AI Core" visual component
 const AICore: React.FC = () => (
@@ -19,16 +17,7 @@ const AICore: React.FC = () => (
   </div>
 );
 
-const Hero: React.FC<{ setPage: (page: string) => void; onSearch: (query: string) => void; }> = ({ setPage, onSearch }) => {
-  const [query, setQuery] = useState('');
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (query.trim()) {
-      onSearch(query.trim());
-    }
-  };
-
+const Hero: React.FC<{ setPage: (page: string) => void; }> = ({ setPage }) => {
   return (
     // Section now grows to fill the available space and centers content vertically.
     <section className="relative flex-grow flex flex-col items-center justify-center px-4 overflow-hidden">
@@ -68,25 +57,35 @@ const Hero: React.FC<{ setPage: (page: string) => void; onSearch: (query: string
           JAGO-HP Solusi Biar Gak Salah Beli HP, Coba Sekarang GRATIS!
         </p>
         
-        <form onSubmit={handleSearchSubmit} className="relative max-w-md mx-auto mt-8">
-            <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Tuliskan tipe HP, misal: iphone 17..."
-                className="w-full bg-gray-900/50 border-2 border-indigo-500/50 rounded-full py-2 pl-4 pr-12 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-300 text-base"
-                aria-label="Cari review smartphone"
-            />
-            <button
-                type="submit"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white flex items-center justify-center
-                           hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/30 transition-all duration-300"
-                aria-label="Mulai Smart Review"
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-8">
+          {/* CTA 1: Smart Review */}
+          <div className="flex flex-col items-center">
+            <button 
+              onClick={() => setPage('review')}
+              className="font-orbitron text-base font-bold w-64 h-14 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                         bg-gradient-to-r from-indigo-500 to-purple-500"
             >
-                <SearchIcon className="w-4 h-4"/>
+              <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                  Smart Review AI
+              </span>
             </button>
-        </form>
-        <p className="text-xs text-gray-400 mt-2">Ketik lalu Tekan Enter untuk memulai Smart Review dengan AI-Powered.</p>
+            <p className="text-xs text-gray-400 mt-2">Ulasan HP Singkat, Jelas, dan Akurat.</p>
+          </div>
+          
+          {/* CTA 2: Finder */}
+          <div className="flex flex-col items-center">
+            <button 
+              onClick={() => setPage('finder')}
+              className="font-orbitron text-base font-bold w-64 h-14 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                         bg-gradient-to-r from-purple-500 to-fuchsia-500"
+            >
+               <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                  Finder Phone AI
+              </span>
+            </button>
+            <p className="text-xs text-gray-400 mt-2">Bantu Rekomendasikan HP Impianmu.</p>
+          </div>
+        </div>
       </div>
       
       {/* Social Proof Text */}

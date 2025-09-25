@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
@@ -60,12 +61,7 @@ interface ReviewResult {
   };
 }
 
-interface SmartReviewProps {
-  initialQuery?: string;
-  clearInitialQuery?: () => void;
-}
-
-const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQuery }) => {
+const SmartReview: React.FC = () => {
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -275,14 +271,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery, clearInitialQue
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        if (initialQuery) {
-            setQuery(initialQuery);
-            performSearch(initialQuery);
-            clearInitialQuery?.();
-        }
-    }, [initialQuery]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
