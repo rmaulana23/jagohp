@@ -20,7 +20,7 @@ const activityOptions = [
   "Produktivitas (Email, Doc.)",
   "Streaming Film & Video",
   "Baterai Besar",
-  "Desain Cantik, Layar 120 Hz",
+  "Layar 120 Hz",
   "Koneksi NFC"
 ];
 
@@ -127,7 +127,7 @@ const PhoneFinder: React.FC = () => {
 
     **LANGKAH 1: SINTESIS PROFIL PENGGUNA (Langkah Wajib Pertama)**
     -   Sebelum mencari HP, Anda **WAJIB** membuat profil singkat pengguna di dalam "pikiran" Anda. Sintesiskan semua input menjadi sebuah persona.
-    -   **Contoh Profil Mental:** "Pengguna ini adalah seorang *visual enthusiast* dengan budget menengah yang memprioritaskan estetika dan pengalaman scrolling mulus (dari pilihan 'Desain Cantik, Layar 120 Hz'), namun tidak terlalu peduli dengan kamera (dari skala prioritas kamera yang rendah)." ATAU "Pengguna ini adalah seorang *power user* yang butuh baterai super awet untuk produktivitas, budget terbatas."
+    -   **Contoh Profil Mental:** "Pengguna ini adalah seorang *visual enthusiast* dengan budget menengah yang memprioritaskan pengalaman scrolling mulus (dari pilihan 'Layar 120 Hz'), namun tidak terlalu peduli dengan kamera (dari skala prioritas kamera yang rendah)." ATAU "Pengguna ini adalah seorang *power user* yang butuh baterai super awet untuk produktivitas, budget terbatas."
 
     **LANGKAH 2: ATURAN FILTER & LOGIKA PRIORITAS (Berdasarkan Profil)**
 
@@ -136,7 +136,7 @@ const PhoneFinder: React.FC = () => {
         -   Filter Mutlak: Rekomendasi **HARUS** berasal dari merek yang diminta. Jika tidak ada HP dari merek tersebut yang cocok dengan kriteria lain, jelaskan di 'reason' dan jangan merekomendasikan merek lain.
 
     2.  **Analisis Logika Prioritas (Inti Kecerdasan Anda):**
-        -   **Jika "Desain Cantik, Layar 120 Hz" dipilih:** Secara **AGRESIF**, prioritaskan ponsel dengan reputasi desain premium (material, build quality) dan layar dengan refresh rate **minimal 120Hz** sebagai faktor penentu utama.
+        -   **Jika "Layar 120 Hz" dipilih:** Secara **AGRESIF**, prioritaskan ponsel dengan layar refresh rate **minimal 120Hz** sebagai faktor penentu utama.
         -   **Jika "Baterai Besar" dipilih:** Filter ponsel dengan kapasitas baterai di atas rata-rata (misalnya, 5000mAh ke atas) sebagai syarat mutlak.
         -   **Jika "Gaming Berat" dipilih:** Secara **AGRESIF**, prioritaskan ponsel dengan chipset performa tertinggi di kelas harganya, layar 120Hz ke atas, dan sistem pendingin yang baik.
         -   **Jika "Fotografi & Videografi" dipilih ATAU Prioritas Kamera Sangat Penting (4-5/5):** Fokus pada kualitas sensor kamera utama (ukuran sensor, OIS/EIS) dan reputasi pemrosesan gambar brand.
@@ -145,7 +145,7 @@ const PhoneFinder: React.FC = () => {
     **LANGKAH 3: PERSONALIASI ALASAN (WAJIB)**
     -   Field 'reason' **TIDAK BOLEH GENERIC**. **Wajib merujuk kembali ke profil pengguna** yang telah Anda sintesis di Langkah 1.
     -   **Contoh Buruk:** "Ponsel ini bagus untuk multitasking."
-    -   **Contoh BAIK:** "Melihat profilmu sebagai *visual enthusiast* yang butuh layar 120Hz dan desain premium, ponsel ini adalah pilihan paling pas di budget-mu karena bodinya yang tipis dan layarnya yang sangat mulus untuk sosial media."
+    -   **Contoh BAIK:** "Melihat profilmu sebagai *visual enthusiast* yang butuh layar 120Hz untuk sosial media, ponsel ini adalah pilihan paling pas di budget-mu karena layarnya yang sangat mulus."
 
     **LANGKAH 4: ATURAN FITUR WAJIB (NFC)**
     -   ${nfcRequired ? `**PENTING:** Pengguna meminta NFC. Rekomendasi WAJIB memiliki fitur NFC. Ini adalah syarat mutlak.` : 'Tidak ada permintaan fitur wajib spesifik.'}
@@ -370,7 +370,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                                    bg-gradient-to-r from-green-400 to-teal-500"
                     >
                         <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                            Beli Langsung di Official Store
+                            Beli Langsung
                         </span>
                     </a>
                 </div>
@@ -386,7 +386,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                                    bg-gradient-to-r from-green-400 to-teal-500"
                     >
                         <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                            Beli Langsung di Official Store
+                            Beli Langsung
                         </span>
                     </a>
                 </div>
@@ -402,7 +402,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                                    bg-gradient-to-r from-green-400 to-teal-500"
                     >
                         <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                            Beli Langsung di Official Store
+                            Beli Langsung
                         </span>
                     </a>
                 </div>
@@ -418,7 +418,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                                    bg-gradient-to-r from-green-400 to-teal-500"
                     >
                         <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                            Beli Langsung di Official Store
+                            Beli Langsung
                         </span>
                     </a>
                 </div>
@@ -434,7 +434,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                                    bg-gradient-to-r from-green-400 to-teal-500"
                     >
                         <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                            Beli Langsung di Official Store
+                            Beli Langsung
                         </span>
                     </a>
                 </div>
@@ -450,7 +450,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                                    bg-gradient-to-r from-green-400 to-teal-500"
                     >
                         <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                            Beli Langsung di Official Store
+                            Beli Langsung
                         </span>
                     </a>
                 </div>
@@ -466,7 +466,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                                    bg-gradient-to-r from-green-400 to-teal-500"
                     >
                         <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                            Beli Langsung di Official Store
+                            Beli Langsung
                         </span>
                     </a>
                 </div>
@@ -482,7 +482,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                                    bg-gradient-to-r from-green-400 to-teal-500"
                     >
                         <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                            Beli Langsung di Official Store
+                            Beli Langsung
                         </span>
                     </a>
                 </div>
@@ -498,7 +498,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                                    bg-gradient-to-r from-green-400 to-teal-500"
                     >
                         <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                            Beli Langsung di Official Store
+                            Beli Langsung
                         </span>
                     </a>
                 </div>
@@ -514,7 +514,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                                    bg-gradient-to-r from-green-400 to-teal-500"
                     >
                         <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                            Beli Langsung di Official Store
+                            Beli Langsung
                         </span>
                     </a>
                 </div>
@@ -530,7 +530,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                                    bg-gradient-to-r from-green-400 to-teal-500"
                     >
                         <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                            Beli Langsung di Official Store
+                            Beli Langsung
                         </span>
                     </a>
                 </div>
@@ -546,7 +546,7 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                                    bg-gradient-to-r from-green-400 to-teal-500"
                     >
                         <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                            Beli Langsung di Official Store
+                            Beli Langsung
                         </span>
                     </a>
                 </div>

@@ -23,7 +23,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
     <header className="py-3 px-6 md:px-12 backdrop-blur-sm bg-[#0a0f1f]/60 border-b border-indigo-500/20 fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
         {/* Left: Logo & Title */}
-        <a href="#" className="flex items-center space-x-3 cursor-pointer" onClick={(e) => handleNavClick(e, 'home')}>
+        <a href="#" className="flex items-center space-x-1 cursor-pointer" onClick={(e) => handleNavClick(e, 'home')}>
           <LogoIcon />
           <div className="flex flex-col">
             <span className="font-orbitron text-xl font-bold tracking-wider text-white leading-tight">
