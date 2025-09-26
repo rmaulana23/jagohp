@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
@@ -379,7 +378,6 @@ const ReviewSkeleton: FC = () => (
 );
 
 
-// --- RESULT DISPLAY UPDATED with RATINGS ---
 const ReviewResultDisplay: FC<{ review: ReviewResult }> = ({ review }) => {
     const [activeTab, setActiveTab] = useState('ringkasan');
 
@@ -392,81 +390,253 @@ const ReviewResultDisplay: FC<{ review: ReviewResult }> = ({ review }) => {
     const shareText = `Cek review AI untuk ${review.phoneName} di JAGO-HP!\n\nRingkasan: ${review.quickReview.summary}`;
     const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
+    const phoneBrand = review.phoneName.toLowerCase();
+    const isSamsung = phoneBrand.includes('samsung');
+    const isApple = phoneBrand.includes('apple') || phoneBrand.includes('iphone');
+    const isXiaomi = phoneBrand.includes('xiaomi') || phoneBrand.includes('redmi');
+    const isOppo = phoneBrand.includes('oppo');
+    const isVivo = phoneBrand.includes('vivo') || phoneBrand.includes('iqoo');
+    const isPoco = phoneBrand.includes('poco');
+    const isInfinix = phoneBrand.includes('infinix');
+    const isItel = phoneBrand.includes('itel');
+    const isHuawei = phoneBrand.includes('huawei');
+    const isHonor = phoneBrand.includes('honor');
+    const isTecno = phoneBrand.includes('tecno');
+    const isRealme = phoneBrand.includes('realme');
 
     return (
-        <div className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-5 md:p-6 text-left backdrop-blur-sm animate-fade-in space-y-6">
-            <div className="text-center">
-                <h2 className="font-orbitron text-2xl font-bold mb-1">{review.phoneName}</h2>
-                {review.specs.rilis && (
-                    <p className="text-sm text-indigo-300 font-semibold">Rilis: {review.specs.rilis}</p>
-                )}
-            </div>
-
+        <div className="bg-gray-800/20 border-2 border-indigo-500/30 rounded-2xl p-4 md:p-6 text-left animate-fade-in">
+            <h2 className="font-orbitron text-xl md:text-2xl font-bold text-center mb-1 text-white">{review.phoneName}</h2>
+            <p className="text-center text-sm text-gray-400 mb-4">{review.specs.rilis ? `Rilis: ${review.specs.rilis}` : ''}</p>
+            
             <RatingsDisplay ratings={review.ratings} />
 
-            {/* Tab Navigation */}
-            <div className="border-b border-indigo-500/20 flex space-x-2 sm:space-x-4">
+            {/* Tabs */}
+            <div className="mt-6 border-b border-indigo-500/20 flex space-x-2 sm:space-x-4 justify-center">
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`font-orbitron font-semibold text-sm px-3 sm:px-4 py-2 transition-all duration-300 rounded-t-lg -mb-px
-                            ${activeTab === tab.id 
-                                ? 'border-b-2 border-indigo-400 bg-indigo-500/10 text-indigo-300' 
-                                : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'}`
-                        }
+                        className={`px-3 sm:px-4 py-2 text-sm font-semibold rounded-t-lg transition-colors duration-300 relative focus:outline-none
+                                    ${activeTab === tab.id ? 'text-indigo-300' : 'text-gray-400 hover:text-white'}`}
                     >
                         {tab.label}
+                        {activeTab === tab.id && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-400"></span>}
                     </button>
                 ))}
             </div>
 
             {/* Tab Content */}
-            <div>
-                {activeTab === 'ringkasan' && <SummaryTab review={review} />}
-                {activeTab === 'performa' && <PerformanceTab performance={review.performance} phoneName={review.phoneName} />}
-                {activeTab === 'foto-video' && <CameraTab assessment={review.cameraAssessment} />}
+            <div className="pt-5 min-h-[200px]">
+                {activeTab === 'ringkasan' && <TabContentRingkasan review={review} />}
+                {activeTab === 'performa' && <TabContentPerforma review={review} />}
+                {activeTab === 'foto-video' && <TabContentCamera review={review} />}
             </div>
+
+            {/* Buy Now Buttons */}
+            {isSamsung && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/6AbvXZfbSV"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung
+                        </span>
+                    </a>
+                </div>
+            )}
+            {isApple && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/9fBniOs3ak"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung
+                        </span>
+                    </a>
+                </div>
+            )}
+            {isXiaomi && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/AUkuiQBtYg"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung
+                        </span>
+                    </a>
+                </div>
+            )}
+            {isOppo && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/BKiPhDZHl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung
+                        </span>
+                    </a>
+                </div>
+            )}
+            {isVivo && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/1BDFc1esr2"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung
+                        </span>
+                    </a>
+                </div>
+            )}
+            {isPoco && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/qaPDaBvho"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung
+                        </span>
+                    </a>
+                </div>
+            )}
+            {isInfinix && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/qaPDpESoL"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung
+                        </span>
+                    </a>
+                </div>
+            )}
+            {isItel && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/803ZlEyaDj"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung
+                        </span>
+                    </a>
+                </div>
+            )}
+            {isHuawei && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/2B5mokEaKQ"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung
+                        </span>
+                    </a>
+                </div>
+            )}
+            {isHonor && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/4AqrChdhXf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung
+                        </span>
+                    </a>
+                </div>
+            )}
+            {isTecno && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/gGz2ZEcaj"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung
+                        </span>
+                    </a>
+                </div>
+            )}
+            {isRealme && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/3qE0oVUbZt"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung
+                        </span>
+                    </a>
+                </div>
+            )}
             
             <ShareButtons shareText={shareText} shareUrl={shareUrl} />
         </div>
     );
 };
 
-// --- NEW RATING COMPONENTS ---
-
-const StarRating: FC<{ rating: number; maxRating?: number }> = ({ rating, maxRating = 5 }) => {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 >= 0.5;
-    const emptyStars = maxRating - fullStars - (halfStar ? 1 : 0);
-
-    return (
-        <div className="flex items-center" aria-label={`Rating: ${rating.toFixed(1)} dari ${maxRating} bintang`}>
-            {[...Array(fullStars)].map((_, i) => <StarIcon key={`full-${i}`} variant="full" />)}
-            {halfStar && <StarIcon key="half" variant="half" />}
-            {[...Array(emptyStars)].map((_, i) => <StarIcon key={`empty-${i}`} variant="empty" />)}
-        </div>
-    );
-};
-
 const RatingsDisplay: FC<{ ratings: Ratings }> = ({ ratings }) => {
-    const ratingCategories: { key: keyof Ratings; label: string }[] = [
-        { key: 'gaming', label: 'Gaming' },
-        { key: 'kamera', label: 'Kamera' },
-        { key: 'baterai', label: 'Baterai' },
-        { key: 'layarDesain', label: 'Layar & Desain' },
-        { key: 'performa', label: 'Performa' },
-        { key: 'storageRam', label: 'Storage & RAM' },
+    const ratingItems = [
+        { label: 'Gaming', score: ratings.gaming },
+        { label: 'Kamera', score: ratings.kamera },
+        { label: 'Baterai', score: ratings.baterai },
+        { label: 'Layar & Desain', score: ratings.layarDesain },
+        { label: 'Performa', score: ratings.performa },
+        { label: 'Storage & RAM', score: ratings.storageRam },
     ];
-
     return (
-        <div className="border-y border-indigo-500/20 py-5 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5">
-            {ratingCategories.map(({ key, label }) => (
-                <div key={key}>
-                    <p className="text-sm text-gray-400 font-semibold mb-1">{label}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5 border-y border-indigo-500/20 py-5">
+            {ratingItems.map(item => (
+                <div key={item.label}>
+                    <p className="text-sm text-gray-300 font-semibold mb-1">{item.label}</p>
                     <div className="flex items-center gap-2">
-                        <span className="font-orbitron font-bold text-base text-white">{ratings[key]?.toFixed(1) || 'N/A'}</span>
-                        <StarRating rating={ratings[key] || 0} />
+                        <span className="font-orbitron font-bold text-lg text-white">{item.score.toFixed(1)}</span>
+                        <StarRating score={item.score} />
                     </div>
                 </div>
             ))}
@@ -474,159 +644,119 @@ const RatingsDisplay: FC<{ ratings: Ratings }> = ({ ratings }) => {
     );
 };
 
-
-// --- TAB COMPONENTS ---
-
-const SummaryTab: FC<{ review: ReviewResult }> = ({ review }) => (
-    <div className="space-y-6 animate-fade-in">
-        <ReviewSection title="Ulasan Singkat">
-            <p className="text-gray-300 mb-5 text-justify text-sm leading-relaxed">{review.quickReview.summary}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
-                <div>
-                    <h5 className="text-base font-semibold text-fuchsia-400 mb-2">Kelebihan</h5>
-                    <ul className="list-disc list-inside space-y-1 text-gray-300 text-justify">
-                        {review.quickReview.pros.map((pro, i) => <li key={`pro-${i}`}>{pro}</li>)}
-                    </ul>
-                </div>
-                <div>
-                    <h5 className="text-base font-semibold text-red-400 mb-2">Kekurangan</h5>
-                    <ul className="list-disc list-inside space-y-1 text-gray-300 text-justify">
-                        {review.quickReview.cons.map((con, i) => <li key={`con-${i}`}>{con}</li>)}
-                    </ul>
-                </div>
+const TabContentRingkasan: FC<{ review: ReviewResult }> = ({ review }) => (
+    <div className="space-y-5 text-sm">
+        <div>
+            <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">Ringkasan Cepat</h3>
+            <p className="text-gray-300 leading-relaxed">{review.quickReview.summary}</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <h4 className="font-semibold text-green-400 mb-2">Kelebihan 👍</h4>
+                <ul className="list-disc list-inside space-y-1 text-gray-300">
+                    {review.quickReview.pros.map((pro, i) => <li key={i}>{pro}</li>)}
+                </ul>
             </div>
-        </ReviewSection>
-        <ReviewSection title="Spesifikasi Lengkap">
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                {Object.entries(review.specs).map(([key, value]) => {
-                    const displayValue = value === null || value === undefined ? 'N/A' : String(value);
-                    return (
-                        <div key={key} className="flex justify-between border-b border-gray-700 py-1.5">
-                            <span className="font-semibold capitalize text-gray-400">{key.replace(/([A-Z])/g, ' $1')}</span>
-                            <span className="text-right text-gray-200">{displayValue}</span>
-                        </div>
-                    );
-                })}
+            <div>
+                <h4 className="font-semibold text-red-400 mb-2">Kekurangan 👎</h4>
+                <ul className="list-disc list-inside space-y-1 text-gray-300">
+                    {review.quickReview.cons.map((con, i) => <li key={i}>{con}</li>)}
+                </ul>
             </div>
-        </ReviewSection>
-        <ReviewSection title="Cocok Untuk Siapa">
-            <div className="flex flex-wrap gap-2">
-                {review.targetAudience.map((user, i) => (
-                    <span key={`user-${i}`} className="bg-indigo-500/10 text-indigo-300 text-xs font-medium px-2.5 py-1 rounded-full">{user}</span>
-                ))}
+        </div>
+        <div>
+            <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-3">Spesifikasi Kunci</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                <SpecItem label="Prosesor" value={review.specs.processor} />
+                <SpecItem label="RAM" value={review.specs.ram} />
+                <SpecItem label="Layar" value={review.specs.display} />
+                <SpecItem label="Baterai" value={review.specs.battery} />
+                <SpecItem label="Kamera" value={review.specs.camera} />
+                <SpecItem label="Charging" value={review.specs.charging} />
+                <SpecItem label="Jaringan" value={review.specs.jaringan} />
+                <SpecItem label="Koneksi" value={review.specs.koneksi} />
+                <SpecItem label="OS" value={review.specs.os} />
+                <SpecItem label="NFC" value={review.specs.nfc} />
             </div>
-        </ReviewSection>
-        <ReviewSection title="Ketersediaan Aksesoris">
-             <p className="text-gray-300 text-justify text-sm leading-relaxed">{review.accessoryAvailability}</p>
-        </ReviewSection>
-        <ReviewSection title="Perkiraan Harga Pasaran">
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                 <div className="flex justify-between border-b border-gray-700 py-1.5">
-                    <span className="font-semibold capitalize text-gray-400">Indonesia</span>
-                    <span className="text-right text-gray-200 font-bold">{review.marketPrice.indonesia}</span>
-                </div>
-                <div className="flex justify-between border-b border-gray-700 py-1.5">
-                    <span className="font-semibold capitalize text-gray-400">Global</span>
-                    <span className="text-right text-gray-200 font-bold">{review.marketPrice.global}</span>
-                </div>
-            </div>
-        </ReviewSection>
+        </div>
     </div>
 );
 
-const PerformanceTab: FC<{ performance: ReviewResult['performance'], phoneName: string }> = ({ performance, phoneName }) => {
-    const allPhonesWithScores = [
-        ...(performance.antutuScore ? [{ name: phoneName, antutuScore: performance.antutuScore }] : []),
-        ...performance.competitors.filter(c => c.antutuScore) as { name: string; antutuScore: number }[]
-    ];
-    
-    const maxScore = allPhonesWithScores.length > 0 ? Math.max(...allPhonesWithScores.map(p => p.antutuScore)) : 0;
+const TabContentPerforma: FC<{ review: ReviewResult }> = ({ review }) => (
+    <div className="space-y-5 text-sm">
+        <div>
+            <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">Benchmark Sintetis</h3>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 space-y-2 sm:space-y-0">
+                <p className="text-gray-300"><strong>AnTuTu v10:</strong> <span className="text-white font-semibold">{review.performance.antutuScore?.toLocaleString('id-ID') || 'N/A'}</span></p>
+                <p className="text-gray-300"><strong>Geekbench 6:</strong> <span className="text-white font-semibold">{review.performance.geekbenchScore || 'N/A'}</span></p>
+            </div>
+        </div>
+        <div>
+            <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">Review Gaming</h3>
+            <p className="text-gray-300 leading-relaxed">{review.performance.gamingReview}</p>
+        </div>
+        <div>
+            <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">Pesaing Terdekat</h3>
+            <ul className="list-disc list-inside space-y-1 text-gray-300">
+                {review.performance.competitors.map(comp => (
+                    <li key={comp.name}>{comp.name} (AnTuTu: {comp.antutuScore?.toLocaleString('id-ID') || 'N/A'})</li>
+                ))}
+            </ul>
+        </div>
+    </div>
+);
+
+const TabContentCamera: FC<{ review: ReviewResult }> = ({ review }) => (
+     <div className="space-y-5 text-sm">
+        <div>
+            <p className="text-gray-300"><strong>Skor DXOMark:</strong> <span className="text-white font-semibold">{review.cameraAssessment.dxomarkScore || 'N/A'}</span></p>
+        </div>
+        <div>
+            <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">Ulasan Foto</h3>
+            <p className="text-gray-300 leading-relaxed mb-3">{review.cameraAssessment.photoSummary}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <h4 className="font-semibold text-green-400 mb-2">Kelebihan Foto 👍</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-300">
+                        {review.cameraAssessment.photoPros.map((pro, i) => <li key={i}>{pro}</li>)}
+                    </ul>
+                </div>
+                <div>
+                    <h4 className="font-semibold text-red-400 mb-2">Kekurangan Foto 👎</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-300">
+                        {review.cameraAssessment.photoCons.map((con, i) => <li key={i}>{con}</li>)}
+                    </ul>
+                </div>
+            </div>
+        </div>
+         <div>
+            <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">Ulasan Video</h3>
+            <p className="text-gray-300 leading-relaxed">{review.cameraAssessment.videoSummary}</p>
+        </div>
+    </div>
+);
+
+const StarRating: FC<{ score: number; maxScore?: number }> = ({ score, maxScore = 5 }) => {
+    const fullStars = Math.floor(score);
+    const halfStar = score % 1 >= 0.4;
+    const emptyStars = maxScore - fullStars - (halfStar ? 1 : 0);
 
     return (
-        <div className="space-y-6 animate-fade-in">
-            <ReviewSection title="Skor Benchmark">
-                <div className="flex flex-col sm:flex-row gap-6">
-                    <div className="text-center bg-gray-900/40 p-3 rounded-lg flex-1">
-                        <p className="text-sm text-gray-400">AnTuTu v10</p>
-                        <p className="font-orbitron text-3xl font-bold text-fuchsia-400">
-                            {performance.antutuScore ? performance.antutuScore.toLocaleString('id-ID') : 'N/A'}
-                        </p>
-                    </div>
-                     <div className="text-center bg-gray-900/40 p-3 rounded-lg flex-1">
-                        <p className="text-sm text-gray-400">Geekbench 6</p>
-                        <p className="font-orbitron text-xl font-bold text-indigo-400">{performance.geekbenchScore || 'N/A'}</p>
-                    </div>
-                </div>
-            </ReviewSection>
-             {maxScore > 0 && (
-                 <ReviewSection title="Perbandingan AnTuTu vs Pesaing">
-                     <div className="space-y-3">
-                        {allPhonesWithScores.sort((a, b) => b.antutuScore - a.antutuScore).map(phone => {
-                            const widthPercentage = (phone.antutuScore / maxScore) * 100;
-                            const isMainPhone = phone.name === phoneName;
-                            return (
-                                <div key={phone.name} className="flex items-center gap-3">
-                                    <div className="w-1/3 text-sm text-gray-300 truncate">{phone.name}</div>
-                                    <div className="w-2/3 bg-gray-700/50 rounded-full h-5">
-                                        <div 
-                                            className={`h-5 rounded-full flex items-center justify-end pr-2 ${isMainPhone ? 'bg-gradient-to-r from-indigo-500 to-fuchsia-500' : 'bg-gray-500'}`}
-                                            style={{ width: `${widthPercentage}%` }}
-                                        >
-                                           <span className="text-xs font-bold text-white shadow-sm">{phone.antutuScore.toLocaleString('id-ID')}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        })}
-                     </div>
-                </ReviewSection>
-             )}
-            <ReviewSection title="Ulasan Performa Gaming">
-                <p className="text-gray-300 leading-relaxed text-justify text-sm">{performance.gamingReview || 'N/A'}</p>
-            </ReviewSection>
+        <div className="flex">
+            {[...Array(fullStars)].map((_, i) => <StarIcon key={`full-${i}`} variant="full" />)}
+            {halfStar && <StarIcon key="half" variant="half" />}
+            {[...Array(emptyStars)].map((_, i) => <StarIcon key={`empty-${i}`} variant="empty" />)}
         </div>
-    )
+    );
 };
 
-
-const CameraTab: FC<{ assessment: ReviewResult['cameraAssessment'] }> = ({ assessment }) => (
-    <div className="space-y-6 animate-fade-in">
-        {assessment.dxomarkScore && (
-             <ReviewSection title="Skor Kamera (DXOMark)">
-                <div className="flex items-center justify-center gap-4 bg-gray-900/40 p-3 rounded-lg max-w-xs mx-auto">
-                    <span className="font-orbitron text-3xl font-bold text-gray-300">Skor</span>
-                    <p className="font-orbitron text-4xl font-bold text-yellow-400">{assessment.dxomarkScore}</p>
-                </div>
-             </ReviewSection>
-        )}
-        <ReviewSection title="Penilaian Kualitas Foto">
-            <p className="text-gray-300 mb-5 text-justify text-sm leading-relaxed">{assessment.photoSummary}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
-                 <div>
-                    <h5 className="text-base font-semibold text-fuchsia-400 mb-2">Kelebihan Foto</h5>
-                    <ul className="list-disc list-inside space-y-1 text-gray-300 text-justify">
-                        {assessment.photoPros.map((pro, i) => <li key={`photo-pro-${i}`}>{pro}</li>)}
-                    </ul>
-                </div>
-                <div>
-                    <h5 className="text-base font-semibold text-red-400 mb-2">Kekurangan Foto</h5>
-                    <ul className="list-disc list-inside space-y-1 text-gray-300 text-justify">
-                        {assessment.photoCons.map((con, i) => <li key={`photo-con-${i}`}>{con}</li>)}
-                    </ul>
-                </div>
-            </div>
-        </ReviewSection>
-        <ReviewSection title="Penilaian Kualitas Video">
-             <p className="text-gray-300 text-justify text-sm leading-relaxed">{assessment.videoSummary}</p>
-        </ReviewSection>
-    </div>
-);
-
-const ReviewSection: FC<{ title: string, children: React.ReactNode }> = ({ title, children }) => (
-    <div className="border-t border-indigo-500/20 pt-5 first-of-type:border-t-0 first-of-type:pt-0">
-        <h3 className="font-orbitron text-lg font-bold text-indigo-400 mb-3">{title}</h3>
-        {children}
-    </div>
+const SpecItem: FC<{ label: string; value: string | undefined | null }> = ({ label, value }) => (
+    value ? (
+        <>
+            <dt className="font-semibold text-gray-400">{label}</dt>
+            <dd className="text-gray-200">{value}</dd>
+        </>
+    ) : null
 );
 
 export default SmartReview;

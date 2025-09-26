@@ -14,6 +14,13 @@ const Footer: React.FC<FooterProps> = ({ setPage }) => {
         </p>
         <span className="hidden sm:inline text-gray-600">|</span>
         <button
+          onClick={() => setPage('saran')}
+          className="text-sm text-gray-400 hover:text-indigo-400 transition-colors duration-300"
+        >
+          Saran
+        </button>
+        <span className="hidden sm:inline text-gray-600">|</span>
+        <button
           onClick={() => setPage('faq')}
           className="text-sm text-gray-400 hover:text-indigo-400 transition-colors duration-300"
         >

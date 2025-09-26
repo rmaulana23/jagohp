@@ -1,4 +1,3 @@
-
 import React, { useState, FC, useMemo } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient'; // Import Supabase client
@@ -324,93 +323,134 @@ const PhoneInputCard: FC<{phoneName: string; setPhoneName: (name: string) => voi
 
 const BattleSkeleton: FC<{ phoneCount: number }> = ({ phoneCount }) => (
     <div className="space-y-12 animate-pulse">
-        <div className={`grid grid-cols-1 lg:grid-cols-${phoneCount === 3 ? 3 : 2} gap-6`}>
+        {/* Summaries skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-5 space-y-3">
+                <div className="h-6 bg-gray-700/50 rounded w-1/3"></div>
+                <div className="h-4 bg-gray-700/50 rounded w-full"></div>
+                <div className="h-4 bg-gray-700/50 rounded w-5/6"></div>
+            </div>
+            <div className="bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-5 space-y-3">
+                <div className="h-6 bg-gray-700/50 rounded w-1/3"></div>
+                <div className="h-4 bg-gray-700/50 rounded w-full"></div>
+                <div className="h-4 bg-gray-700/50 rounded w-5/6"></div>
+            </div>
+        </div>
+        {/* Phone cards skeleton */}
+        <div className={`grid grid-cols-1 ${phoneCount === 2 ? 'lg:grid-cols-2' : `lg:grid-cols-${phoneCount}`} gap-6`}>
             {[...Array(phoneCount)].map((_, i) => (
-                <div key={i} className="bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-5 space-y-4">
-                    <div className="h-7 bg-gray-700/50 rounded-md w-3/4"></div>
-                    {[...Array(10)].map((_, j) => <div key={j} className="h-4 bg-gray-700/50 rounded-md w-full"></div>)}
+                <div key={i} className="bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-5 space-y-3">
+                    <div className="h-6 bg-gray-700/50 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-700/50 rounded w-1/2"></div>
+                    <div className="space-y-2 pt-2 mt-2 border-t border-gray-700/50">
+                        <div className="h-4 bg-gray-700/50 rounded w-full"></div>
+                        <div className="h-4 bg-gray-700/50 rounded w-full"></div>
+                        <div className="h-4 bg-gray-700/50 rounded w-full"></div>
+                    </div>
                 </div>
             ))}
-        </div>
-        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gray-800/20 border border-gray-700 rounded-2xl p-5 space-y-3">
-                 <div className="h-6 bg-gray-700/50 rounded-md w-1/3 mb-2"></div>
-                 <div className="h-4 bg-gray-700/50 rounded-md w-full"></div>
-                 <div className="h-4 bg-gray-700/50 rounded-md w-5/6"></div>
-            </div>
-             <div className="bg-gray-800/20 border border-gray-700 rounded-2xl p-5 space-y-3">
-                 <div className="h-6 bg-gray-700/50 rounded-md w-1/3 mb-2"></div>
-                 <div className="h-4 bg-gray-700/50 rounded-md w-full"></div>
-                 <div className="h-4 bg-gray-700/50 rounded-md w-5/6"></div>
-            </div>
         </div>
     </div>
 );
 
-const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
-    const gridColsClass = result.phones.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2';
-
-    return (
-        <div className="space-y-10 animate-fade-in">
-            <div className={`grid grid-cols-1 ${gridColsClass} gap-6`}>
-                {result.phones.map((phone, index) => (
-                     <ResultCard key={index} phone={phone} isWinner={result.winnerName === phone.name} />
-                ))}
-            </div>
-            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                <div className="bg-gray-800/30 border border-indigo-500/20 rounded-2xl p-5 backdrop-blur-sm">
-                    <div className="flex items-center gap-3 mb-3">
-                        <LightbulbIcon className="w-6 h-6 text-indigo-400"/>
-                        <h4 className="font-orbitron text-lg font-bold">Kesimpulan Hasil</h4>
-                    </div>
-                    <p className="text-gray-300 leading-relaxed text-sm">{result.battleSummary}</p>
-                </div>
-                <div className="bg-gray-800/30 border border-fuchsia-500/20 rounded-2xl p-5 backdrop-blur-sm">
-                    <div className="flex items-center gap-3 mb-3">
-                        <UsersIcon className="w-6 h-6 text-fuchsia-400"/>
-                        <h4 className="font-orbitron text-lg font-bold">Cocok Untuk Siapa</h4>
-                    </div>
-                    <p className="text-gray-300 leading-relaxed text-sm whitespace-pre-line">{result.targetAudience}</p>
-                </div>
-            </div>
+const SpecItem: FC<{ label: string; value: string | number | null | undefined }> = ({ label, value }) => (
+    value ? (
+        <div className="flex justify-between items-start gap-4">
+            <dt className="font-semibold text-gray-400 flex-shrink-0">{label}</dt>
+            <dd className="text-gray-200 text-right break-words">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</dd>
         </div>
-    );
-};
+    ) : null
+);
 
-const ResultCard: FC<{ phone: PhoneData; isWinner: boolean; }> = ({ phone, isWinner }) => {
-    const specOrder: { key: keyof SpecDetails; label: string }[] = [
-        { key: 'rilis', label: 'Rilis' }, { key: 'os', label: 'OS' }, { key: 'processor', label: 'Prosesor' }, { key: 'antutuScore', label: 'AnTuTu v10' },
-        { key: 'jaringan', label: 'Jaringan' }, { key: 'wifi', label: 'Wi-Fi' }, { key: 'display', label: 'Display' },
-        { key: 'camera', label: 'Kamera' }, { key: 'battery', label: 'Baterai' }, { key: 'charging', label: 'Charging' },
-        { key: 'koneksi', label: 'Koneksi' }, { key: 'nfc', label: 'NFC' },
-    ];
+const BuyButton: FC<{ link: string }> = ({ link }) => (
+    <div className="text-center mt-4">
+        <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-orbitron text-sm font-bold w-full h-10 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                       bg-gradient-to-r from-green-400 to-teal-500"
+        >
+            <span className="relative w-full h-full px-4 py-2 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                Beli Langsung
+            </span>
+        </a>
+    </div>
+);
 
+const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
     return (
-        <div className={`relative bg-gray-800/20 border-2 rounded-2xl p-5 transition-all duration-300 ${isWinner ? 'border-yellow-400 shadow-lg shadow-yellow-400/20' : 'border-gray-700'}`}>
-            {isWinner && (
-                <div className="absolute top-2 right-2">
-                    <CrownIcon className="w-6 h-6 text-yellow-400" />
-                </div>
-            )}
-            <h4 className="font-orbitron text-xl font-bold mb-5 truncate pr-8">{phone.name}</h4>
-            <div className="mt-4">
-                 <h5 className="text-base font-semibold text-indigo-400 mb-3 font-orbitron">Spesifikasi Utama</h5>
-                 <div className="space-y-1 text-sm">
-                    {specOrder.map(({ key, label }, index) => {
-                        const value = phone.specs[key];
-                        if (value === null || value === undefined || value === '') return null;
+        <div className="animate-fade-in space-y-8">
+            {/* Phone Cards */}
+            <div className={`grid grid-cols-1 ${result.phones.length === 2 ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-6`}>
+                {result.phones.map((phone, index) => {
+                    const isWinner = phone.name === result.winnerName;
+                    const phoneBrand = phone.name.toLowerCase();
+                    const isSamsung = phoneBrand.includes('samsung');
+                    const isApple = phoneBrand.includes('apple') || phoneBrand.includes('iphone');
+                    const isXiaomi = phoneBrand.includes('xiaomi') || phoneBrand.includes('redmi');
+                    const isOppo = phoneBrand.includes('oppo');
+                    const isVivo = phoneBrand.includes('vivo') || phoneBrand.includes('iqoo');
+                    const isPoco = phoneBrand.includes('poco');
+                    const isInfinix = phoneBrand.includes('infinix');
+                    const isItel = phoneBrand.includes('itel');
+                    const isHuawei = phoneBrand.includes('huawei');
+                    const isHonor = phoneBrand.includes('honor');
+                    const isTecno = phoneBrand.includes('tecno');
+                    const isRealme = phoneBrand.includes('realme');
 
-                        const formattedValue = key === 'antutuScore' && typeof value === 'number'
-                            ? value.toLocaleString('id-ID')
-                            : value;
-                        
-                        return (
-                            <div key={key} className={`flex justify-between gap-4 p-2 rounded-md ${index % 2 === 0 ? 'bg-gray-700/20' : ''}`}>
-                                <span className="font-semibold text-gray-400">{label}</span>
-                                <span className="text-right text-white font-medium">{String(formattedValue)}</span>
-                            </div>
-                        )
-                    })}
+                    return (
+                        <div key={index} className={`relative bg-gray-800/30 border-2 rounded-2xl p-5 flex flex-col ${isWinner ? 'border-amber-400 shadow-lg shadow-amber-400/10' : 'border-gray-700'}`}>
+                            {isWinner && (
+                                <div className="absolute -top-4 right-4 bg-amber-400 text-gray-900 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                                    <CrownIcon className="w-4 h-4" />
+                                    <span>Pemenang</span>
+                                </div>
+                            )}
+                            <h3 className="font-orbitron text-lg font-bold text-white mb-2">{phone.name}</h3>
+                            <p className="text-sm text-indigo-300 mb-4">{phone.specs.rilis || 'Info rilis tidak tersedia'}</p>
+                            
+                            <dl className="space-y-2 text-sm flex-grow border-t border-gray-700 pt-4 mt-auto">
+                                <SpecItem label="Processor" value={phone.specs.processor} />
+                                <SpecItem label="AnTuTu v10" value={phone.specs.antutuScore} />
+                                <SpecItem label="Layar" value={phone.specs.display} />
+                                <SpecItem label="Kamera" value={phone.specs.camera} />
+                                <SpecItem label="Baterai" value={phone.specs.battery} />
+                                <SpecItem label="Charging" value={phone.specs.charging} />
+                                <SpecItem label="NFC" value={phone.specs.nfc} />
+                            </dl>
+
+                            {/* Buy Buttons */}
+                            {isSamsung && <BuyButton link="https://s.shopee.co.id/6AbvXZfbSV" />}
+                            {isApple && <BuyButton link="https://s.shopee.co.id/9fBniOs3ak" />}
+                            {isXiaomi && <BuyButton link="https://s.shopee.co.id/AUkuiQBtYg" />}
+                            {isOppo && <BuyButton link="https://s.shopee.co.id/BKiPhDZHl" />}
+                            {isVivo && <BuyButton link="https://s.shopee.co.id/1BDFc1esr2" />}
+                            {isPoco && <BuyButton link="https://s.shopee.co.id/qaPDaBvho" />}
+                            {isInfinix && <BuyButton link="https://s.shopee.co.id/qaPDpESoL" />}
+                            {isItel && <BuyButton link="https://s.shopee.co.id/803ZlEyaDj" />}
+                            {isHuawei && <BuyButton link="https://s.shopee.co.id/2B5mokEaKQ" />}
+                            {isHonor && <BuyButton link="https://s.shopee.co.id/4AqrChdhXf" />}
+                            {isTecno && <BuyButton link="https://s.shopee.co.id/gGz2ZEcaj" />}
+                            {isRealme && <BuyButton link="https://s.shopee.co.id/3qE0oVUbZt" />}
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Summaries */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-gray-800/20 border-2 border-indigo-500/30 rounded-2xl p-5">
+                    <h3 className="font-orbitron text-lg font-bold text-indigo-300 mb-2 flex items-center gap-2">
+                        <LightbulbIcon className="w-6 h-6" /> Ringkasan Adu
+                    </h3>
+                    <p className="text-sm text-gray-300 leading-relaxed">{result.battleSummary}</p>
+                </div>
+                <div className="bg-gray-800/20 border-2 border-fuchsia-500/30 rounded-2xl p-5">
+                    <h3 className="font-orbitron text-lg font-bold text-fuchsia-300 mb-2 flex items-center gap-2">
+                        <UsersIcon className="w-6 h-6" /> Cocok Untuk Siapa
+                    </h3>
+                    <p className="text-sm text-gray-300 leading-relaxed">{result.targetAudience}</p>
                 </div>
             </div>
         </div>

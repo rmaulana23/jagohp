@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, FC } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -329,6 +328,20 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
     const shareText = `AI JAGO-HP merekomendasikan ${result.phoneName} untukku!\n\nAlasannya: ${result.reason}\n\nCari HP impianmu juga di JAGO-HP.`;
     const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
+    const phoneBrand = result.phoneName.toLowerCase();
+    const isSamsung = phoneBrand.includes('samsung');
+    const isApple = phoneBrand.includes('apple') || phoneBrand.includes('iphone');
+    const isXiaomi = phoneBrand.includes('xiaomi') || phoneBrand.includes('redmi');
+    const isOppo = phoneBrand.includes('oppo');
+    const isVivo = phoneBrand.includes('vivo') || phoneBrand.includes('iqoo');
+    const isPoco = phoneBrand.includes('poco');
+    const isInfinix = phoneBrand.includes('infinix');
+    const isItel = phoneBrand.includes('itel');
+    const isHuawei = phoneBrand.includes('huawei');
+    const isHonor = phoneBrand.includes('honor');
+    const isTecno = phoneBrand.includes('tecno');
+    const isRealme = phoneBrand.includes('realme');
+
     return (
       <div className="mt-8 animate-fade-in">
         <h2 className="font-orbitron text-2xl font-bold text-center mb-6 text-indigo-300">Rekomendasi Terbaik Untukmu</h2>
@@ -346,6 +359,199 @@ const ResultsDisplay: FC<{ result: Recommendation }> = ({ result }) => {
                 </ul>
               </div>
             )}
+            
+            {isSamsung && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/6AbvXZfbSV"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung di Official Store
+                        </span>
+                    </a>
+                </div>
+            )}
+
+            {isApple && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/9fBniOs3ak"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung di Official Store
+                        </span>
+                    </a>
+                </div>
+            )}
+
+            {isXiaomi && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/AUkuiQBtYg"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung di Official Store
+                        </span>
+                    </a>
+                </div>
+            )}
+
+            {isOppo && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/BKiPhDZHl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung di Official Store
+                        </span>
+                    </a>
+                </div>
+            )}
+
+            {isVivo && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/1BDFc1esr2"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung di Official Store
+                        </span>
+                    </a>
+                </div>
+            )}
+            
+            {isPoco && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/qaPDaBvho"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung di Official Store
+                        </span>
+                    </a>
+                </div>
+            )}
+
+            {isInfinix && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/qaPDpESoL"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung di Official Store
+                        </span>
+                    </a>
+                </div>
+            )}
+
+            {isItel && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/803ZlEyaDj"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung di Official Store
+                        </span>
+                    </a>
+                </div>
+            )}
+
+            {isHuawei && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/2B5mokEaKQ"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung di Official Store
+                        </span>
+                    </a>
+                </div>
+            )}
+
+            {isHonor && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/4AqrChdhXf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung di Official Store
+                        </span>
+                    </a>
+                </div>
+            )}
+
+            {isTecno && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/gGz2ZEcaj"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung di Official Store
+                        </span>
+                    </a>
+                </div>
+            )}
+            
+            {isRealme && (
+                <div className="text-center my-4">
+                    <a
+                        href="https://s.shopee.co.id/3qE0oVUbZt"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-orbitron text-base font-bold w-full max-w-xs h-12 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
+                                   bg-gradient-to-r from-green-400 to-teal-500"
+                    >
+                        <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
+                            Beli Langsung di Official Store
+                        </span>
+                    </a>
+                </div>
+            )}
+
             <ShareButtons shareText={shareText} shareUrl={shareUrl} />
           </div>
         </div>

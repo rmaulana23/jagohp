@@ -12,7 +12,8 @@ import Footer from './components/Footer';
 import Partnership from './components/Partnership';
 import FAQ from './components/FAQ';
 import PrivacyPolicy from './components/PrivacyPolicy';
-import PhoneFinder from './components/PhoneFinder'; // Import baru
+import PhoneFinder from './components/PhoneFinder';
+import Saran from './components/Saran'; // Import baru
 import SparklesIcon from './components/icons/SparklesIcon';
 
 const App: React.FC = () => {
@@ -35,13 +36,14 @@ const App: React.FC = () => {
         {page === 'home' && <Hero setPage={setPage} />}
         {page === 'battle' && <PhoneBattle />}
         {page === 'review' && <SmartReview />}
-        {page === 'finder' && <PhoneFinder />} {/* Halaman baru ditambahkan */}
+        {page === 'finder' && <PhoneFinder />}
         {page === 'leaderboard' && <Leaderboard />}
         {page === 'insight' && <InsightPublic />}
         {page === 'about' && <About />}
         {page === 'partnership' && <Partnership />}
         {page === 'faq' && <FAQ />}
         {page === 'privacy' && <PrivacyPolicy />}
+        {page === 'saran' && <Saran />} {/* Halaman baru ditambahkan */}
       </main>
 
       <Footer setPage={setPage} />

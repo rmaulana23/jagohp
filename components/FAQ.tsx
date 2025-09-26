@@ -5,7 +5,7 @@ const FAQ: React.FC = () => {
   const faqItems = [
     {
       q: 'Apa itu JAGO-HP?',
-      a: 'JAGO-HP adalah platform review smartphone berbasis AI pertama di Indonesia. Kami membantu pengguna menemukan HP terbaik sesuai kebutuhan (gaming, kamera, baterai, dan lainnya) dengan rating otomatis dari AI.'
+      a: 'JAGO-HP adalah platform review & compare smartphone berbasis AI pertama di Indonesia. Kami membantu pengguna menemukan HP terbaik sesuai kebutuhan (gaming, kamera, baterai, dan lainnya) dengan rating otomatis dari AI.'
     },
     {
       q: 'Bagaimana cara kerja AI Review di sini?',
@@ -18,10 +18,6 @@ const FAQ: React.FC = () => {
     {
       q: 'Apakah data harga HP selalu terbaru?',
       a: 'Kami berusaha memperbarui harga HP secara rutin. Namun, harga bisa berbeda tergantung toko dan promo yang berlaku.'
-    },
-    {
-      q: 'Apa itu Insight Public?',
-      a: 'Insight Public adalah fitur yang menampilkan opini pengguna & tren HP di Indonesia, seperti HP paling dicari, polling publik, dan perbandingan rating AI dengan opini user.'
     },
     {
       q: 'Apakah JAGO-HP menerima iklan atau kerja sama?',

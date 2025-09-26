@@ -30,7 +30,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
               JAGO-HP
             </span>
             <span className="hidden md:inline text-xs font-normal tracking-wide text-indigo-400/70">
-              #1 Platform Review HP Berbasis AI di Indonesia
+              #1 Platform Rekomendasi HP with AI di Indonesia
             </span>
           </div>
         </a>

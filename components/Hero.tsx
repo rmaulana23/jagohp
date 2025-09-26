@@ -90,7 +90,7 @@ const Hero: React.FC<{ setPage: (page: string) => void; }> = ({ setPage }) => {
       
       {/* Social Proof Text */}
       <div className="absolute bottom-16 left-1/6 -translate-x-1/2 z-10 animate-fade-in-delayed">
-        <p className="text-sm text-gray-400">👉 Sudah dipakai 200+ pencari HP bulan ini</p>
+        <p className="text-sm text-gray-400">👉 Sudah dipakai 100+ pencari HP bulan ini</p>
       </div>
       
       {/* CSS for animations */}
