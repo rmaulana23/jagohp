@@ -83,7 +83,7 @@ const Hero: React.FC<{ setPage: (page: string) => void; }> = ({ setPage }) => {
                   Phone Match AI
               </span>
             </button>
-            <p className="text-xs text-gray-400 mt-2">Bantu Rekomendasikan HP Impianmu.</p>
+            <p className="text-xs text-gray-400 mt-2">Bantu Rekomendasikan HP yang Cocok.</p>
           </div>
         </div>
       </div>

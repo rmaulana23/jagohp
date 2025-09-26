@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import LogoIcon from './icons/LogoIcon';
 
@@ -29,13 +30,13 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
               JAGO-HP
             </span>
             <span className="hidden md:inline text-xs font-normal tracking-wide text-indigo-400/70">
-              #1 Review HP with AI di Indonesia
+              #1 Platform Review HP Berbasis AI di Indonesia
             </span>
           </div>
         </a>
 
         {/* Center: Navigation (Desktop) */}
-        <nav className="hidden lg:flex mr-16">
+        <nav className="hidden lg:flex mr-48">
           <ul className="flex items-center space-x-6">
             {navItems.map((item) => {
               const isActive = page === item.key;
