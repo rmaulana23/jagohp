@@ -8,7 +8,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
   const navItems = [
     { label: 'Home', key: 'home' },
     { label: 'Smart Review', key: 'review' },
-    { label: 'Battle Mode', key: 'battle' },
+    { label: 'Compare', key: 'battle' },
     { label: 'Phone Match', key: 'finder' },
     { label: 'About', key: 'about' }
   ];

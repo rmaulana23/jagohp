@@ -227,7 +227,17 @@ const SmartReview: React.FC = () => {
         4.  **Generate Review Content:** Using the extracted data, populate the JSON schema. Include the release month and year in the 'rilis' field.
             -   **Ratings:** Provide a 1-5 score for each category, being realistic for the device type (e.g., a feature phone will have a low gaming score).
             -   **Summaries & Analysis:** Write all textual content (summaries, pros/cons, reviews) based on the objective data you've extracted.
-        5.  **Failure Condition:** If, after an exhaustive search on all specified sources, the gadget cannot be found, populate the \`phoneName\` field with a polite "Maaf: ..." message and nothing else.
+        5.  **Handling Unreleased/Rumored Devices (e.g., iPhone 17, Xiaomi 17 series):**
+            -   If the requested device is not yet officially released but has preliminary/rumored specifications on GSMArena, you **MUST NOT** treat this as a failure.
+            -   Instead, perform the following steps:
+                a.  Populate the \`phoneName\` with the official rumored name.
+                b.  Populate the entire \`specs\` object with the available rumored specifications from GSMArena.
+                c.  Set all numeric ratings in the \`ratings\` object to \`0\`.
+                d.  In the \`quickReview.summary\`, provide a clear statement: "Ponsel ini belum resmi dirilis. Ulasan lengkap dan rating belum tersedia. Berikut adalah rangkuman spesifikasi yang dirumorkan berdasarkan data dari GSMArena per ${today}."
+                e.  Fill \`quickReview.pros\` and \`quickReview.cons\` with empty arrays \`[]\`.
+                f.  Fill all other analytical fields (\`targetAudience\`, \`accessoryAvailability\`, \`performance\`, \`cameraAssessment\`) with appropriate text indicating that the data is not yet available because the phone is unreleased. For example, \`performance.gamingReview\` should be "Analisis performa gaming belum tersedia karena perangkat belum dirilis secara resmi." For scores like \`antutuScore\` and \`dxomarkScore\`, use \`null\`.
+                g. For \`marketPrice.indonesia\`, state "Harga resmi belum diumumkan."
+        6.  **True Failure Condition (Not Found):** Only if the device cannot be found at all, even as a rumor on GSMArena, should you populate the \`phoneName\` field with a message like "Maaf: Perangkat '${searchQuery}' tidak dapat ditemukan." and fill other fields with placeholders.
 
         **Final Output:**
         - Ensure the final JSON output strictly adheres to the provided schema.
@@ -682,54 +692,149 @@ const TabContentRingkasan: FC<{ review: ReviewResult }> = ({ review }) => (
     </div>
 );
 
+const PerformanceChart: FC<{ mainPhone: { name: string; score: number | null }, competitors: { name: string; antutuScore: number | null }[] }> = ({ mainPhone, competitors }) => {
+    const allPhones = [
+        { name: mainPhone.name, score: mainPhone.score },
+        ...competitors.map(c => ({ name: c.name, score: c.antutuScore }))
+    ].filter(p => p.score !== null);
+
+    if (allPhones.length === 0) {
+        return <p className="text-gray-400 text-sm">Data skor AnTuTu tidak tersedia.</p>;
+    }
+
+    const maxScore = Math.max(...allPhones.map(p => p.score as number));
+
+    return (
+        <div className="space-y-3">
+            {allPhones.map((phone, index) => {
+                const isMain = phone.name === mainPhone.name;
+                const barWidth = phone.score ? (phone.score / maxScore) * 100 : 0;
+                return (
+                    <div key={index} className="text-sm">
+                        <div className="flex justify-between items-center mb-1">
+                            <span className={`font-semibold ${isMain ? 'text-white' : 'text-gray-300'}`}>{phone.name}</span>
+                            <span className={`font-bold ${isMain ? 'text-indigo-300' : 'text-gray-400'}`}>{phone.score?.toLocaleString('id-ID') || 'N/A'}</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2.5">
+                            <div
+                                className={`h-2.5 rounded-full ${isMain ? 'bg-gradient-to-r from-indigo-500 to-fuchsia-500' : 'bg-gray-500'}`}
+                                style={{ width: `${barWidth}%`, transition: 'width 0.5s ease-in-out' }}
+                            ></div>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
+
 const TabContentPerforma: FC<{ review: ReviewResult }> = ({ review }) => (
-    <div className="space-y-5 text-sm">
+    <div className="space-y-6 text-sm">
         <div>
-            <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">Benchmark Sintetis</h3>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 space-y-2 sm:space-y-0">
-                <p className="text-gray-300"><strong>AnTuTu v10:</strong> <span className="text-white font-semibold">{review.performance.antutuScore?.toLocaleString('id-ID') || 'N/A'}</span></p>
-                <p className="text-gray-300"><strong>Geekbench 6:</strong> <span className="text-white font-semibold">{review.performance.geekbenchScore || 'N/A'}</span></p>
-            </div>
+            <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-3">Perbandingan AnTuTu v10</h3>
+             <PerformanceChart
+                mainPhone={{ name: review.phoneName, score: review.performance.antutuScore }}
+                competitors={review.performance.competitors}
+            />
+            <p className="text-gray-400 mt-4">
+                <strong>Geekbench 6:</strong> <span className="text-white font-semibold">{review.performance.geekbenchScore || 'N/A'}</span>
+            </p>
         </div>
         <div>
             <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">Review Gaming</h3>
             <p className="text-gray-300 leading-relaxed">{review.performance.gamingReview}</p>
         </div>
-        <div>
-            <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">Pesaing Terdekat</h3>
-            <ul className="list-disc list-inside space-y-1 text-gray-300">
-                {review.performance.competitors.map(comp => (
-                    <li key={comp.name}>{comp.name} (AnTuTu: {comp.antutuScore?.toLocaleString('id-ID') || 'N/A'})</li>
-                ))}
-            </ul>
-        </div>
     </div>
 );
 
-const TabContentCamera: FC<{ review: ReviewResult }> = ({ review }) => (
-     <div className="space-y-5 text-sm">
-        <div>
-            <p className="text-gray-300"><strong>Skor DXOMark:</strong> <span className="text-white font-semibold">{review.cameraAssessment.dxomarkScore || 'N/A'}</span></p>
-        </div>
-        <div>
-            <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">Ulasan Foto</h3>
-            <p className="text-gray-300 leading-relaxed mb-3">{review.cameraAssessment.photoSummary}</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <h4 className="font-semibold text-green-400 mb-2">Kelebihan Foto 👍</h4>
-                    <ul className="list-disc list-inside space-y-1 text-gray-300">
-                        {review.cameraAssessment.photoPros.map((pro, i) => <li key={i}>{pro}</li>)}
-                    </ul>
-                </div>
-                <div>
-                    <h4 className="font-semibold text-red-400 mb-2">Kekurangan Foto 👎</h4>
-                    <ul className="list-disc list-inside space-y-1 text-gray-300">
-                        {review.cameraAssessment.photoCons.map((con, i) => <li key={i}>{con}</li>)}
-                    </ul>
+const DxOMarkScoreDisplay: FC<{ score: number | null }> = ({ score }) => {
+    if (score === null || score === 0) {
+        return (
+             <div className="flex flex-col items-center">
+                <p className="font-orbitron text-base font-bold text-indigo-300 mb-2">Skor DXOMark</p>
+                <p className="text-gray-400 text-lg font-semibold">N/A</p>
+            </div>
+        );
+    }
+
+    const MAX_SCORE = 160; // A sensible maximum for modern phones
+    const percentage = Math.min(score / MAX_SCORE, 1);
+    const circumference = 2 * Math.PI * 45; // r = 45
+    const strokeDashoffset = circumference * (1 - percentage);
+
+    return (
+        <div className="flex flex-col items-center">
+            <p className="font-orbitron text-base font-bold text-indigo-300 mb-3">Skor DXOMark</p>
+            <div className="relative w-32 h-32">
+                <svg className="w-full h-full" viewBox="0 0 100 100">
+                    {/* Background track */}
+                    <circle
+                        cx="50"
+                        cy="50"
+                        r="45"
+                        stroke="#374151" // gray-700
+                        strokeWidth="10"
+                        fill="none"
+                    />
+                    {/* Foreground progress */}
+                    <defs>
+                        <linearGradient id="dxoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#c084fc" /> 
+                            <stop offset="100%" stopColor="#818cf8" /> 
+                        </linearGradient>
+                    </defs>
+                    <circle
+                        cx="50"
+                        cy="50"
+                        r="45"
+                        stroke="url(#dxoGradient)"
+                        strokeWidth="10"
+                        fill="none"
+                        strokeLinecap="round"
+                        transform="rotate(-90 50 50)"
+                        style={{
+                            strokeDasharray: circumference,
+                            strokeDashoffset: strokeDashoffset,
+                            transition: 'stroke-dashoffset 0.8s ease-out'
+                        }}
+                    />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="font-orbitron text-3xl font-bold text-white">{score}</span>
                 </div>
             </div>
         </div>
-         <div>
+    );
+};
+
+
+const TabContentCamera: FC<{ review: ReviewResult }> = ({ review }) => (
+     <div className="space-y-5 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1 flex justify-center items-center">
+                 <DxOMarkScoreDisplay score={review.cameraAssessment.dxomarkScore} />
+            </div>
+            <div className="md:col-span-2">
+                 <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">Ulasan Foto</h3>
+                 <p className="text-gray-300 leading-relaxed mb-3">{review.cameraAssessment.photoSummary}</p>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <div>
+                         <h4 className="font-semibold text-green-400 mb-2">Kelebihan Foto 👍</h4>
+                         <ul className="list-disc list-inside space-y-1 text-gray-300">
+                             {review.cameraAssessment.photoPros.map((pro, i) => <li key={i}>{pro}</li>)}
+                         </ul>
+                     </div>
+                     <div>
+                         <h4 className="font-semibold text-red-400 mb-2">Kekurangan Foto 👎</h4>
+                         <ul className="list-disc list-inside space-y-1 text-gray-300">
+                             {review.cameraAssessment.photoCons.map((con, i) => <li key={i}>{con}</li>)}
+                         </ul>
+                     </div>
+                 </div>
+            </div>
+        </div>
+         <div className="border-t border-indigo-500/20 pt-4">
             <h3 className="font-orbitron text-base font-bold text-indigo-300 mb-2">Ulasan Video</h3>
             <p className="text-gray-300 leading-relaxed">{review.cameraAssessment.videoSummary}</p>
         </div>

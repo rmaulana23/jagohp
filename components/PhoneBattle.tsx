@@ -169,14 +169,19 @@ const PhoneBattle: React.FC = () => {
         **Execution Steps & Rules (Strictly Follow):**
         1.  **Identify Gadgets:** For each name in ${phoneList}, identify the official name and device type (smartphone, tablet, feature phone).
         2.  **Extract Data for All:** Perform your core data extraction role for **every single gadget** in the list, prioritizing GSMArena. Include the release month and year in the 'rilis' field.
-        3.  **Handle Cross-Category Battles:** If the devices are from different categories (e.g., smartphone vs. tablet), state this clearly in the \`battleSummary\`. The comparison should still proceed.
-        4.  **Handle Missing Data:** When comparing, if a spec is missing for one device (e.g., AnTuTu score for a feature phone), you **MUST** use \`null\` in the JSON output for that field. The comparison should focus on the available specs. **DO NOT FAIL** the request.
-        5.  **Holistic Analysis & Winner Determination:**
+        3.  **Handle Unannounced/Rumored Devices (e.g., iPhone 17, Xiaomi 17 series):** If a user includes a device that is not yet officially announced but has preliminary or rumored specifications listed on GSMArena, you **MUST**:
+            -   Extract and display these rumored specifications in the 'specs' object for that phone.
+            -   In the \`battleSummary\`, you **MUST** explicitly state that the specifications for that device are based on rumors/leaks from GSMArena and are subject to change upon official release.
+            -   For fields where data is unavailable (e.g., \`antutuScore\` for a phone that hasn't been tested), use \`null\`.
+            -   The comparison and winner determination must be framed with caution. In the \`battleSummary\` and \`winnerName\` decision, acknowledge the speculative nature of the comparison involving unreleased hardware. If a clear winner can be determined based on the rumored specs, state it, but qualify it (e.g., "Berdasarkan rumor, iPhone 17 Air unggul...").
+        4.  **Handle Cross-Category Battles:** If the devices are from different categories (e.g., smartphone vs. tablet), state this clearly in the \`battleSummary\`. The comparison should still proceed.
+        5.  **Handle Missing Data:** When comparing, if a spec is missing for one device (e.g., AnTuTu score for a feature phone), you **MUST** use \`null\` in the JSON output for that field. The comparison should focus on the available specs. **DO NOT FAIL** the request.
+        6.  **Holistic Analysis & Winner Determination:**
             -   Compare the extracted specs. **DO NOT** rely solely on one metric like AnTuTu.
             -   Consider the overall value: performance, display, camera, battery, price, and features.
             -   Based on this holistic view, declare **one winner** in the \`winnerName\` field. If it's a clear tie, you may use 'Seri'.
-        6.  **Generate Summaries:** Write the \`battleSummary\` and \`targetAudience\` based on your comparative analysis.
-        7.  **Failure Condition:** If any of the inputs are clearly not gadgets (e.g., "mobil"), the \`battleSummary\` field MUST contain the error message.
+        7.  **Generate Summaries:** Write the \`battleSummary\` and \`targetAudience\` based on your comparative analysis.
+        8.  **Failure Condition:** If any of the inputs are clearly not gadgets (e.g., "mobil"), the \`battleSummary\` field MUST contain the error message.
 
         **Final Output:**
         - Ensure the JSON strictly follows the schema.
