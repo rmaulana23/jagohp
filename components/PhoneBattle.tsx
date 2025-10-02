@@ -139,43 +139,38 @@ const PhoneBattle: React.FC = () => {
         }
 
         // 2. If no cache, call AI
-        const today = new Date().toLocaleDateString('id-ID', {
-            day: 'numeric', month: 'long', year: 'numeric'
-        });
-        
         const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
 
         const prompt = `**Core Role: GSMArena Data Extractor**
-        You are an AI trained to understand and extract structured data from GSMArena. Your primary task for this request is to:
-        - Identify and parse data for multiple devices: smartphones, tablet, pad & feature phones.
+        You are an AI trained to understand and extract structured data. Your primary task is to:
+        - Identify and parse data for multiple devices: smartphones, tablets, pads & feature phones.
+        - Source data from a wide range of reliable sources: GSMArena, PhoneArena, Jagat Review, AnTuTu, Geekbench, DXOMark, and other top-tier tech media.
         - Recognize and compare specifications across devices.
-        - Handle variations and missing specs gracefully (e.g., a feature phone won't have an AnTuTu score).
-        - Extract metadata like Brand, Model, Release date, and Device type.
+        - Handle variations and missing specs gracefully.
 
         **Your Secondary Task: AI Battle Analyst for JAGO-HP**
-        Based on the structured data you extract for each gadget, perform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.
+        Based on the structured data you extract, perform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.
 
         **Context & Knowledge Cut-off:**
-        - **Mandatory Update:** Your knowledge is considered fully updated as of today, **${today}**.
-        - **Data Requirement:** You **MUST** use the latest available specifications and market data for all devices being compared.
-        - **Output Language:** Bahasa Indonesia.
+        - **Mandatory Update:** Your knowledge is considered fully updated as of today, **2 Oktober 2025**.
+        - **Data Requirement:** You **MUST** use the latest available specifications and market data for all devices being compared. This includes devices like the iPhone 16 series, iPhone 17 series, and Xiaomi 17 series, which are now considered **officially released**.
 
         **Universal Brand & Device Knowledge (Core Mandate):**
-        Your knowledge base is built upon a comprehensive understanding of every device (smartphones, tablets, pads, feature phones) from the following extensive list of brands, with GSMArena as the primary data source. You are an expert on all of these:
+        Your knowledge base is built upon a comprehensive understanding of every device (smartphones, tablets, pads, feature phones) from the following extensive list of brands. You are an expert on all of these:
         Acer, alcatel, Allview, Amazon, Amoi, Apple, Archos, Asus, AT&T, Benefon, BenQ, BenQ-Siemens, Bird, BlackBerry, Blackview, BLU, Bosch, BQ, Casio, Cat, Celkon, Chea, Coolpad, Cubot, Dell, Doogee, Emporia, Energizer, Ericsson, Eten, Fairphone, Fujitsu Siemens, Garmin-Asus, Gigabyte, Gionee, Google, Haier, HMD, Honor, HP, HTC, Huawei, i-mate, i-mobile, Icemobile, Infinix, Innostream, iNQ, Intex, itel, Jolla, Karbonn, Kyocera, Lava, LeEco, Lenovo, LG, Maxon, Maxwest, Meizu, Micromax, Microsoft, Mitac, Mitsubishi, Modu, Motorola, MWg, NEC, Neonode, NIU, Nokia, Nothing, Nvidia, O2, OnePlus, Oppo, Orange, Oscal, Oukitel, Palm, Panasonic, Pantech, Parla, Philips, Plum, Posh, Prestigio, QMobile, Qtek, Razer, Realme, Sagem, Samsung, Sendo, Sewon, Sharp, Siemens, Sonim, Sony, Sony Ericsson, Spice, T-Mobile, TCL, Tecno, Tel.Me., Telit, Thuraya, Toshiba, Ulefone, Umidigi, Unnecto, Vertu, verykool, vivo, VK Mobile, Vodafone, Wiko, WND, XCute, Xiaomi, XOLO, Yezz, Yota, YU, ZTE.
 
-        **Crucial Rule:** If a device from any of these brands exists on GSMArena, you **MUST** be able to retrieve and display its data, regardless of its release status in Indonesia. This is a non-negotiable part of your function.
+        **Crucial Rule:** If a device from any of these brands exists, you **MUST** be able to retrieve and display its full, official data.
 
         **Execution Steps & Rules (Strictly Follow):**
-        1.  **Identify Gadgets:** For each name in ${phoneList}, identify the official name and device type (smartphone, tablet, feature phone).
-        2.  **Extract Data for All:** Perform your core data extraction role for **every single gadget** in the list, prioritizing GSMArena. Include the release month and year in the 'rilis' field.
-        3.  **Handle Unannounced/Rumored Devices (e.g., iPhone 17, Xiaomi 17 series):** If a user includes a device that is not yet officially announced but has preliminary or rumored specifications listed on GSMArena, you **MUST**:
-            -   Extract and display these rumored specifications in the 'specs' object for that phone.
-            -   In the \`battleSummary\`, you **MUST** explicitly state that the specifications for that device are based on rumors/leaks from GSMArena and are subject to change upon official release.
-            -   For fields where data is unavailable (e.g., \`antutuScore\` for a phone that hasn't been tested), use \`null\`.
-            -   The comparison and winner determination must be framed with caution. In the \`battleSummary\` and \`winnerName\` decision, acknowledge the speculative nature of the comparison involving unreleased hardware. If a clear winner can be determined based on the rumored specs, state it, but qualify it (e.g., "Berdasarkan rumor, iPhone 17 Air unggul...").
+        1.  **Identify Gadgets:** For each name in ${phoneList}, identify the official name and device type (smartphone, tablet, feature phone). Assume all devices mentioned are released and data is available.
+        2.  **Extract Data for All:** Perform your core data extraction role for **every single gadget** in the list, using the full range of specified sources. Include the release month and year in the 'rilis' field.
+        3.  **Handle Unannounced/Rumored Devices:** This rule now applies to devices rumored for release **AFTER Oktober 2025**. If a user includes such a device, you **MUST**:
+            -   Extract and display any available rumored specifications.
+            -   In the \`battleSummary\`, explicitly state that the specs for that device are based on rumors and are subject to change.
+            -   For unavailable data (e.g., \`antutuScore\`), use \`null\`.
+            -   Frame the comparison involving the unreleased device with caution.
         4.  **Handle Cross-Category Battles:** If the devices are from different categories (e.g., smartphone vs. tablet), state this clearly in the \`battleSummary\`. The comparison should still proceed.
-        5.  **Handle Missing Data:** When comparing, if a spec is missing for one device (e.g., AnTuTu score for a feature phone), you **MUST** use \`null\` in the JSON output for that field. The comparison should focus on the available specs. **DO NOT FAIL** the request.
+        5.  **Handle Missing Data:** For older devices or where a spec is genuinely unavailable, you **MUST** use \`null\` in the JSON output for that field. **DO NOT FAIL** the request.
         6.  **Holistic Analysis & Winner Determination:**
             -   Compare the extracted specs. **DO NOT** rely solely on one metric like AnTuTu.
             -   Consider the overall value: performance, display, camera, battery, price, and features.

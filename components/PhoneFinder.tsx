@@ -102,14 +102,12 @@ const PhoneFinder: React.FC = () => {
 
 
     const cameraPriorityText = ["Tidak penting", "Kurang penting", "Cukup penting", "Penting", "Sangat penting"][cameraPriority - 1];
-    const today = new Date().toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-
     const nfcRequired = activities.includes("Koneksi NFC");
     const mainActivities = activities.filter(act => act !== "Koneksi NFC").join(', ') || "Tidak ada preferensi spesifik";
 
     const prompt = `**Peran Anda:** Anda adalah seorang Ahli Rekomendasi Gadget yang sangat cerdas dan berpengalaman, dengan fokus utama pada pasar smartphone di Indonesia. Tugas Anda adalah memberikan **SATU rekomendasi smartphone TUNGGAL** yang paling TEPAT dan PRESISI, bukan hanya yang paling mahal atau populer, berdasarkan kuesioner pengguna.
 
-    **Konteks Waktu:** Hari ini adalah ${today}. Semua data harga dan ketersediaan harus relevan dengan tanggal ini.
+    **Konteks Waktu:** Hari ini adalah 2 Oktober 2025. Semua data harga dan ketersediaan harus relevan dengan tanggal ini. Ini berarti semua model yang rilis hingga September 2025 (termasuk iPhone 17 series, Xiaomi 17 series) adalah produk yang tersedia di pasaran.
 
     **Sumber Data Utama:** Prioritaskan sumber data yang relevan untuk Indonesia (misal: situs e-commerce lokal, review dari Jagat Review, Gadgetin) serta data teknis dari GSMArena.
 
