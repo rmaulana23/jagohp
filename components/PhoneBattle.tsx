@@ -226,7 +226,7 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
                                         <PhoneInputCard
                                             phoneName={name}
                                             setPhoneName={(value) => handlePhoneNameChange(index, value)}
-                                            placeholder={`Tipe HP ${index + 1}`}
+                                            placeholder={`Masukkan Tipe HP ${index + 1}`}
                                             onRemove={phoneNames.length > 2 ? () => handleRemovePhone(index) : undefined}
                                         />
                                         {index < phoneNames.length - 1 && <VersusIcon />}

@@ -137,7 +137,10 @@ const InsightPublic: React.FC = () => {
 
     return (
         <div className="glass rounded-2xl p-4">
-            <h3 className="font-semibold text-white mb-4 text-base">Polling: Apa Dealbreaker-mu?</h3>
+            <h3 className="font-semibold text-white mb-4 text-base flex items-center gap-2">
+                <span>Polling: Apa Dealbreaker-mu?</span>
+                <span className="text-xs font-medium bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">Live Voting</span>
+            </h3>
             <div className="space-y-2">
                 {options.map((option) => {
                     const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;

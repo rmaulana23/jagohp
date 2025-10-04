@@ -20,8 +20,11 @@ const Footer: React.FC<FooterProps> = ({ setPage }) => {
 
   return (
     <footer className="mt-auto py-8">
-      <div className="max-w-5xl mx-auto px-4 text-center">
-        <div className="flex justify-center items-center flex-wrap gap-x-4 sm:gap-x-6 gap-y-2 mb-4">
+      <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="text-slate-500 text-sm text-center sm:text-left">
+          © JAGO-HP 2025 All Rights Reserved.
+        </div>
+        <div className="flex justify-center sm:justify-end items-center flex-wrap gap-x-4 sm:gap-x-6 gap-y-2">
           {footerLinks.map(link => (
             <a
               key={link.key}
@@ -32,9 +35,6 @@ const Footer: React.FC<FooterProps> = ({ setPage }) => {
               {link.label}
             </a>
           ))}
-        </div>
-        <div className="text-slate-500 text-sm">
-          © JAGO-HP 2025 All Rights Reserved.
         </div>
       </div>
     </footer>

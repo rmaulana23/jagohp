@@ -191,9 +191,9 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
         <div className="md:col-span-7 space-y-8">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron text-white">JAGO-HP</h1>
-              <p className="mt-2 text-sm text-slate-300">Temukan Smartphone Terbaikmu Melalui Kecerdasan AI.</p>
+              <p className="mt-2 text-sm text-slate-300">Temukan Smartphone Terbaikmu Melalui Kecerdasan AI, Jangan Salah Pilih!</p>
               <div className="mt-6 flex gap-4">
-                <button onClick={openChat} className="px-5 py-3 rounded-lg bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity">AI Asisstant</button>
+                <button onClick={openChat} className="px-5 py-3 rounded-lg bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity">AI Assistant</button>
                 <button onClick={() => setPage('review')} className="px-5 py-3 rounded-lg border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/10 transition-colors">Smart Review</button>
               </div>
             </div>
@@ -202,7 +202,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
             <div>
               <label className="font-semibold text-white text-lg">Quick Review</label>
               <div className="mt-2 flex gap-3 items-center">
-                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung Galaxy S24 Ultra" />
+                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: iPhone 17 Pro Max..." />
                 <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Cari'}</button>
               </div>
               <div className="mt-2 text-sm small-muted">Ketik brand atau tipe HP</div>
@@ -217,8 +217,8 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
                     <div className="text-sm small-muted">Bandingkan 2 HP tipe berbeda</div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input id="cmpA" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan tipe HP A" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
-                    <input id="cmpB" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan tipe HP B" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
+                    <input id="cmpA" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 1" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
+                    <input id="cmpB" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 2" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
                 </div>
                 <div className="mt-4 flex flex-col sm:flex-row gap-3">
                     <button onClick={() => handleCompareAction('compare')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-slate-500 text-slate-300 font-semibold hover:bg-slate-700/50 transition-colors disabled:opacity-50">
