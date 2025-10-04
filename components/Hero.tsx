@@ -33,7 +33,6 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     if (!reviewQuery.trim()) return;
     setReviewLoading(true);
     setReviewError(null);
-    setLatestReviewResult(null);
     const schema = {
         type: Type.OBJECT,
         properties: {
@@ -71,7 +70,6 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
         const parsedResult: ReviewResult = JSON.parse(response.text.trim());
         if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
             setReviewError(parsedResult.phoneName);
-            setLatestReviewResult(null);
         } else {
             setLatestReviewResult(parsedResult);
         }
