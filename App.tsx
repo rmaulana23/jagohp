@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import PhoneBattle, { BattleResult } from './components/PhoneBattle';
@@ -22,6 +22,31 @@ const App: React.FC = () => {
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
   const [latestReviewResult, setLatestReviewResult] = useState<ReviewResult | null>(null);
 
+  useEffect(() => {
+    try {
+      const storedReview = localStorage.getItem('latestQuickReview');
+      if (storedReview) {
+        setLatestReviewResult(JSON.parse(storedReview));
+      }
+    } catch (error) {
+      console.error("Failed to parse latest review from localStorage", error);
+      localStorage.removeItem('latestQuickReview');
+    }
+  }, []);
+
+  const handleSetLatestReviewResult = (result: ReviewResult | null) => {
+    setLatestReviewResult(result);
+    if (result) {
+      try {
+        localStorage.setItem('latestQuickReview', JSON.stringify(result));
+      } catch (error) {
+        console.error("Failed to save latest review to localStorage", error);
+      }
+    } else {
+      localStorage.removeItem('latestQuickReview');
+    }
+  };
+
   const navigateToFullReview = (result: ReviewResult) => {
     setReviewResult(result);
     setPage('review');
@@ -42,7 +67,7 @@ const App: React.FC = () => {
                             navigateToFullReview={navigateToFullReview} 
                             navigateToFullBattle={navigateToFullBattle} 
                             latestReviewResult={latestReviewResult}
-                            setLatestReviewResult={setLatestReviewResult}
+                            setLatestReviewResult={handleSetLatestReviewResult}
                            />;
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
       case 'review': return <SmartReview initialResult={reviewResult} />;
@@ -59,7 +84,7 @@ const App: React.FC = () => {
                         navigateToFullReview={navigateToFullReview} 
                         navigateToFullBattle={navigateToFullBattle} 
                         latestReviewResult={latestReviewResult}
-                        setLatestReviewResult={setLatestReviewResult}
+                        setLatestReviewResult={handleSetLatestReviewResult}
                        />;
     }
   }
