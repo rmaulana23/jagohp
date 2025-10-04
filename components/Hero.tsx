@@ -212,7 +212,6 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
         {/* RIGHT: LEADERBOARDS & PREVIEW */}
         <div className="md:col-span-5 space-y-5">
             {latestReviewResult && <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />}
-            <LeaderboardCard title="Top 3 Smartphone (Global)" data={[{name: 'Samsung', share: '20.8%'}, {name: 'Apple', share: '18.5%'}, {name: 'Xiaomi', share: '14.1%'}]} />
             <LeaderboardCard title="Top 3 Smartphone (Indonesia)" data={[{name: 'Samsung', share: '29.8%'}, {name: 'Xiaomi', share: '21.5%'}, {name: 'Oppo', share: '14.5%'}]} />
             <InsightPublic />
         </div>
