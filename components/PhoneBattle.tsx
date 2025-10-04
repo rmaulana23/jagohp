@@ -21,6 +21,7 @@ interface SpecDetails {
     charging?: string;
     koneksi?: string;
     nfc?: string;
+    hargaIndonesia?: string;
     [key: string]: string | number | null | undefined;
 }
 
@@ -57,6 +58,7 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
         charging: { type: Type.STRING },
         koneksi: { type: Type.STRING },
         nfc: { type: Type.STRING },
+        hargaIndonesia: { type: Type.STRING, description: "Perkiraan harga pasar di Indonesia dalam Rupiah. Contoh: 'Rp 4.599.000'" }
     };
 
     const schema = {
@@ -364,6 +366,7 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
                             <p className="text-sm small-muted mb-4">{phone.specs.rilis || 'Info rilis tidak tersedia'}</p>
                             
                             <dl className="space-y-1 text-sm flex-grow">
+                                <SpecItem label="Harga" value={phone.specs.hargaIndonesia} />
                                 <SpecItem label="Processor" value={phone.specs.processor} />
                                 <SpecItem label="AnTuTu v10" value={phone.specs.antutuScore} />
                                 <SpecItem label="Layar" value={phone.specs.display} />

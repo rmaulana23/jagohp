@@ -141,6 +141,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
         jaringan: { type: Type.STRING }, wifi: { type: Type.STRING }, display: { type: Type.STRING },
         camera: { type: Type.STRING }, battery: { type: Type.STRING }, charging: { type: Type.STRING },
         koneksi: { type: Type.STRING }, nfc: { type: Type.STRING },
+        hargaIndonesia: { type: Type.STRING, description: "Perkiraan harga pasar di Indonesia dalam Rupiah. Contoh: 'Rp 4.599.000'" },
     };
 
     const baseSchemaProperties = {
@@ -256,16 +257,24 @@ const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ re
         <div className="grid grid-cols-1 gap-4">
             {result.phones.map((phone, index) => {
                 const isWinner = phone.name === result.winnerName;
+                const purchaseUrl = `https://shopee.co.id/search?keyword=${encodeURIComponent(phone.name)}`;
                 return (
                     <div key={index} className={`relative bg-black/20 p-3 rounded-lg ${isWinner ? 'border border-[color:var(--accent1)]' : 'border border-transparent'}`}>
                         {isWinner && <div className="absolute -top-3 right-2 bg-[color:var(--accent1)] text-slate-900 px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1"><CrownIcon className="w-3 h-3"/>Pemenang</div>}
                         <h4 className="font-semibold text-white text-base truncate">{phone.name}</h4>
-                        <dl className="mt-2 space-y-1 text-xs text-slate-300">
-                            <SpecItem label="Prosesor" value={phone.specs.processor} />
-                            <SpecItem label="AnTuTu v10" value={phone.specs.antutuScore} />
+                        <dl className="mt-2 space-y-1.5 text-xs text-slate-300">
                             <SpecItem label="Layar" value={phone.specs.display} />
-                            <SpecItem label="Baterai" value={phone.specs.battery} />
+                            <SpecItem label="NFC" value={phone.specs.nfc} />
+                            <SpecItem label="Harga" value={phone.specs.hargaIndonesia} />
                         </dl>
+                        <a 
+                          href={purchaseUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block text-center w-full mt-3 px-3 py-1.5 rounded-md text-xs bg-green-500/10 text-green-400 border border-green-500/30 font-semibold hover:bg-green-500/20 transition-colors"
+                        >
+                            Beli Sekarang
+                        </a>
                     </div>
                 );
             })}
