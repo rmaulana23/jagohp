@@ -229,7 +229,7 @@ const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ re
                 {result.battleSummary}
             </p>
         )}
-        <div className={`grid grid-cols-1 ${result.phones.length === 2 ? 'sm:grid-cols-2' : ''} gap-4`}>
+        <div className="grid grid-cols-1 gap-4">
             {result.phones.map((phone, index) => {
                 const isWinner = phone.name === result.winnerName;
                 return (
