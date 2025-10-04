@@ -1,4 +1,3 @@
-
 import React from 'react';
 import SparklesIcon from './icons/SparklesIcon';
 import ScaleIcon from './icons/ScaleIcon';
@@ -7,55 +6,55 @@ import UsersIcon from './icons/UsersIcon';
 
 const pillars = [
   {
-    icon: <SparklesIcon className="w-6 h-6 text-fuchsia-400" />,
-    title: 'Analisis AI',
-    description: 'Dapatkan ulasan smartphone ringkas dalam hitungan detik. AI kami memproses ribuan data untukmu.',
+    icon: <SparklesIcon className="w-6 h-6 text-[color:var(--accent1)]" />,
+    title: 'Analisis AI Cerdas',
+    description: 'Dapatkan ulasan dan perbandingan smartphone ringkas dalam hitungan detik. AI kami memproses ribuan data untuk Anda.',
   },
   {
-    icon: <ScaleIcon className="w-6 h-6 text-fuchsia-400" />,
-    title: 'Data Terpercaya',
-    description: 'AI mengacu pada data benchmark terstandarisasi (AnTuTu, Geekbench) untuk hasil yang adil.',
+    icon: <ScaleIcon className="w-6 h-6 text-[color:var(--accent1)]" />,
+    title: 'Data Objektif & Terpercaya',
+    description: 'Analisis kami mengacu pada data benchmark terstandarisasi (AnTuTu, Geekbench, DXOMark) untuk hasil yang adil dan akurat.',
   },
   {
-    icon: <ChartBarIcon className="w-6 h-6 text-fuchsia-400" />,
-    title: 'Pangsa Pasar',
-    description: 'Pahami dinamika pasar dengan data pangsa pasar global.',
+    icon: <ChartBarIcon className="w-6 h-6 text-[color:var(--accent1)]" />,
+    title: 'Wawasan Pangsa Pasar',
+    description: 'Pahami dinamika pasar dengan data pangsa pasar smartphone teratas di Indonesia dan dunia.',
   },
   {
-    icon: <UsersIcon className="w-6 h-6 text-fuchsia-400" />,
-    title: 'Jembatan Komunitas & Teknologi',
-    description: 'Wadah bagi para tech enthusiast untuk berbagi opini dan mendapatkan rekomendasi terbaik.',
+    icon: <UsersIcon className="w-6 h-6 text-[color:var(--accent1)]" />,
+    title: 'Fokus pada Pengguna',
+    description: 'Menjadi wadah bagi para pencari gadget untuk mendapatkan rekomendasi terbaik yang sesuai dengan kebutuhan dan anggaran mereka.',
   }
 ];
 
 const About: React.FC = () => {
   return (
-    <section id="about" className="flex-grow flex flex-col items-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
-      <div className="container mx-auto max-w-5xl animate-fade-in space-y-8">
-        <div className="text-center">
-          <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
+    <section id="about" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
+      <div className="container mx-auto max-w-4xl animate-fade-in">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-4xl font-bold text-white font-orbitron">
             Tentang JAGO-HP
           </h1>
-          <p className="text-base text-gray-300 leading-normal max-w-3xl mx-auto">
-            JAGO-HP adalah platform review smartphone berbasis AI. Kami merangkum ribuan ulasan jadi satu ulasan singkat, jelas, dan akurat biar Kalian lebih mudah menemukan HP terbaik.
+          <p className="text-base text-slate-400 leading-relaxed max-w-3xl mx-auto mt-3">
+            JAGO-HP adalah platform review smartphone berbasis AI yang dirancang untuk menyederhanakan proses pengambilan keputusan Anda. Kami merangkum ribuan data dan ulasan menjadi satu analisis yang singkat, jelas, dan akurat.
           </p>
         </div>
 
-        <div className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-6 backdrop-blur-sm">
-          <div className="space-y-5">
+        <div className="glass rounded-2xl p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {pillars.map((pillar, index) => (
               <div 
                 key={index} 
                 className="flex items-start gap-4"
               >
-                <div className="bg-indigo-900/40 p-2 rounded-full mt-1 flex-shrink-0">
+                <div className="bg-[color:var(--accent1)]/10 p-3 rounded-full flex-shrink-0">
                   {pillar.icon}
                 </div>
                 <div>
-                  <h2 className="font-orbitron text-base font-bold text-indigo-300">
+                  <h2 className="text-lg font-semibold text-white">
                     {pillar.title}
                   </h2>
-                  <p className="text-gray-400 text-sm leading-snug">
+                  <p className="text-slate-400 text-sm leading-normal mt-1">
                     {pillar.description}
                   </p>
                 </div>

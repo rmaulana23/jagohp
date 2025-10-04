@@ -1,129 +1,256 @@
+import React, { useState, useMemo, FC } from 'react';
+import { GoogleGenAI, Type } from '@google/genai';
+import { supabase } from '../utils/supabaseClient';
+import { ReviewResult } from './SmartReview';
+import { BattleResult } from './PhoneBattle';
+import VersusIcon from './icons/VersusIcon';
+import CrownIcon from './icons/CrownIcon';
+import PreviewCard from './PreviewCard';
 
-import React from 'react';
+interface HeroProps {
+  setPage: (page: string) => void;
+  openChat: () => void;
+  navigateToFullReview: (result: ReviewResult) => void;
+  navigateToFullBattle: (result: BattleResult) => void;
+  latestReviewResult: ReviewResult | null;
+  setLatestReviewResult: (result: ReviewResult | null) => void;
+}
 
-// New "AI Core" visual component
-const AICore: React.FC = () => (
-  <div className="hidden lg:block absolute top-[55%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] max-w-[550px] max-h-[550px] pointer-events-none -z-10">
-    <div className="relative w-full h-full animate-spin-slow">
-      {/* Glowing Orb */}
-      <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-3xl"></div>
-      {/* Inner Rings */}
-      <div className="absolute inset-8 border border-indigo-500/20 rounded-full opacity-50"></div>
-      <div className="absolute inset-16 border border-indigo-500/10 rounded-full opacity-50"></div>
-      {/* Outer Orbiting Lines */}
-      <div className="absolute inset-0 border-t-2 border-indigo-500 rounded-full animate-spin-medium"></div>
-      <div className="absolute inset-4 border-r-2 border-fuchsia-500 rounded-full animate-spin-reverse-fast"></div>
-    </div>
-  </div>
-);
+const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, latestReviewResult, setLatestReviewResult }) => {
+  const [reviewQuery, setReviewQuery] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
-const Hero: React.FC<{ setPage: (page: string) => void; }> = ({ setPage }) => {
+  const [comparePhoneA, setComparePhoneA] = useState('');
+  const [comparePhoneB, setComparePhoneB] = useState('');
+  const [battleModeLoading, setBattleModeLoading] = useState<'compare' | 'battle' | null>(null);
+  const [battleError, setBattleError] = useState<string | null>(null);
+  const [battleData, setBattleData] = useState<BattleResult | null>(null);
+
+  const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
+
+  const handleReviewSearch = async () => {
+    if (!reviewQuery.trim()) return;
+    setReviewLoading(true);
+    setReviewError(null);
+    setLatestReviewResult(null);
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            phoneName: { type: Type.STRING },
+            ratings: { type: Type.OBJECT, properties: { gaming: { type: Type.NUMBER }, kamera: { type: Type.NUMBER }, baterai: { type: Type.NUMBER }, layarDesain: { type: Type.NUMBER }, performa: { type: Type.NUMBER }, storageRam: { type: Type.NUMBER }}},
+            quickReview: { type: Type.OBJECT, properties: { summary: { type: Type.STRING }, pros: { type: Type.ARRAY, items: { type: Type.STRING } }, cons: { type: Type.ARRAY, items: { type: Type.STRING } } } },
+            specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
+            targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
+            accessoryAvailability: { type: Type.STRING },
+            marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } } },
+            performance: { type: Type.OBJECT, properties: { antutuScore: { type: Type.INTEGER }, geekbenchScore: { type: Type.STRING }, competitors: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, antutuScore: { type: Type.INTEGER } } } }, gamingReview: { type: Type.STRING }}},
+            cameraAssessment: { type: Type.OBJECT, properties: { dxomarkScore: { type: Type.INTEGER }, photoSummary: { type: Type.STRING }, photoPros: { type: Type.ARRAY, items: { type: Type.STRING } }, photoCons: { type: Type.ARRAY, items: { type: Type.STRING } }, videoSummary: { type: Type.STRING }}}
+        },
+    };
+    const prompt = `**Core Role: Comprehensive Data Synthesizer**
+Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on structured data, generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
+**Context & Knowledge Cut-off:** Your knowledge is updated as of **2 Oktober 2025**. Devices like iPhone 17 series are considered released.
+**Universal Brand Knowledge:** You are an expert on all major phone brands.
+
+**Execution Steps & Formatting Rules (VERY IMPORTANT):**
+1.  **Identify Gadget:** Find the official product based on the query.
+2.  **Extract Data:** Use reliable sources (GSMArena, etc.).
+3.  **Handle Missing Data:** Use \`null\` or "N/A".
+4.  **Populate JSON:** Fill all fields according to the schema with the following formatting constraints:
+    -   \`quickReview.summary\`: MUST be a single, concise sentence (maximum 1-2 short sentences).
+    -   \`specs.ram\`: MUST be in the format "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
+    -   \`specs.camera\`: MUST be a short summary of main lenses. Example: "Utama: 200MP + 50MP", "50MP Wide + 12MP Ultrawide".
+    -   \`specs.battery\`: MUST be just the capacity. Example: "5000 mAh".
+5.  **Failure Conditions:** If unreleased (post-Oct 2025), state it's based on rumors. If not found, the \`phoneName\` must contain an error message.
+
+**Final Output:** Strictly adhere to the JSON schema and all formatting rules.`;
+    
+    try {
+        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema } });
+        const parsedResult: ReviewResult = JSON.parse(response.text.trim());
+        if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
+            setReviewError(parsedResult.phoneName);
+            setLatestReviewResult(null);
+        } else {
+            setLatestReviewResult(parsedResult);
+        }
+    } catch (e) {
+        console.error(e);
+        setReviewError('An AI error occurred. Please try again.');
+    } finally {
+        setReviewLoading(false);
+    }
+  };
+  
+  const handleCompareAction = async (mode: 'compare' | 'battle') => {
+    if (!comparePhoneA.trim() || !comparePhoneB.trim()) return;
+    setBattleModeLoading(mode);
+    setBattleError(null);
+    setBattleData(null);
+
+    const phoneNames = [comparePhoneA, comparePhoneB];
+    const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
+    
+    const phoneSpecProperties = {
+        rilis: { type: Type.STRING }, os: { type: Type.STRING }, processor: { type: Type.STRING },
+        antutuScore: { type: Type.INTEGER, description: "Skor AnTuTu v10. Jika tidak tersedia, kembalikan null." },
+        jaringan: { type: Type.STRING }, wifi: { type: Type.STRING }, display: { type: Type.STRING },
+        camera: { type: Type.STRING }, battery: { type: Type.STRING }, charging: { type: Type.STRING },
+        koneksi: { type: Type.STRING }, nfc: { type: Type.STRING },
+    };
+
+    const baseSchemaProperties = {
+        phones: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, specs: { type: Type.OBJECT, properties: phoneSpecProperties }}, required: ["name", "specs"]}},
+    };
+
+    const battleSchemaProperties = {
+        ...baseSchemaProperties,
+        battleSummary: { type: Type.STRING, description: "SATU paragraf SANGAT RINGKAS (maksimal 2-3 kalimat) perbandingan umum, dalam Bahasa Indonesia." },
+        winnerName: { type: Type.STRING, description: "Nama resmi pemenang. Jika seri, isi 'Seri'. Jika tidak ada pemenang, biarkan kosong." }
+    };
+
+    const schema = mode === 'battle' 
+        ? { type: Type.OBJECT, properties: battleSchemaProperties, required: ['battleSummary', 'phones'] }
+        : { type: Type.OBJECT, properties: baseSchemaProperties, required: ['phones'] };
+    
+    const prompt = mode === 'battle'
+        ? `**Core Role: GSMArena Data Extractor & AI Battle Analyst for JAGO-HP**\nPerform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.\n**Context & Knowledge Cut-off:** Your knowledge is updated as of **2 Oktober 2025**.\n**Execution Steps:** Identify gadgets, extract data, perform holistic analysis to determine a winner, and generate a very brief summary.\n**Final Output:** Strictly follow the JSON schema.`
+        : `**Core Role: GSMArena Data Extractor for JAGO-HP**\nExtract and return ONLY the key specifications in **Bahasa Indonesia** for these devices: ${phoneList}.\n**Context & Knowledge Cut-off:** Your knowledge is updated as of **2 Oktober 2025**.\n**Crucial Rule:** DO NOT determine a winner. DO NOT provide any summary or analysis. ONLY return the structured 'phones' data.\n**Final Output:** Strictly follow the JSON schema.`;
+    
+    try {
+        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
+        const parsedResult: BattleResult = JSON.parse(response.text.trim());
+        setBattleData(parsedResult);
+    } catch (e) {
+        console.error(e);
+        setBattleError('An AI error occurred during comparison. Please try again.');
+    } finally {
+        setBattleModeLoading(null);
+    }
+  };
+
   return (
-    // Section now grows to fill the available space and centers content vertically.
-    <section className="relative flex-grow flex flex-col items-center justify-center px-4 overflow-hidden">
-      
-      {/* Background Gradient & Effects */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-purple-600/10 via-transparent to-transparent opacity-40"></div>
-        <div className="absolute bottom-0 right-0 w-1/2 h-full bg-gradient-to-tl from-indigo-500/10 via-transparent to-transparent opacity-40"></div>
-      </div>
+    <section className="pb-10">
+      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+        {/* LEFT: CONTENT & INTERACTION */}
+        <div className="md:col-span-7 space-y-10">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold leading-tight font-orbitron text-white">JAGO-HP</h1>
+              <p className="mt-2 text-lg text-slate-300">Review cepat, perbandingan tajam, dan insight brand semua pakai AI. Cari HP yang cocok hanya dalam beberapa detik.</p>
+              <div className="mt-6 flex gap-4">
+                <button onClick={openChat} className="px-5 py-3 rounded-lg bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity">Tanya AI</button>
+                <button onClick={() => setPage('review')} className="px-5 py-3 rounded-lg border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/10 transition-colors">Smart Review</button>
+              </div>
+            </div>
 
-      {/* New AI Core Visual - Hidden on mobile */}
-      <AICore />
-
-      {/* Hero Content */}
-      <div className="relative z-10 text-center animate-fade-in w-full max-w-5xl">
-
-        {/* Mobile-only Leaderboard Button - Moved to top */}
-        <div className="mb-6 lg:hidden">
-            <button
-                onClick={() => setPage('leaderboard')}
-                className="bg-fuchsia-500/10 border border-fuchsia-400 text-fuchsia-400 px-6 py-2 rounded-full text-sm font-bold 
-                           hover:bg-fuchsia-400 hover:text-[#0a0f1f] hover:shadow-lg hover:shadow-fuchsia-400/40 
-                           transition-all duration-300 ease-in-out"
-            >
-              Top Leaderboard
-            </button>
+            {/* QUICK SEARCH */}
+            <div>
+              <label className="text-sm small-muted">Quick Review</label>
+              <div className="mt-2 flex gap-3 items-center">
+                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung Galaxy S24 Ultra" />
+                <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Cari'}</button>
+              </div>
+              <div className="mt-2 text-sm small-muted">Ketik model, merek, atau "kamera terbaik".</div>
+            </div>
+             {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">AI sedang menganalisis...</div>}
+             {reviewError && <div className="text-center p-4 text-red-400">{reviewError}</div>}
+             
+            {/* Quick Compare */}
+            <div className="glass rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-white text-lg">Quick Compare</h3>
+                    <div className="text-sm small-muted">Bandingkan 2 HP</div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input id="cmpA" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan HP A" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
+                    <input id="cmpB" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan HP B" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
+                </div>
+                <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                    <button onClick={() => handleCompareAction('compare')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-slate-500 text-slate-300 font-semibold hover:bg-slate-700/50 transition-colors disabled:opacity-50">
+                        {battleModeLoading === 'compare' ? 'Membandingkan...' : 'Compare'}
+                    </button>
+                    <button onClick={() => handleCompareAction('battle')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-[color:var(--accent1)] text-[color:var(--accent1)] font-semibold hover:bg-[color:var(--accent1)]/10 transition-colors disabled:opacity-50">
+                        {battleModeLoading === 'battle' ? 'Membandingkan...' : 'Battle Mode'}
+                    </button>
+                </div>
+            </div>
+             {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">AI sedang membandingkan...</div>}
+             {battleError && <div className="text-center p-4 text-red-400">{battleError}</div>}
+             {battleData && <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />}
         </div>
 
-        <h1 className="font-orbitron text-3xl md:text-5xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-gray-200 via-white to-gray-300 drop-shadow-lg">
-          Your AI Expert
-          <br />
-          <span className="bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">
-          Cara Cerdas Pilih Smartphone
-          </span>
-        </h1>
-        <p className="max-w-2xl mx-auto mt-4 text-base md:text-lg text-gray-300 font-light leading-relaxed">
-          JAGO-HP Solusi Biar Gak Salah Beli HP, Coba Sekarang GRATIS!
-        </p>
-        
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-8">
-          {/* CTA 1: Smart Review */}
-          <div className="flex flex-col items-center">
-            <button 
-              onClick={() => setPage('review')}
-              className="font-orbitron text-base font-bold w-64 h-14 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
-                         bg-gradient-to-r from-indigo-500 to-purple-500"
-            >
-              <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                  Smart Review AI
-              </span>
-            </button>
-            <p className="text-xs text-gray-400 mt-2">Ulasan HP Cerdas, Singkat, dan Akurat.</p>
-          </div>
-          
-          {/* CTA 2: Finder */}
-          <div className="flex flex-col items-center">
-            <button 
-              onClick={() => setPage('finder')}
-              className="font-orbitron text-base font-bold w-64 h-14 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
-                         bg-gradient-to-r from-purple-500 to-fuchsia-500"
-            >
-               <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                  Phone Match AI
-              </span>
-            </button>
-            <p className="text-xs text-gray-400 mt-2">Bantu Rekomendasikan HP yang Cocok.</p>
-          </div>
+        {/* RIGHT: LEADERBOARDS & PREVIEW */}
+        <div className="md:col-span-5 space-y-6">
+            {latestReviewResult && <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />}
+            <LeaderboardCard title="Top 3 Smartphone (Global)" data={[{name: 'Samsung', share: '20.8%'}, {name: 'Apple', share: '18.5%'}, {name: 'Xiaomi', share: '14.1%'}]} />
+            <LeaderboardCard title="Top 3 Smartphone (Indonesia)" data={[{name: 'Samsung', share: '29.8%'}, {name: 'Xiaomi', share: '21.5%'}, {name: 'Oppo', share: '14.5%'}]} />
         </div>
       </div>
-      
-      {/* Social Proof Text */}
-      <div className="absolute bottom-16 left-1/6 -translate-x-1/2 z-10 animate-fade-in-delayed">
-        <p className="text-sm text-gray-400">👉 Sudah dipakai 100+ pencari HP bulan ini</p>
-      </div>
-      
-      {/* CSS for animations */}
-      <style>{`
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes spin-medium {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(-360deg); }
-        }
-        @keyframes spin-reverse-fast {
-          from { transform: rotate(360deg); }
-          to { transform: rotate(0deg); }
-        }
-        .animate-spin-slow { animation: spin-slow 40s linear infinite; }
-        .animate-spin-medium { animation: spin-medium 25s linear infinite; }
-        .animate-spin-reverse-fast { animation: spin-reverse-fast 15s linear infinite; }
-        .animate-fade-in {
-          animation: fadeIn 1s ease-out forwards;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-delayed {
-          opacity: 0;
-          animation: fadeIn 1s ease-out 0.5s forwards;
-        }
-      `}</style>
     </section>
   );
 };
+
+// --- Snippet Components ---
+
+const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ result, onSeeFull }) => (
+    <div className="glass rounded-2xl p-4 mt-4 animate-fade-in space-y-4">
+        {result.battleSummary && (
+             <p className="text-sm text-slate-300 leading-relaxed border-b border-white/10 pb-3 mb-3">
+                {result.battleSummary}
+            </p>
+        )}
+        <div className={`grid grid-cols-1 ${result.phones.length === 2 ? 'sm:grid-cols-2' : ''} gap-4`}>
+            {result.phones.map((phone, index) => {
+                const isWinner = phone.name === result.winnerName;
+                return (
+                    <div key={index} className={`relative bg-black/20 p-3 rounded-lg ${isWinner ? 'border border-[color:var(--accent1)]' : 'border border-transparent'}`}>
+                        {isWinner && <div className="absolute -top-3 right-2 bg-[color:var(--accent1)] text-slate-900 px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1"><CrownIcon className="w-3 h-3"/>Pemenang</div>}
+                        <h4 className="font-semibold text-white text-base truncate">{phone.name}</h4>
+                        <dl className="mt-2 space-y-1 text-xs text-slate-300">
+                            <SpecItem label="Prosesor" value={phone.specs.processor} />
+                            <SpecItem label="AnTuTu v10" value={phone.specs.antutuScore} />
+                            <SpecItem label="Layar" value={phone.specs.display} />
+                            <SpecItem label="Baterai" value={phone.specs.battery} />
+                        </dl>
+                    </div>
+                );
+            })}
+        </div>
+        <button onClick={onSeeFull} className="w-full mt-2 px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors">Lihat Perbandingan Lengkap</button>
+    </div>
+);
+
+const SpecItem: FC<{ label: string; value: any }> = ({ label, value }) => value ? (<div className="flex justify-between gap-2"><dt className="font-normal text-slate-400 truncate">{label}</dt><dd className="font-medium text-right truncate">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</dd></div>) : null;
+
+const LeaderboardCard: FC<{title: string, data: {name: string, share: string}[]}> = ({title, data}) => {
+    const barColors = [
+        'bg-[color:var(--accent1)]', // #1
+        'bg-sky-500',              // #2
+        'bg-slate-500'             // #3
+    ];
+    return (
+        <div className="glass rounded-2xl p-4">
+            <h3 className="font-semibold text-white mb-4 text-base">{title}</h3>
+            <div className="space-y-4">
+                {data.map((item, index) => (
+                    <div key={item.name}>
+                        <div className="flex justify-between items-center text-sm mb-1">
+                            <span className="font-semibold text-slate-200">#{index + 1} {item.name}</span>
+                            <span className="small-muted font-medium">{item.share}</span>
+                        </div>
+                        <div className="w-full bg-slate-700/50 rounded-full h-2">
+                            <div
+                                className={`h-2 rounded-full ${barColors[index] || 'bg-slate-600'}`}
+                                style={{ width: item.share, transition: 'width 0.5s ease-in-out' }}
+                            ></div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 
 export default Hero;

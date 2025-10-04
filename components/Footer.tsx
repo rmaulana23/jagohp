@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface FooterProps {
@@ -7,39 +6,9 @@ interface FooterProps {
 
 const Footer: React.FC<FooterProps> = ({ setPage }) => {
   return (
-    <footer className="relative z-10 py-4 px-4 text-center">
-      <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4">
-        <p className="text-sm text-gray-500">
-          © 2025 JAGO-HP All rights reserved.
-        </p>
-        <span className="hidden sm:inline text-gray-600">|</span>
-        <button
-          onClick={() => setPage('saran')}
-          className="text-sm text-gray-400 hover:text-indigo-400 transition-colors duration-300"
-        >
-          Saran
-        </button>
-        <span className="hidden sm:inline text-gray-600">|</span>
-        <button
-          onClick={() => setPage('faq')}
-          className="text-sm text-gray-400 hover:text-indigo-400 transition-colors duration-300"
-        >
-          FAQ
-        </button>
-        <span className="hidden sm:inline text-gray-600">|</span>
-        <button
-          onClick={() => setPage('partnership')}
-          className="text-sm text-gray-400 hover:text-indigo-400 transition-colors duration-300"
-        >
-          Partnership
-        </button>
-        <span className="hidden sm:inline text-gray-600">|</span>
-        <button
-          onClick={() => setPage('privacy')}
-          className="text-sm text-gray-400 hover:text-indigo-400 transition-colors duration-300"
-        >
-          Privacy Policy
-        </button>
+    <footer className="mt-auto py-6">
+      <div className="max-w-6xl mx-auto px-6 small-muted text-sm text-center">
+        © JAGO-HP 2025 • Review Cepat, Pilih Tepat
       </div>
     </footer>
   );

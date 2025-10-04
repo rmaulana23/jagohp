@@ -1,6 +1,6 @@
 import React, { useState, FC, useMemo } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
-import { supabase } from '../utils/supabaseClient'; // Import Supabase client
+import { supabase } from '../utils/supabaseClient';
 import VersusIcon from './icons/VersusIcon';
 import LightbulbIcon from './icons/LightbulbIcon';
 import UsersIcon from './icons/UsersIcon';
@@ -8,8 +8,6 @@ import PlusCircleIcon from './icons/PlusCircleIcon';
 import XCircleIcon from './icons/XCircleIcon';
 import CrownIcon from './icons/CrownIcon';
 
-
-// --- INTERFACES (UPDATED FOR ARRAY) ---
 interface SpecDetails {
     rilis?: string;
     os?: string;
@@ -31,18 +29,18 @@ interface PhoneData {
     specs: SpecDetails;
 }
 
-interface BattleResult {
-    battleSummary: string;
-    targetAudience: string;
+export interface BattleResult {
+    battleSummary?: string;
+    targetAudience?: string;
     phones: PhoneData[];
     winnerName?: string;
 }
 
-const PhoneBattle: React.FC = () => {
+const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initialResult = null }) => {
     const [phoneNames, setPhoneNames] = useState<string[]>(['', '']);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [result, setResult] = useState<BattleResult | null>(null);
+    const [result, setResult] = useState<BattleResult | null>(initialResult);
 
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
 
@@ -50,7 +48,7 @@ const PhoneBattle: React.FC = () => {
         rilis: { type: Type.STRING, description: "Bulan dan tahun rilis. Contoh: 'September 2024'" },
         os: { type: Type.STRING },
         processor: { type: Type.STRING },
-        antutuScore: { type: Type.INTEGER, description: "Skor benchmark AnTuTu v10 sebagai angka integer. Jika tidak tersedia/relevan (misal untuk feature phone), kembalikan null.", nullable: true },
+        antutuScore: { type: Type.INTEGER, description: "Skor benchmark AnTuTu v10 sebagai angka integer. Jika tidak tersedia/relevan (misal untuk feature phone), kembalikan null." },
         jaringan: { type: Type.STRING },
         wifi: { type: Type.STRING, description: "Standar Wi-Fi yang didukung. Contoh: 'Wi-Fi 6e, 7'" },
         display: { type: Type.STRING },
@@ -61,7 +59,6 @@ const PhoneBattle: React.FC = () => {
         nfc: { type: Type.STRING },
     };
 
-    // --- SCHEMA UPDATED FOR ARRAY OF PHONES ---
     const schema = {
         type: Type.OBJECT,
         properties: {
@@ -116,29 +113,21 @@ const PhoneBattle: React.FC = () => {
         setError(null);
         setResult(null);
         
-        // Create a canonical, order-independent key for caching
         const cacheKey = phoneNames.map(name => name.trim().toLowerCase()).sort().join('_vs_');
 
-        // 1. Check cache first
         if (supabase) {
             try {
-                const { data } = await supabase
-                    .from('phone_battles')
-                    .select('battle_data')
-                    .eq('cache_key', cacheKey)
-                    .single();
-                
+                const { data } = await supabase.from('phone_battles').select('battle_data').eq('cache_key', cacheKey).single();
                 if (data && data.battle_data) {
                     setResult(data.battle_data as BattleResult);
                     setLoading(false);
-                    return; // Cache hit, skip AI call
+                    return;
                 }
             } catch (cacheError) {
                 console.warn("Supabase cache check failed:", cacheError);
             }
         }
 
-        // 2. If no cache, call AI
         const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
 
         const prompt = `**Core Role: GSMArena Data Extractor**
@@ -191,12 +180,11 @@ const PhoneBattle: React.FC = () => {
             const resultText = response.text.trim();
             const parsedResult: BattleResult = JSON.parse(resultText);
             
-            if (parsedResult.battleSummary.toLowerCase().startsWith('error:')) {
+            if (parsedResult.battleSummary?.toLowerCase().startsWith('error:')) {
                 setError(parsedResult.battleSummary);
                 setResult(null);
             } else {
                 setResult(parsedResult);
-                 // 3. Save new result to cache
                 if (supabase) {
                     try {
                         await supabase.from('phone_battles').insert({
@@ -218,74 +206,72 @@ const PhoneBattle: React.FC = () => {
     };
 
     return (
-        <section id="battle" className="flex-grow flex flex-col items-center pt-24 pb-10 px-4 sm:px-6 md:px-12 relative overflow-hidden">
-            <div className="absolute inset-0 z-0 opacity-10">
-                 <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/20 rounded-full filter blur-3xl"></div>
-                 <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-fuchsia-500/20 rounded-full filter blur-3xl"></div>
-            </div>
-            <div className="container mx-auto max-w-5xl relative z-10">
-                <div className="text-center mb-6">
-                    <h2 className="font-orbitron text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
-                        Adu Spesifikasi
-                    </h2>
-                    <p className="text-base text-gray-400 pb-1">Adu spesifikasi tipe HP kesukaan Kalian, biar gak salah pilih.</p>
-                </div>
+        <section id="battle" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
+            <div className="container mx-auto max-w-6xl">
                 
-                <form onSubmit={handleBattle}>
-                    <div className="flex flex-col lg:flex-row items-center justify-center gap-4 mt-6">
-                        {phoneNames.map((name, index) => (
-                            <React.Fragment key={index}>
-                                <PhoneInputCard
-                                    phoneName={name}
-                                    setPhoneName={(value) => handlePhoneNameChange(index, value)}
-                                    placeholder="Tuliskan tipe HP"
-                                    borderColor={index === 0 ? "border-indigo-500" : index === 1 ? "border-fuchsia-500" : "border-purple-500"}
-                                    label={`Penantang ${index + 1}`}
-                                    onRemove={index === 2 ? () => handleRemovePhone(index) : undefined}
-                                />
-                                {index < phoneNames.length - 1 && <VersusIcon />}
-                            </React.Fragment>
-                        ))}
-                        {phoneNames.length < 3 && (
-                            <button
-                                type="button"
-                                onClick={handleAddPhone}
-                                className="flex items-center gap-2 text-gray-400 hover:text-indigo-400 transition-colors duration-300 group mt-4 lg:mt-0"
-                                aria-label="Tambah HP Lain"
-                            >
-                                <PlusCircleIcon className="w-8 h-8"/>
-                                <span className="font-semibold text-sm group-hover:underline">Tambah HP Lain</span>
-                            </button>
-                        )}
-                    </div>
-                    <div className="text-center mt-10">
-                         <button
-                            type="submit"
-                            disabled={loading}
-                            aria-busy={loading}
-                            className="font-orbitron text-lg font-bold w-64 h-14 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
-                                       bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <span className="absolute w-full h-full bg-gradient-to-br from-indigo-500 via-purple-500 to-fuchsia-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                            <span className="relative w-full h-full px-6 py-3 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                                {loading ? 'Membandingkan...' : 'Battle Compare'}
-                            </span>
-                        </button>
-                        {loading && (
-                            <p className="text-sm text-gray-400 mt-3 animate-pulse">
-                                Tunggu sebentar ya, jangan pindah menu dulu...
-                            </p>
-                        )}
-                    </div>
-                </form>
+                { !result && (
+                    <>
+                        <div className="text-center mb-8">
+                            <h2 className="text-3xl md:text-4xl font-bold mb-2 text-white font-orbitron">
+                                Phone Battle
+                            </h2>
+                            <p className="text-base text-slate-400">Bandingkan spesifikasi HP secara berdampingan, biar tidak salah pilih.</p>
+                        </div>
+                        <form onSubmit={handleBattle} className="glass rounded-2xl p-6 md:p-8">
+                            <div className="flex flex-col lg:flex-row items-center justify-center gap-4">
+                                {phoneNames.map((name, index) => (
+                                    <React.Fragment key={index}>
+                                        <PhoneInputCard
+                                            phoneName={name}
+                                            setPhoneName={(value) => handlePhoneNameChange(index, value)}
+                                            placeholder={`Tipe HP ${index + 1}`}
+                                            onRemove={phoneNames.length > 2 ? () => handleRemovePhone(index) : undefined}
+                                        />
+                                        {index < phoneNames.length - 1 && <VersusIcon />}
+                                    </React.Fragment>
+                                ))}
+                                {phoneNames.length < 3 && (
+                                    <button
+                                        type="button"
+                                        onClick={handleAddPhone}
+                                        className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors duration-200 group mt-4 lg:mt-0"
+                                        aria-label="Tambah HP Lain"
+                                    >
+                                        <PlusCircleIcon className="w-7 h-7 text-slate-500 group-hover:text-[color:var(--accent2)] transition-colors"/>
+                                        <span className="font-semibold text-sm">Tambah Pembanding</span>
+                                    </button>
+                                )}
+                            </div>
+                            <div className="text-center mt-8">
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    aria-busy={loading}
+                                    className="w-full max-w-xs px-8 py-3 rounded-lg bg-[color:var(--accent1)] text-slate-900 font-semibold
+                                               hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? 'Membandingkan...' : 'Adu Spesifikasi'}
+                                </button>
+                                {loading && (
+                                    <p className="text-sm text-slate-400 mt-3 animate-pulse">
+                                        AI sedang menganalisis, mohon tunggu sebentar...
+                                    </p>
+                                )}
+                            </div>
+                        </form>
+                    </>
+                )}
                 
                 <div className="mt-12" aria-live="polite">
-                    {loading && <BattleSkeleton phoneCount={phoneNames.length} />}
-                    {error && <div className="text-center text-red-400 border border-red-400/50 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
+                    {loading && !result && <BattleSkeleton phoneCount={phoneNames.length} />}
+                    {error && <div className="text-center text-red-400 border border-red-500/30 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
                     {result && (
                         <>
+                            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white font-orbitron text-center">
+                                Hasil Perbandingan
+                            </h2>
                             <BattleResultDisplay result={result} />
-                            <p className="text-xs text-gray-500 text-center mt-6">
+                            <p className="text-xs text-slate-500 text-center mt-6">
                                 Sumber data: GSMArena, Phone Arena, AnTuTu, GeekBench dan DXOMark
                             </p>
                         </>
@@ -297,24 +283,21 @@ const PhoneBattle: React.FC = () => {
     );
 };
 
-const PhoneInputCard: FC<{phoneName: string; setPhoneName: (name: string) => void; placeholder: string; borderColor: string; label: string; onRemove?: () => void}> = 
-({ phoneName, setPhoneName, placeholder, borderColor, label, onRemove }) => {
-    const ringColor = borderColor.replace('border-', 'focus:ring-');
+const PhoneInputCard: FC<{phoneName: string; setPhoneName: (name: string) => void; placeholder: string; onRemove?: () => void}> = 
+({ phoneName, setPhoneName, placeholder, onRemove }) => {
     return (
         <div className="relative w-full max-w-xs">
-            <label htmlFor={label} className="sr-only">{label}</label>
             <input
-                id={label}
                 type="text"
                 value={phoneName}
                 onChange={(e) => setPhoneName(e.target.value)}
                 placeholder={placeholder}
-                className={`w-full bg-gray-900/50 border-2 ${borderColor} rounded-full text-center py-2.5 ${onRemove ? 'pl-6 pr-12' : 'px-6'} text-white placeholder-gray-500
-                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0a0f1f] ${ringColor} transition-all duration-300`}
+                className={`w-full bg-[color:var(--card)] border border-white/10 rounded-lg text-center py-2.5 ${onRemove ? 'pl-4 pr-10' : 'px-4'} text-white placeholder-slate-400
+                           focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[color:var(--accent1)] focus:border-[color:var(--accent1)] transition-all duration-200`}
             />
             {onRemove && (
-                 <button type="button" onClick={onRemove} className="absolute top-1/2 -translate-y-1/2 right-4 text-gray-500 hover:text-red-400 transition-colors" aria-label="Hapus Penantang 3">
-                    <XCircleIcon className="w-6 h-6"/>
+                 <button type="button" onClick={onRemove} className="absolute top-1/2 -translate-y-1/2 right-3 text-slate-400 hover:text-red-500 transition-colors" aria-label="Hapus Penantang">
+                    <XCircleIcon className="w-5 h-5"/>
                 </button>
             )}
         </div>
@@ -322,95 +305,65 @@ const PhoneInputCard: FC<{phoneName: string; setPhoneName: (name: string) => voi
 }
 
 const BattleSkeleton: FC<{ phoneCount: number }> = ({ phoneCount }) => (
-    <div className="space-y-12 animate-pulse">
-        {/* Summaries skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-5 space-y-3">
-                <div className="h-6 bg-gray-700/50 rounded w-1/3"></div>
-                <div className="h-4 bg-gray-700/50 rounded w-full"></div>
-                <div className="h-4 bg-gray-700/50 rounded w-5/6"></div>
-            </div>
-            <div className="bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-5 space-y-3">
-                <div className="h-6 bg-gray-700/50 rounded w-1/3"></div>
-                <div className="h-4 bg-gray-700/50 rounded w-full"></div>
-                <div className="h-4 bg-gray-700/50 rounded w-5/6"></div>
-            </div>
-        </div>
-        {/* Phone cards skeleton */}
-        <div className={`grid grid-cols-1 ${phoneCount === 2 ? 'lg:grid-cols-2' : `lg:grid-cols-${phoneCount}`} gap-6`}>
+    <div className="space-y-8 animate-pulse">
+        <div className={`grid grid-cols-1 ${phoneCount > 1 ? `md:grid-cols-${phoneCount}` : ''} gap-6`}>
             {[...Array(phoneCount)].map((_, i) => (
-                <div key={i} className="bg-gray-800/20 border-2 border-gray-700 rounded-2xl p-5 space-y-3">
-                    <div className="h-6 bg-gray-700/50 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-700/50 rounded w-1/2"></div>
-                    <div className="space-y-2 pt-2 mt-2 border-t border-gray-700/50">
-                        <div className="h-4 bg-gray-700/50 rounded w-full"></div>
-                        <div className="h-4 bg-gray-700/50 rounded w-full"></div>
-                        <div className="h-4 bg-gray-700/50 rounded w-full"></div>
+                <div key={i} className="glass rounded-2xl p-5 space-y-3">
+                    <div className="h-6 bg-slate-700 rounded w-3/4"></div>
+                    <div className="h-4 bg-slate-700 rounded w-1/2"></div>
+                    <div className="space-y-2 pt-4 mt-2 border-t border-white/10">
+                        {[...Array(6)].map((_, j) => (
+                            <div key={j} className="flex justify-between">
+                                <div className="h-4 bg-slate-700 rounded w-1/3"></div>
+                                <div className="h-4 bg-slate-700 rounded w-1/2"></div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="glass rounded-2xl p-5 space-y-3">
+                <div className="h-6 bg-slate-700 rounded w-1/3"></div>
+                <div className="h-4 bg-slate-700 rounded w-full"></div>
+                <div className="h-4 bg-slate-700 rounded w-5/6"></div>
+            </div>
+            <div className="glass rounded-2xl p-5 space-y-3">
+                <div className="h-6 bg-slate-700 rounded w-1/3"></div>
+                <div className="h-4 bg-slate-700 rounded w-full"></div>
+                <div className="h-4 bg-slate-700 rounded w-5/6"></div>
+            </div>
         </div>
     </div>
 );
 
 const SpecItem: FC<{ label: string; value: string | number | null | undefined }> = ({ label, value }) => (
     value ? (
-        <div className="flex justify-between items-start gap-4">
-            <dt className="font-semibold text-gray-400 flex-shrink-0">{label}</dt>
-            <dd className="text-gray-200 text-right break-words">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</dd>
+        <div className="flex justify-between items-start gap-4 py-2 border-b border-white/5 last:border-b-0">
+            <dt className="small-muted flex-shrink-0">{label}</dt>
+            <dd className="text-slate-200 text-right break-words font-medium">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</dd>
         </div>
     ) : null
-);
-
-const BuyButton: FC<{ link: string }> = ({ link }) => (
-    <div className="text-center mt-4">
-        <a
-            href={link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-orbitron text-sm font-bold w-full h-10 rounded-full relative inline-flex items-center justify-center p-0.5 overflow-hidden group
-                       bg-gradient-to-r from-green-400 to-teal-500"
-        >
-            <span className="relative w-full h-full px-4 py-2 transition-all ease-in duration-200 bg-[#0a0f1f] rounded-full group-hover:bg-opacity-0 flex items-center justify-center">
-                Beli Langsung
-            </span>
-        </a>
-    </div>
 );
 
 const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
     return (
         <div className="animate-fade-in space-y-8">
-            {/* Phone Cards */}
-            <div className={`grid grid-cols-1 ${result.phones.length === 2 ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-6`}>
+            <div className={`grid grid-cols-1 ${result.phones.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-6 items-stretch`}>
                 {result.phones.map((phone, index) => {
                     const isWinner = phone.name === result.winnerName;
-                    const phoneBrand = phone.name.toLowerCase();
-                    const isSamsung = phoneBrand.includes('samsung');
-                    const isApple = phoneBrand.includes('apple') || phoneBrand.includes('iphone');
-                    const isXiaomi = phoneBrand.includes('xiaomi') || phoneBrand.includes('redmi');
-                    const isOppo = phoneBrand.includes('oppo');
-                    const isVivo = phoneBrand.includes('vivo') || phoneBrand.includes('iqoo');
-                    const isPoco = phoneBrand.includes('poco');
-                    const isInfinix = phoneBrand.includes('infinix');
-                    const isItel = phoneBrand.includes('itel');
-                    const isHuawei = phoneBrand.includes('huawei');
-                    const isHonor = phoneBrand.includes('honor');
-                    const isTecno = phoneBrand.includes('tecno');
-                    const isRealme = phoneBrand.includes('realme');
-
                     return (
-                        <div key={index} className={`relative bg-gray-800/30 border-2 rounded-2xl p-5 flex flex-col ${isWinner ? 'border-amber-400 shadow-lg shadow-amber-400/10' : 'border-gray-700'}`}>
+                        <div key={index} className={`relative glass rounded-2xl p-5 flex flex-col transition-all duration-300 ${isWinner ? 'border border-[color:var(--accent1)]' : ''}`}>
                             {isWinner && (
-                                <div className="absolute -top-4 right-4 bg-amber-400 text-gray-900 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                                <div className="absolute -top-3.5 right-4 bg-[color:var(--accent1)] text-slate-900 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
                                     <CrownIcon className="w-4 h-4" />
                                     <span>Pemenang</span>
                                 </div>
                             )}
-                            <h3 className="font-orbitron text-lg font-bold text-white mb-2">{phone.name}</h3>
-                            <p className="text-sm text-indigo-300 mb-4">{phone.specs.rilis || 'Info rilis tidak tersedia'}</p>
+                            <h3 className="text-lg font-bold text-white mb-1">{phone.name}</h3>
+                            <p className="text-sm small-muted mb-4">{phone.specs.rilis || 'Info rilis tidak tersedia'}</p>
                             
-                            <dl className="space-y-2 text-sm flex-grow border-t border-gray-700 pt-4 mt-auto">
+                            <dl className="space-y-1 text-sm flex-grow">
                                 <SpecItem label="Processor" value={phone.specs.processor} />
                                 <SpecItem label="AnTuTu v10" value={phone.specs.antutuScore} />
                                 <SpecItem label="Layar" value={phone.specs.display} />
@@ -419,38 +372,23 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
                                 <SpecItem label="Charging" value={phone.specs.charging} />
                                 <SpecItem label="NFC" value={phone.specs.nfc} />
                             </dl>
-
-                            {/* Buy Buttons */}
-                            {isSamsung && <BuyButton link="https://s.shopee.co.id/6AbvXZfbSV" />}
-                            {isApple && <BuyButton link="https://s.shopee.co.id/9fBniOs3ak" />}
-                            {isXiaomi && <BuyButton link="https://s.shopee.co.id/AUkuiQBtYg" />}
-                            {isOppo && <BuyButton link="https://s.shopee.co.id/BKiPhDZHl" />}
-                            {isVivo && <BuyButton link="https://s.shopee.co.id/1BDFc1esr2" />}
-                            {isPoco && <BuyButton link="https://s.shopee.co.id/qaPDaBvho" />}
-                            {isInfinix && <BuyButton link="https://s.shopee.co.id/qaPDpESoL" />}
-                            {isItel && <BuyButton link="https://s.shopee.co.id/803ZlEyaDj" />}
-                            {isHuawei && <BuyButton link="https://s.shopee.co.id/2B5mokEaKQ" />}
-                            {isHonor && <BuyButton link="https://s.shopee.co.id/4AqrChdhXf" />}
-                            {isTecno && <BuyButton link="https://s.shopee.co.id/gGz2ZEcaj" />}
-                            {isRealme && <BuyButton link="https://s.shopee.co.id/3qE0oVUbZt" />}
                         </div>
                     );
                 })}
             </div>
 
-            {/* Summaries */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-gray-800/20 border-2 border-indigo-500/30 rounded-2xl p-5">
-                    <h3 className="font-orbitron text-lg font-bold text-indigo-300 mb-2 flex items-center gap-2">
-                        <LightbulbIcon className="w-6 h-6" /> Ringkasan Adu
+                <div className="glass rounded-2xl p-5">
+                    <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                        <LightbulbIcon className="w-6 h-6 text-[color:var(--accent1)]" /> Ringkasan Adu
                     </h3>
-                    <p className="text-sm text-gray-300 leading-relaxed">{result.battleSummary}</p>
+                    <p className="text-sm text-slate-300 leading-relaxed">{result.battleSummary}</p>
                 </div>
-                <div className="bg-gray-800/20 border-2 border-fuchsia-500/30 rounded-2xl p-5">
-                    <h3 className="font-orbitron text-lg font-bold text-fuchsia-300 mb-2 flex items-center gap-2">
-                        <UsersIcon className="w-6 h-6" /> Cocok Untuk Siapa
+                <div className="glass rounded-2xl p-5">
+                    <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                        <UsersIcon className="w-6 h-6 text-[color:var(--accent1)]" /> Cocok Untuk Siapa
                     </h3>
-                    <p className="text-sm text-gray-300 leading-relaxed">{result.targetAudience}</p>
+                    <p className="text-sm text-slate-300 leading-relaxed">{result.targetAudience}</p>
                 </div>
             </div>
         </div>

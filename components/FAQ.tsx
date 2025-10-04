@@ -1,67 +1,56 @@
+import React, { useState } from 'react';
 
-import React from 'react';
+const faqItems = [
+    { q: 'Apa itu JAGO-HP?', a: 'JAGO-HP adalah platform review & compare smartphone berbasis AI. Kami membantu pengguna menemukan HP terbaik sesuai kebutuhan dengan rating otomatis dari AI.' },
+    { q: 'Bagaimana cara kerja AI Review di sini?', a: 'AI kami menganalisis data spesifikasi HP, benchmark, serta insight publik. Hasilnya berupa rating per kategori dan ringkasan singkat yang mudah dipahami.' },
+    { q: 'Apakah review ini bisa dipercaya?', a: 'Ya, review AI menggunakan data nyata dan analisis objektif. AI lebih konsisten dan cepat menampilkan hasil berdasarkan data terstruktur.' },
+    { q: 'Apakah data harga HP selalu terbaru?', a: 'Kami berusaha memperbarui harga HP secara rutin. Namun, harga bisa berbeda tergantung toko dan promo yang berlaku.' },
+    { q: 'Apakah JAGO-HP menerima iklan atau kerja sama?', a: 'Ya, kami membuka peluang kerja sama & investor. Info lengkap ada di halaman Partnership.' },
+    { q: 'Bagaimana cara menghubungi tim JAGO-HP?', a: 'Anda dapat menghubungi kami melalui email di: timjagohp@gmail.com' }
+];
 
 const FAQ: React.FC = () => {
-  const faqItems = [
-    {
-      q: 'Apa itu JAGO-HP?',
-      a: 'JAGO-HP adalah platform review & compare smartphone berbasis AI pertama di Indonesia. Kami membantu pengguna menemukan HP terbaik sesuai kebutuhan (gaming, kamera, baterai, dan lainnya) dengan rating otomatis dari AI.'
-    },
-    {
-      q: 'Bagaimana cara kerja AI Review di sini?',
-      a: 'AI kami menganalisis data spesifikasi HP, benchmark, serta insight publik. Hasilnya berupa rating per kategori (misalnya Gaming 4/5, Kamera 4.5/5) dan ringkasan singkat yang mudah dipahami.'
-    },
-    {
-      q: 'Apakah review ini bisa dipercaya?',
-      a: 'Ya ✅, review AI menggunakan data nyata dan analisis objektif. Bedanya dengan review manusia, AI lebih konsisten dan cepat menampilkan hasil.'
-    },
-    {
-      q: 'Apakah data harga HP selalu terbaru?',
-      a: 'Kami berusaha memperbarui harga HP secara rutin. Namun, harga bisa berbeda tergantung toko dan promo yang berlaku.'
-    },
-    {
-      q: 'Apakah JAGO-HP menerima iklan atau kerja sama?',
-      a: 'Ya, kami membuka peluang kerja sama & investor, termasuk ads banner terbatas (maksimal 2 slot). Info lengkap ada di halaman Partnership.'
-    },
-    {
-      q: 'Bagaimana cara memilih HP yang cocok lewat website ini?',
-      a: 'Cukup pilih HP yang ingin kamu lihat, lalu periksa AI Review per kategori (Gaming, Kamera, Baterai, dll). Kamu juga bisa membandingkan dengan insight publik sebelum membeli.'
-    },
-    {
-      q: 'Apakah hanya ada review HP?',
-      a: 'Untuk saat ini fokus kami adalah smartphone. Namun, ke depan kami berencana menambah review laptop & gadget lain berbasis AI.'
-    },
-    {
-      q: 'Bagaimana cara menghubungi tim JAGO-HP?',
-      a: '📧 Email: timjagohp@gmail.com'
-    }
-  ];
+    const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  return (
-    <section id="faq" className="flex-grow flex flex-col items-center justify-center pt-24 pb-10 px-4 sm:px-6 md:px-12 w-full">
-      <div className="container mx-auto max-w-5xl animate-fade-in">
-        <div className="bg-gray-800/30 border border-indigo-500/30 rounded-2xl p-6 md:p-10 backdrop-blur-sm">
-          <div className="text-center mb-10">
-            <h1 className="font-orbitron text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-fuchsia-400">
-              FAQ – Pertanyaan Umum
-            </h1>
-          </div>
-          <div className="space-y-6">
-            {faqItems.map((item, index) => (
-              <div key={index} className="border-b border-indigo-500/20 pb-5 last:border-b-0 last:pb-0">
-                <h3 className="font-orbitron text-lg font-bold text-indigo-300 mb-2">
-                  {item.q}
-                </h3>
-                <p className="text-gray-300 leading-relaxed text-sm">
-                  {item.a}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+    const toggleFAQ = (index: number) => {
+        setOpenIndex(openIndex === index ? null : index);
+    };
+
+    return (
+        <section id="faq" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
+            <div className="container mx-auto max-w-4xl animate-fade-in">
+                <div className="text-center mb-10">
+                    <h1 className="text-3xl md:text-4xl font-bold text-white font-orbitron">
+                        Pertanyaan Umum (FAQ)
+                    </h1>
+                </div>
+                <div className="glass rounded-2xl p-6 md:p-8">
+                    <div className="space-y-4">
+                        {faqItems.map((item, index) => (
+                            <div key={index} className="border-b border-white/10 pb-4 last:border-b-0 last:pb-0">
+                                <button
+                                    onClick={() => toggleFAQ(index)}
+                                    className="w-full flex justify-between items-center text-left"
+                                >
+                                    <h3 className="text-lg font-semibold text-white">
+                                        {item.q}
+                                    </h3>
+                                    <span className={`transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                    </span>
+                                </button>
+                                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openIndex === index ? 'max-h-96 mt-2' : 'max-h-0'}`}>
+                                    <p className="text-slate-400 leading-relaxed text-sm pt-2">
+                                        {item.a}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
 };
 
 export default FAQ;

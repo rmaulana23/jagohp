@@ -1,77 +1,83 @@
-
 import React, { useState } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
-import PhoneBattle from './components/PhoneBattle';
-import SmartReview from './components/SmartReview';
+import PhoneBattle, { BattleResult } from './components/PhoneBattle';
+import SmartReview, { ReviewResult } from './components/SmartReview';
 import TanyaAI from './components/TanyaAI';
 import Leaderboard from './components/Leaderboard';
 import About from './components/About';
-import InsightPublic from './components/InsightPublic';
-import Footer from './components/Footer'; 
+import Footer from './components/Footer';
 import Partnership from './components/Partnership';
 import FAQ from './components/FAQ';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import PhoneFinder from './components/PhoneFinder';
-import Saran from './components/Saran'; // Import baru
-import SparklesIcon from './components/icons/SparklesIcon';
+import Saran from './components/Saran';
 
 const App: React.FC = () => {
   const [page, setPage] = useState('home');
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+
+  // State to hold full results for detail pages
+  const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
+  const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
+  const [latestReviewResult, setLatestReviewResult] = useState<ReviewResult | null>(null);
+
+  const navigateToFullReview = (result: ReviewResult) => {
+    setReviewResult(result);
+    setPage('review');
+  };
+
+  const navigateToFullBattle = (result: BattleResult) => {
+    setBattleResult(result);
+    setPage('battle');
+  };
+  
+  const openChat = () => setIsChatModalOpen(true);
+
+  const mainContent = () => {
+    switch (page) {
+      case 'home': return <Hero 
+                            setPage={setPage} 
+                            openChat={openChat} 
+                            navigateToFullReview={navigateToFullReview} 
+                            navigateToFullBattle={navigateToFullBattle} 
+                            latestReviewResult={latestReviewResult}
+                            setLatestReviewResult={setLatestReviewResult}
+                           />;
+      case 'battle': return <PhoneBattle initialResult={battleResult} />;
+      case 'review': return <SmartReview initialResult={reviewResult} />;
+      case 'finder': return <PhoneFinder />;
+      case 'leaderboard': return <Leaderboard />;
+      case 'about': return <About />;
+      case 'partnership': return <Partnership />;
+      case 'faq': return <FAQ />;
+      case 'privacy': return <PrivacyPolicy />;
+      case 'saran': return <Saran />;
+      default: return <Hero 
+                        setPage={setPage} 
+                        openChat={openChat} 
+                        navigateToFullReview={navigateToFullReview} 
+                        navigateToFullBattle={navigateToFullBattle} 
+                        latestReviewResult={latestReviewResult}
+                        setLatestReviewResult={setLatestReviewResult}
+                       />;
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-[#0a0f1f] text-gray-200 overflow-x-hidden flex flex-col">
-      <div className="absolute inset-0 z-0">
-        {/* Background Grid Pattern */}
-        <div 
-          className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:36px_36px] opacity-50">
-        </div>
-      </div>
-      
+    <div className="min-h-screen flex flex-col">
       <Header page={page} setPage={setPage} />
       
-      {/* Main content wrapper that grows */}
-      <main className="relative z-10 flex-grow flex">
-        {page === 'home' && <Hero setPage={setPage} />}
-        {page === 'battle' && <PhoneBattle />}
-        {page === 'review' && <SmartReview />}
-        {page === 'finder' && <PhoneFinder />}
-        {page === 'leaderboard' && <Leaderboard />}
-        {page === 'insight' && <InsightPublic />}
-        {page === 'about' && <About />}
-        {page === 'partnership' && <Partnership />}
-        {page === 'faq' && <FAQ />}
-        {page === 'privacy' && <PrivacyPolicy />}
-        {page === 'saran' && <Saran />} {/* Halaman baru ditambahkan */}
+      <main className="flex-grow pt-24">
+        {mainContent()}
       </main>
 
       <Footer setPage={setPage} />
 
-      {/* Tanya AI Widget */}
       <TanyaAI 
-        isOpen={isChatOpen} 
-        onClose={() => setIsChatOpen(false)} 
+        isOpen={isChatModalOpen} 
+        onClose={() => setIsChatModalOpen(false)} 
       />
-
-      {/* Floating Chat Bubble */}
-      {!isChatOpen && (
-        <button
-          onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center animate-fade-in"
-          aria-label="Buka Tanya AI"
-        >
-          <div className="hidden lg:block bg-[#1e293b]/90 backdrop-blur-sm text-white text-sm rounded-full px-4 py-2 mr-2 shadow-md border border-indigo-500/20">
-            Tanya dulu Kakak
-          </div>
-          <div
-            className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white flex items-center justify-center
-                       shadow-lg shadow-indigo-500/30"
-          >
-            <SparklesIcon className="w-7 h-7" />
-          </div>
-        </button>
-      )}
     </div>
   );
 };
