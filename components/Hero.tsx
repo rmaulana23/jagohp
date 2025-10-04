@@ -199,7 +199,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
 
             {/* QUICK SEARCH */}
             <div>
-              <label className="text-sm small-muted">Quick Review</label>
+              <label className="font-semibold text-white text-lg">Quick Review</label>
               <div className="mt-2 flex gap-3 items-center">
                 <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung Galaxy S24 Ultra" />
                 <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Cari'}</button>
