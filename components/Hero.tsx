@@ -161,14 +161,14 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
 
   return (
     <section className="pb-10">
-      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+      <div className="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         {/* LEFT: CONTENT & INTERACTION */}
-        <div className="md:col-span-7 space-y-10">
+        <div className="md:col-span-7 space-y-8">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron text-white">JAGO-HP</h1>
               <p className="mt-2 text-sm text-slate-300">Review cepat, perbandingan tajam, dan insight brand semua pakai AI. Cari HP yang cocok hanya dalam beberapa detik.</p>
               <div className="mt-6 flex gap-4">
-                <button onClick={openChat} className="px-5 py-3 rounded-lg bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity">Tanya AI</button>
+                <button onClick={openChat} className="px-5 py-3 rounded-lg bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity">AI Asisstant</button>
                 <button onClick={() => setPage('review')} className="px-5 py-3 rounded-lg border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/10 transition-colors">Smart Review</button>
               </div>
             </div>
@@ -180,7 +180,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
                 <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung Galaxy S24 Ultra" />
                 <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Cari'}</button>
               </div>
-              <div className="mt-2 text-sm small-muted">Ketik model HP atau mereknya.</div>
+              <div className="mt-2 text-sm small-muted">Ketik model/tipe HP</div>
             </div>
              {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">AI sedang menganalisis...</div>}
              {reviewError && <div className="text-center p-4 text-red-400">{reviewError}</div>}
@@ -192,8 +192,8 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
                     <div className="text-sm small-muted">Bandingkan 2 HP tipe berbeda</div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input id="cmpA" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan HP A" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
-                    <input id="cmpB" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan HP B" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
+                    <input id="cmpA" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan model/tipe HP A" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
+                    <input id="cmpB" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan model/tipe HP B" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
                 </div>
                 <div className="mt-4 flex flex-col sm:flex-row gap-3">
                     <button onClick={() => handleCompareAction('compare')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-slate-500 text-slate-300 font-semibold hover:bg-slate-700/50 transition-colors disabled:opacity-50">
@@ -210,7 +210,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
         </div>
 
         {/* RIGHT: LEADERBOARDS & PREVIEW */}
-        <div className="md:col-span-5 space-y-6">
+        <div className="md:col-span-5 space-y-5">
             {latestReviewResult && <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />}
             <LeaderboardCard title="Top 3 Smartphone (Global)" data={[{name: 'Samsung', share: '20.8%'}, {name: 'Apple', share: '18.5%'}, {name: 'Xiaomi', share: '14.1%'}]} />
             <LeaderboardCard title="Top 3 Smartphone (Indonesia)" data={[{name: 'Samsung', share: '29.8%'}, {name: 'Xiaomi', share: '21.5%'}, {name: 'Oppo', share: '14.5%'}]} />

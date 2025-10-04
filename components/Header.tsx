@@ -18,8 +18,8 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
   };
 
   return (
-    <header className="w-full fixed top-4 left-0 px-6 z-40">
-      <nav className="max-w-6xl mx-auto flex items-center justify-between py-3 glass rounded-2xl px-4">
+    <header className="w-full fixed top-2 left-0 px-4 z-40">
+      <nav className="max-w-5xl mx-auto flex items-center justify-between py-3 glass rounded-2xl px-4">
         {/* Left: Logo & Title */}
         <a href="#" className="flex items-center gap-3 cursor-pointer" onClick={(e) => handleNavClick(e, 'home')}>
           <div className="w-10 h-10 rounded-lg bg-[color:var(--accent1)] flex items-center justify-center font-orbitron text-black text-lg">JH</div>

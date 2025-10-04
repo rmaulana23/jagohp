@@ -13,7 +13,7 @@ const Leaderboard: React.FC = () => {
 
     return (
         <section id="leaderboard" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
-            <div className="container mx-auto max-w-6xl text-center">
+            <div className="container mx-auto max-w-5xl text-center">
                 <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white font-orbitron">
                     Brand Leaderboard
                 </h1>

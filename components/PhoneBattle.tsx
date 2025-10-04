@@ -207,7 +207,7 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
 
     return (
         <section id="battle" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
-            <div className="container mx-auto max-w-6xl">
+            <div className="container mx-auto max-w-5xl">
                 
                 { !result && (
                     <>
