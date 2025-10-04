@@ -120,6 +120,20 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
 
     const phoneNames = [comparePhoneA, comparePhoneB];
     const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
+    const cacheKey = phoneNames.map(name => name.trim().toLowerCase()).sort().join('_vs_');
+
+    if (supabase) {
+      try {
+        const { data } = await supabase.from('quick_compare').select('compare_data').eq('cache_key', cacheKey).single();
+        if (data && data.compare_data) {
+          setBattleData(data.compare_data as BattleResult);
+          setBattleModeLoading(null);
+          return;
+        }
+      } catch (cacheError) {
+        console.warn("Supabase quick compare cache check failed:", cacheError);
+      }
+    }
     
     const phoneSpecProperties = {
         rilis: { type: Type.STRING }, os: { type: Type.STRING }, processor: { type: Type.STRING },
@@ -151,6 +165,16 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
         const parsedResult: BattleResult = JSON.parse(response.text.trim());
         setBattleData(parsedResult);
+        if (supabase) {
+          try {
+            await supabase.from('quick_compare').insert({
+              cache_key: cacheKey,
+              compare_data: parsedResult,
+            });
+          } catch (cacheError) {
+            console.warn("Supabase quick compare cache write failed:", cacheError);
+          }
+        }
     } catch (e) {
         console.error(e);
         setBattleError('An AI error occurred during comparison. Please try again.');
