@@ -1,114 +1,175 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../utils/supabaseClient';
 
-interface FeedItem {
+interface PollOption {
     id: number;
-    content: string;
-    created_at: string;
+    text: string;
+    votes: number;
 }
 
 const InsightPublic: React.FC = () => {
-    const [feed, setFeed] = useState<FeedItem[]>([]);
-    const [comment, setComment] = useState('');
+    const [options, setOptions] = useState<PollOption[]>([]);
+    const [totalVotes, setTotalVotes] = useState(0);
+    const [votedId, setVotedId] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchFeed = useCallback(async () => {
+    const calculateTotalVotes = (opts: PollOption[]) => opts.reduce((sum, opt) => sum + opt.votes, 0);
+
+    const fetchAndSetPoll = useCallback(async () => {
         if (!supabase) {
-            setError("Koneksi database tidak terkonfigurasi.");
             setLoading(false);
             return;
         }
         setLoading(true);
+        setError(null);
         try {
-            const { data, error } = await supabase
-                .from('public_feed')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(10);
-            if (error) throw error;
-            setFeed(data || []);
-        } catch (err) {
-            setError("Gagal memuat feed. Coba segarkan halaman.");
-            console.error(err);
+            // This RPC function should be created in Supabase:
+            // CREATE OR REPLACE FUNCTION get_random_poll_options()
+            // RETURNS TABLE(id bigint, text text, votes bigint) AS $$
+            //   SELECT id, text, votes FROM dealbreakers_poll ORDER BY random() LIMIT 3;
+            // $$ LANGUAGE sql;
+            const { data, error: rpcError } = await supabase.rpc('get_random_poll_options');
+            if (rpcError) throw rpcError;
+
+            if (data && data.length > 0) {
+                setOptions(data);
+                setTotalVotes(calculateTotalVotes(data));
+                localStorage.setItem('dailyPoll', JSON.stringify({
+                    timestamp: Date.now(),
+                    options: data
+                }));
+                 localStorage.removeItem('dailyPollVoteId'); // Clear old vote
+            }
+        } catch (err: any) {
+            console.error("Error fetching poll:", err.message || err);
+            setError('Gagal memuat polling saat ini.');
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        fetchFeed();
-    }, [fetchFeed]);
+        const storedPollRaw = localStorage.getItem('dailyPoll');
+        const storedVoteIdRaw = localStorage.getItem('dailyPollVoteId');
+        
+        if (storedPollRaw) {
+            const { timestamp, options: storedOptions } = JSON.parse(storedPollRaw);
+            if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+                setOptions(storedOptions);
+                setTotalVotes(calculateTotalVotes(storedOptions));
+                if (storedVoteIdRaw) {
+                    setVotedId(parseInt(storedVoteIdRaw, 10));
+                }
+                setLoading(false);
+            } else {
+                fetchAndSetPoll();
+            }
+        } else {
+            fetchAndSetPoll();
+        }
+    }, [fetchAndSetPoll]);
 
-    const handlePost = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const content = comment.trim();
-        if (!content || !supabase) return;
+    const handleVote = async (id: number) => {
+        if (votedId || !supabase) return;
+
+        setVotedId(id);
+        localStorage.setItem('dailyPollVoteId', String(id));
+
+        // Optimistic UI update
+        const oldOptions = options;
+        const newOptions = options.map(opt =>
+            opt.id === id ? { ...opt, votes: opt.votes + 1 } : opt
+        );
+        setOptions(newOptions);
+        setTotalVotes(prev => prev + 1);
+        
+        const storedPollData = JSON.parse(localStorage.getItem('dailyPoll') || '{}');
+        localStorage.setItem('dailyPoll', JSON.stringify({ ...storedPollData, options: newOptions }));
 
         try {
-            const { data, error } = await supabase
-                .from('public_feed')
-                .insert([{ content }])
-                .select();
-            
-            if (error) throw error;
-
-            if (data) {
-                setFeed(prevFeed => [data[0], ...prevFeed]);
-                setComment('');
-            }
-        } catch (err) {
-            setError("Gagal mengirim postingan.");
-            console.error(err);
+            // This RPC function should be created in Supabase:
+            // CREATE OR REPLACE FUNCTION increment_poll_vote(option_id bigint)
+            // RETURNS void AS $$
+            //   UPDATE dealbreakers_poll SET votes = votes + 1 WHERE id = option_id;
+            // $$ LANGUAGE sql SECURITY DEFINER;
+            const { error: rpcError } = await supabase.rpc('increment_poll_vote', { option_id: id });
+            if (rpcError) throw rpcError;
+        } catch (err: any) {
+            console.error("Failed to save vote:", err.message || err);
+            // Rollback optimistic update on failure
+            setOptions(oldOptions);
+            setTotalVotes(calculateTotalVotes(oldOptions));
+            setVotedId(null);
+            localStorage.setItem('dailyPoll', JSON.stringify({ ...storedPollData, options: oldOptions }));
+            localStorage.removeItem('dailyPollVoteId');
+            setError('Gagal menyimpan suara.');
         }
     };
-
-    return (
-        <section id="insight" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
-            <div className="container mx-auto max-w-4xl text-center">
-                <h1 className="text-3xl md:text-4xl font-bold mb-3 neon-text font-orbitron">
-                    Public Insight
-                </h1>
-                <p className="text-base text-slate-400 mb-10">
-                    Lihat apa yang sedang dibicarakan komunitas secara real-time.
-                </p>
-
-                <div className="glass rounded-2xl p-6 text-left">
-                    <h2 className="text-xl font-bold text-white mb-2">Insight Feed</h2>
-                    <p className="text-sm small-muted mb-4">Postingan akan otomatis hilang setelah 24 jam.</p>
-                    
-                    <form onSubmit={handlePost} className="mb-4">
-                        <textarea
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
-                            rows={2}
-                            className="w-full px-3 py-2 rounded-md bg-[color:var(--card)] border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)]"
-                            placeholder="Tulis status singkat anonim..."
-                        />
-                        <div className="mt-2 flex justify-end">
-                            <button
-                                type="submit"
-                                disabled={!comment.trim()}
-                                className="px-3 py-1 rounded-md bg-[color:var(--accent1)]/10 border border-[color:var(--accent1)]/30 text-[color:var(--accent1)] font-semibold hover:bg-[color:var(--accent1)]/20 transition-colors disabled:opacity-50"
-                            >
-                                Post
-                            </button>
-                        </div>
-                    </form>
-
-                    <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
-                        {loading && <p className="text-center small-muted">Memuat feed...</p>}
-                        {error && <p className="text-center text-red-400">{error}</p>}
-                        {!loading && feed.length === 0 && <p className="text-center small-muted">Belum ada postingan.</p>}
-                        {feed.map(item => (
-                            <div key={item.id} className="p-3 rounded-lg bg-black/20 text-slate-300 text-sm animate-fade-in">
-                                {item.content}
-                            </div>
-                        ))}
-                    </div>
+    
+    if (loading) {
+        return (
+            <div className="glass rounded-2xl p-4 animate-pulse">
+                <div className="h-5 bg-slate-700 rounded w-3/4 mb-4"></div>
+                <div className="space-y-3">
+                    <div className="h-8 bg-slate-700/50 rounded-lg"></div>
+                    <div className="h-8 bg-slate-700/50 rounded-lg"></div>
+                    <div className="h-8 bg-slate-700/50 rounded-lg"></div>
                 </div>
             </div>
-        </section>
+        );
+    }
+
+    if (error) {
+        return (
+           <div className="glass rounded-2xl p-4">
+               <h3 className="font-semibold text-white mb-2 text-base">Polling: Apa Dealbreaker-mu?</h3>
+               <div className="text-center text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                   {error}
+               </div>
+           </div>
+       );
+   }
+
+    if (!options || options.length === 0) {
+        return null; // Don't render if no options are available
+    }
+
+    return (
+        <div className="glass rounded-2xl p-4">
+            <h3 className="font-semibold text-white mb-4 text-base">Polling: Apa Dealbreaker-mu?</h3>
+            <div className="space-y-2">
+                {options.map((option) => {
+                    const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
+                    const isVotedOption = option.id === votedId;
+
+                    return (
+                        <div key={option.id} className="text-sm">
+                            {votedId !== null ? (
+                                <div className="relative w-full bg-slate-700/50 rounded-lg p-2 overflow-hidden border-2 border-transparent">
+                                    <div
+                                        className={`absolute top-0 left-0 h-full rounded-md ${isVotedOption ? 'bg-[color:var(--accent1)]/30' : 'bg-slate-600/30'}`}
+                                        style={{ width: `${percentage}%`, transition: 'width 0.5s ease-in-out' }}
+                                    ></div>
+                                    <div className="relative flex justify-between items-center text-slate-200">
+                                        <span className={`font-medium ${isVotedOption ? 'text-white' : ''}`}>{option.text}</span>
+                                        <span className="font-semibold">{percentage.toFixed(0)}%</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => handleVote(option.id)}
+                                    className="w-full text-left p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition-colors text-slate-200"
+                                >
+                                    {option.text}
+                                </button>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+            <p className="text-xs text-center small-muted mt-3">Polling direset setiap 24 jam.</p>
+        </div>
     );
 };
 

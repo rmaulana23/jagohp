@@ -6,6 +6,7 @@ import { BattleResult } from './PhoneBattle';
 import VersusIcon from './icons/VersusIcon';
 import CrownIcon from './icons/CrownIcon';
 import PreviewCard from './PreviewCard';
+import InsightPublic from './InsightPublic';
 
 interface HeroProps {
   setPage: (page: string) => void;
@@ -33,6 +34,26 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     if (!reviewQuery.trim()) return;
     setReviewLoading(true);
     setReviewError(null);
+
+    const cacheKey = reviewQuery.trim().toLowerCase();
+
+    if (supabase) {
+      try {
+        const { data } = await supabase
+          .from('quick_reviews')
+          .select('review_data')
+          .eq('phone_name_query', cacheKey)
+          .single();
+        if (data && data.review_data) {
+          setLatestReviewResult(data.review_data as ReviewResult);
+          setReviewLoading(false);
+          return;
+        }
+      } catch (cacheError) {
+        console.warn("Supabase quick review cache check failed:", cacheError);
+      }
+    }
+
     const schema = {
         type: Type.OBJECT,
         properties: {
@@ -72,6 +93,16 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
             setReviewError(parsedResult.phoneName);
         } else {
             setLatestReviewResult(parsedResult);
+            if (supabase) {
+              try {
+                await supabase.from('quick_reviews').insert({
+                  phone_name_query: cacheKey,
+                  review_data: parsedResult,
+                });
+              } catch (cacheError) {
+                console.warn("Supabase quick review cache write failed:", cacheError);
+              }
+            }
         }
     } catch (e) {
         console.error(e);
@@ -135,7 +166,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
         <div className="md:col-span-7 space-y-10">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold leading-tight font-orbitron text-white">JAGO-HP</h1>
-              <p className="mt-2 text-lg text-slate-300">Review cepat, perbandingan tajam, dan insight brand semua pakai AI. Cari HP yang cocok hanya dalam beberapa detik.</p>
+              <p className="mt-2 text-base text-slate-300">Review cepat, perbandingan tajam, dan insight brand semua pakai AI. Cari HP yang cocok hanya dalam beberapa detik.</p>
               <div className="mt-6 flex gap-4">
                 <button onClick={openChat} className="px-5 py-3 rounded-lg bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity">Tanya AI</button>
                 <button onClick={() => setPage('review')} className="px-5 py-3 rounded-lg border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/10 transition-colors">Smart Review</button>
@@ -149,7 +180,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
                 <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung Galaxy S24 Ultra" />
                 <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Cari'}</button>
               </div>
-              <div className="mt-2 text-sm small-muted">Ketik model, merek, atau "kamera terbaik".</div>
+              <div className="mt-2 text-sm small-muted">Ketik model HP atau mereknya.</div>
             </div>
              {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">AI sedang menganalisis...</div>}
              {reviewError && <div className="text-center p-4 text-red-400">{reviewError}</div>}
@@ -158,7 +189,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
             <div className="glass rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold text-white text-lg">Quick Compare</h3>
-                    <div className="text-sm small-muted">Bandingkan 2 HP</div>
+                    <div className="text-sm small-muted">Bandingkan 2 HP tipe berbeda</div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <input id="cmpA" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan HP A" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
@@ -183,6 +214,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
             {latestReviewResult && <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />}
             <LeaderboardCard title="Top 3 Smartphone (Global)" data={[{name: 'Samsung', share: '20.8%'}, {name: 'Apple', share: '18.5%'}, {name: 'Xiaomi', share: '14.1%'}]} />
             <LeaderboardCard title="Top 3 Smartphone (Indonesia)" data={[{name: 'Samsung', share: '29.8%'}, {name: 'Xiaomi', share: '21.5%'}, {name: 'Oppo', share: '14.5%'}]} />
+            <InsightPublic />
         </div>
       </div>
     </section>

@@ -25,7 +25,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
           <div className="w-10 h-10 rounded-lg bg-[color:var(--accent1)] flex items-center justify-center font-orbitron text-black text-lg">JH</div>
           <div>
             <div className="text-base font-semibold">JAGO-HP</div>
-            <div className="text-xs small-muted">Asisten AI HP Andalmu</div>
+            <div className="text-xs small-muted">#1 Platform Rekomendasi HP Berbasis AI</div>
           </div>
         </a>
 
