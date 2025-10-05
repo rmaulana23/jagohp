@@ -3,6 +3,7 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
 import SparklesIcon from './icons/SparklesIcon';
 import ShareButtons from './ShareButtons';
+import EcommerceButtons from './EcommerceButtons';
 
 interface Recommendation {
   phoneName: string;
@@ -199,6 +200,7 @@ const ResultsDisplay: FC<{ result: Recommendation; onReset: () => void }> = ({ r
             {result.keyFeatures && result.keyFeatures.length > 0 && (
               <div className="mb-4"><h4 className="font-semibold text-slate-800 mb-2 text-sm">Fitur Unggulan:</h4><ul className="list-disc list-inside space-y-1 text-sm text-slate-600">{result.keyFeatures.map((feat, j) => <li key={j}>{feat}</li>)}</ul></div>
             )}
+            <EcommerceButtons phoneName={result.phoneName} />
             <ShareButtons shareText={shareText} shareUrl={shareUrl} />
             <div className="mt-6 text-center"><button onClick={onReset} className="text-sm text-[color:var(--accent1)] font-semibold hover:underline">Cari Rekomendasi Lain</button></div>
           </div>

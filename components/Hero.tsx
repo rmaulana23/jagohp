@@ -7,6 +7,7 @@ import VersusIcon from './icons/VersusIcon';
 import CrownIcon from './icons/CrownIcon';
 import PreviewCard from './PreviewCard';
 import InsightPublic from './InsightPublic';
+import EcommerceButtons from './EcommerceButtons';
 
 interface HeroProps {
   setPage: (page: string) => void;
@@ -257,7 +258,6 @@ const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ re
         <div className="grid grid-cols-1 gap-4">
             {result.phones.map((phone, index) => {
                 const isWinner = phone.name === result.winnerName;
-                const purchaseUrl = `https://shopee.co.id/search?keyword=${encodeURIComponent(phone.name)}`;
                 return (
                     <div key={index} className={`relative bg-slate-50 p-3 rounded-lg ${isWinner ? 'border border-[color:var(--accent1)]' : 'border border-slate-200'}`}>
                         {isWinner && <div className="absolute -top-3 right-2 bg-[color:var(--accent1)] text-white px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1"><CrownIcon className="w-3 h-3"/>Pemenang</div>}
@@ -267,14 +267,7 @@ const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ re
                             <SpecItem label="NFC" value={phone.specs.nfc} />
                             <SpecItem label="Harga" value={phone.specs.hargaIndonesia} />
                         </dl>
-                        <a 
-                          href={purchaseUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block text-center w-full mt-3 px-3 py-1.5 rounded-md text-xs bg-green-500/10 text-green-600 border border-green-500/30 font-semibold hover:bg-green-500/20 transition-colors"
-                        >
-                            Beli Sekarang
-                        </a>
+                        <EcommerceButtons phoneName={phone.name} isCompact={true} />
                     </div>
                 );
             })}

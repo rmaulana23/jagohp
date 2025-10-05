@@ -7,6 +7,7 @@ import UsersIcon from './icons/UsersIcon';
 import PlusCircleIcon from './icons/PlusCircleIcon';
 import XCircleIcon from './icons/XCircleIcon';
 import CrownIcon from './icons/CrownIcon';
+import EcommerceButtons from './EcommerceButtons';
 
 interface SpecDetails {
     rilis?: string;
@@ -256,7 +257,7 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
                                 </button>
                                 {loading && (
                                     <p className="text-sm text-slate-500 mt-3 animate-pulse">
-                                        AI sedang menganalisis, mohon tunggu sebentar...
+                                        Kami coba analisis, mohon jangan pindah menu..
                                     </p>
                                 )}
                             </div>
@@ -355,7 +356,7 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
                 {result.phones.map((phone, index) => {
                     const isWinner = phone.name === result.winnerName;
                     return (
-                        <div key={index} className={`relative glass p-5 flex flex-col transition-all duration-300 ${isWinner ? 'border border-[color:var(--accent1)]' : ''}`}>
+                        <div key={index} className={`relative glass p-5 flex flex-col transition-all duration-300 ${isWinner ? 'border-2 border-[color:var(--accent1)]' : ''}`}>
                             {isWinner && (
                                 <div className="absolute -top-3.5 right-4 bg-[color:var(--accent1)] text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
                                     <CrownIcon className="w-4 h-4" />
@@ -375,6 +376,7 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
                                 <SpecItem label="Charging" value={phone.specs.charging} />
                                 <SpecItem label="NFC" value={phone.specs.nfc} />
                             </dl>
+                            <EcommerceButtons phoneName={phone.name} isCompact={true} />
                         </div>
                     );
                 })}

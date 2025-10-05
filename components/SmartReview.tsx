@@ -3,6 +3,7 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
 import SearchIcon from './icons/SearchIcon';
 import ShareButtons from './ShareButtons';
+import EcommerceButtons from './EcommerceButtons';
 
 // --- INTERFACES ---
 interface Ratings {
@@ -249,7 +250,7 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
                                 {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <SearchIcon className="w-5 h-5" />}
                             </button>
                         </form>
-                        {loading && <p className="text-sm text-slate-500 text-center -mt-8 mb-8 animate-pulse">AI sedang menganalisis...</p>}
+                        {loading && <p className="text-sm text-slate-500 text-center -mt-8 mb-8 animate-pulse">Kami coba review, mohon jangan pindah menu..</p>}
                     </>
                 )}
 
@@ -301,6 +302,7 @@ const ReviewResultDisplay: FC<{ review: ReviewResult }> = ({ review }) => {
                 {activeTab === 'performa' && <TabContentPerforma review={review} />}
                 {activeTab === 'foto-video' && <TabContentCamera review={review} />}
             </div>
+            <EcommerceButtons phoneName={review.phoneName} />
             <ShareButtons shareText={shareText} shareUrl={shareUrl} />
         </div>
     );
