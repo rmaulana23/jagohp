@@ -118,8 +118,8 @@ const PhoneFinder: React.FC = () => {
             <p className="text-base text-slate-500 mt-2 max-w-2xl mx-auto">Jawab beberapa pertanyaan, dan biarkan AI kami menemukan HP yang pas untukmu.</p>
         </div>
         {!result && !loading && (
-          <form onSubmit={handleSubmit} className="glass p-6 md:p-8 mt-4 animate-fade-in">
-              <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-x-8 gap-y-8">
+          <form onSubmit={handleSubmit} className="glass p-6 mt-4 animate-fade-in">
+              <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-x-6 gap-y-6">
                   <div className="lg:col-span-2">
                       <QuestionSection title="1. Apa aktivitas & kebutuhan utamamu?">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -127,7 +127,7 @@ const PhoneFinder: React.FC = () => {
                           </div>
                       </QuestionSection>
                   </div>
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                       <QuestionSection title="2. Seberapa penting kualitas kamera?">
                           <div className="pt-2">
                               <input type="range" min="1" max="5" value={cameraPriority} onChange={e => setCameraPriority(parseInt(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer range-lg accent-[color:var(--accent1)]"/>
@@ -142,14 +142,14 @@ const PhoneFinder: React.FC = () => {
                       <QuestionSection title="4. Ada preferensi lain? (Opsional)">
                           <input type="text" value={otherPrefs} onChange={e => setOtherPrefs(e.target.value)} placeholder="Misal: Suka merk Samsung..." className="w-full bg-slate-50 border-2 border-slate-300 rounded-lg p-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all"/>
                       </QuestionSection>
+                      <div className="pt-2">
+                          <button type="submit" disabled={loading} className="w-full px-8 py-3 rounded-lg bg-[color:var(--accent1)] text-white font-semibold flex items-center justify-center gap-3 hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 shadow-md">
+                              {loading ? 'Menganalisis...' : 'Cari Rekomendasi'}{!loading && <SparklesIcon className="w-5 h-5" />}
+                          </button>
+                          {loading && <p className="text-sm text-slate-500 mt-2 text-center animate-pulse">AI sedang menganalisis...</p>}
+                          {error && <p className="text-red-500 mt-2 text-sm text-center">{error}</p>}
+                      </div>
                   </div>
-              </div>
-              <div className="text-center pt-10 border-t border-slate-200 mt-8">
-                  <button type="submit" disabled={loading} className="w-full max-w-sm px-8 py-3 rounded-lg bg-[color:var(--accent1)] text-white font-semibold flex items-center justify-center gap-3 mx-auto hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 shadow-md">
-                      {loading ? 'Menganalisis...' : 'Cari Rekomendasi'}{!loading && <SparklesIcon className="w-5 h-5" />}
-                  </button>
-                  {loading && <p className="text-sm text-slate-500 mt-3 animate-pulse">AI sedang menganalisis...</p>}
-                  {error && <p className="text-red-500 mt-3 text-sm">{error}</p>}
               </div>
           </form>
         )}
