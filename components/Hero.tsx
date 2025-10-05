@@ -196,7 +196,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
               <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron text-[color:var(--accent1)]">JAGO-HP</h1>
               <p className="mt-2 text-sm text-slate-600">Your AI Expert, Asisten Cerdas Berbasis AI Untuk Membantu Memilih Smartphone Terbaik</p>
               <div className="mt-6">
-                <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">AI Assistant</button>
+                <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa? Tanya dulu aja sini</button>
               </div>
             </div>
 
@@ -209,7 +209,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
               </div>
               <div className="mt-2 text-sm small-muted">Ketik model atau tipe HP</div>
             </div>
-             {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">AI sedang menganalisis...</div>}
+             {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang mereview, mohon tunggu..</div>}
              {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
              
             {/* Quick Compare */}
@@ -231,7 +231,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
                     </button>
                 </div>
             </div>
-             {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">AI sedang membandingkan...</div>}
+             {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang membandingkan, mohon tunggu..</div>}
              {battleError && <div className="text-center p-4 text-red-500">{battleError}</div>}
              {battleData && <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />}
         </div>

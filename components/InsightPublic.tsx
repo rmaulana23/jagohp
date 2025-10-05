@@ -13,6 +13,7 @@ const InsightPublic: React.FC = () => {
     const [votedId, setVotedId] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isVoting, setIsVoting] = useState(false);
 
     if (!supabase) {
         return (
@@ -75,35 +76,60 @@ const InsightPublic: React.FC = () => {
         }
     }, [fetchAndSetPoll]);
 
-    const handleVote = async (id: number) => {
-        if (votedId || !supabase) return;
+    const handleVote = async (newVoteId: number) => {
+        if (isVoting || !supabase) return;
 
-        setVotedId(id);
-        localStorage.setItem('dailyPollVoteId', String(id));
+        const previousVotedId = votedId;
+        if (newVoteId === previousVotedId) return;
+
+        setIsVoting(true);
+        const isFirstVote = previousVotedId === null;
 
         // Optimistic UI update
-        const oldOptions = options;
-        const newOptions = options.map(opt =>
-            opt.id === id ? { ...opt, votes: opt.votes + 1 } : opt
-        );
+        const oldOptions = [...options];
+        const newOptions = options.map(opt => {
+            if (opt.id === newVoteId) return { ...opt, votes: opt.votes + 1 };
+            if (opt.id === previousVotedId) return { ...opt, votes: Math.max(0, opt.votes - 1) };
+            return opt;
+        });
+        
+        setVotedId(newVoteId);
         setOptions(newOptions);
-        setTotalVotes(prev => prev + 1);
+        if (isFirstVote) {
+            setTotalVotes(prev => prev + 1);
+        }
         
         const storedPollData = JSON.parse(localStorage.getItem('dailyPoll') || '{}');
+        localStorage.setItem('dailyPollVoteId', String(newVoteId));
         localStorage.setItem('dailyPoll', JSON.stringify({ ...storedPollData, options: newOptions }));
 
         try {
-            const { error: rpcError } = await supabase.rpc('increment_poll_vote', { option_id: id });
-            if (rpcError) throw rpcError;
+            const incrementPromise = supabase.rpc('increment_poll_vote', { option_id: newVoteId });
+            // Assuming a 'decrement_poll_vote' RPC exists for vote changes.
+            const decrementPromise = previousVotedId !== null 
+                ? supabase.rpc('decrement_poll_vote', { option_id: previousVotedId })
+                : Promise.resolve({ error: null });
+
+            const [incrementResult, decrementResult] = await Promise.all([incrementPromise, decrementPromise]);
+            
+            if (incrementResult.error || decrementResult.error) {
+                throw new Error(incrementResult.error?.message || decrementResult.error?.message || 'RPC call failed');
+            }
         } catch (err: any) {
-            console.error("Failed to save vote:", err.message || err);
+            console.error("Failed to save vote change:", err.message || err);
             // Rollback optimistic update on failure
             setOptions(oldOptions);
             setTotalVotes(calculateTotalVotes(oldOptions));
-            setVotedId(null);
+            setVotedId(previousVotedId);
             localStorage.setItem('dailyPoll', JSON.stringify({ ...storedPollData, options: oldOptions }));
-            localStorage.removeItem('dailyPollVoteId');
+            if (previousVotedId) {
+                localStorage.setItem('dailyPollVoteId', String(previousVotedId));
+            } else {
+                localStorage.removeItem('dailyPollVoteId');
+            }
             setError('Gagal menyimpan suara.');
+        } finally {
+            setIsVoting(false);
         }
     };
     
@@ -144,47 +170,33 @@ const InsightPublic: React.FC = () => {
 
     return (
         <div className="glass p-4 border-t-4 border-[color:var(--accent1)]">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-slate-800 text-base flex items-center gap-2">
-                    <span>Polling: Apa Dealbreaker-mu?</span>
-                    <span className="text-xs font-medium bg-red-500 text-white px-2 py-0.5 rounded-full">Live Voting</span>
-                </h3>
-                <button
-                    onClick={fetchAndSetPoll}
-                    disabled={loading}
-                    className="text-xs px-2 py-1 rounded-md text-slate-500 hover:bg-slate-200 hover:text-slate-800 font-semibold transition-colors disabled:opacity-50"
-                    aria-label="Ganti polling"
-                >
-                    Ganti
-                </button>
-            </div>
+            <h3 className="font-semibold text-slate-800 text-base flex items-center gap-2 mb-4">
+                <span>Polling: Apa Dealbreaker-mu?</span>
+                <span className="text-xs font-medium bg-red-500 text-white px-2 py-0.5 rounded-full">Live Voting</span>
+            </h3>
             <div className="space-y-2">
                 {options.map((option) => {
                     const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
                     const isVotedOption = option.id === votedId;
-
+                    
                     return (
-                        <div key={option.id} className="text-sm">
-                            {votedId !== null ? (
-                                <div className="relative w-full bg-slate-200 rounded-lg p-2 overflow-hidden border-2 border-transparent">
-                                    <div
-                                        className={`absolute top-0 left-0 h-full rounded-md ${isVotedOption ? 'bg-[color:var(--accent1)]/30' : 'bg-slate-300'}`}
-                                        style={{ width: `${percentage}%`, transition: 'width 0.5s ease-in-out' }}
-                                    ></div>
-                                    <div className="relative flex justify-between items-center text-slate-800">
-                                        <span className={`font-medium ${isVotedOption ? 'text-slate-900' : ''}`}>{option.text}</span>
-                                        <span className="font-semibold">{percentage.toFixed(0)}%</span>
-                                    </div>
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={() => handleVote(option.id)}
-                                    className="w-full text-left p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors text-slate-700"
-                                >
-                                    {option.text}
-                                </button>
+                        <button
+                            key={option.id}
+                            onClick={() => handleVote(option.id)}
+                            disabled={isVoting}
+                            className="relative w-full text-left p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors text-slate-700 overflow-hidden disabled:cursor-wait"
+                        >
+                            {votedId !== null && (
+                                <div
+                                    className={`absolute top-0 left-0 h-full rounded-md ${isVotedOption ? 'bg-[color:var(--accent1)]/30' : 'bg-slate-200'}`}
+                                    style={{ width: `${percentage}%`, transition: 'width 0.5s ease-in-out' }}
+                                ></div>
                             )}
-                        </div>
+                            <div className="relative flex justify-between items-center text-slate-800 text-sm">
+                                <span className={`font-medium ${isVotedOption ? 'text-slate-900' : ''}`}>{option.text}</span>
+                                {votedId !== null && <span className="font-semibold">{percentage.toFixed(0)}%</span>}
+                            </div>
+                        </button>
                     );
                 })}
             </div>
