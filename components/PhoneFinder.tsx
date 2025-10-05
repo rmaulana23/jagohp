@@ -143,7 +143,7 @@ const PhoneFinder: React.FC = () => {
                   </div>
               </div>
               <div className="text-center pt-10 border-t border-slate-200 mt-8">
-                  <button type="submit" disabled={loading} className="w-full max-w-sm px-8 py-3 rounded-lg bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] text-white font-semibold flex items-center justify-center gap-3 mx-auto hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 shadow-md">
+                  <button type="submit" disabled={loading} className="w-full max-w-sm px-8 py-3 rounded-lg bg-[color:var(--accent1)] text-white font-semibold flex items-center justify-center gap-3 mx-auto hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 shadow-md">
                       {loading ? 'Menganalisis...' : 'Cari Rekomendasi'}{!loading && <SparklesIcon className="w-5 h-5" />}
                   </button>
                   {loading && <p className="text-sm text-slate-500 mt-3 animate-pulse">AI sedang menganalisis...</p>}

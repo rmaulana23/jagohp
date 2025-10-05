@@ -191,10 +191,10 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
         {/* LEFT: CONTENT & INTERACTION */}
         <div className="md:col-span-7 space-y-8">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] bg-clip-text text-transparent">JAGO-HP</h1>
+              <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron text-[color:var(--accent1)]">JAGO-HP</h1>
               <p className="mt-2 text-sm text-slate-600">Temukan Smartphone Terbaikmu Melalui Kecerdasan AI, Jangan Salah Pilih!</p>
               <div className="mt-6 flex gap-4">
-                <button onClick={openChat} className="px-5 py-3 rounded-lg bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">AI Assistant</button>
+                <button onClick={openChat} className="px-5 py-3 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">AI Assistant</button>
                 <button onClick={() => setPage('review')} className="px-5 py-3 rounded-lg border border-[color:var(--accent1)] text-[color:var(--accent1)] font-semibold hover:bg-[color:var(--accent1)]/10 transition-colors">Smart Review</button>
               </div>
             </div>
@@ -225,7 +225,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
                     <button onClick={() => handleCompareAction('compare')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-slate-400 text-slate-600 font-semibold hover:bg-slate-100 transition-colors disabled:opacity-50">
                         {battleModeLoading === 'compare' ? 'Membandingkan...' : 'Compare'}
                     </button>
-                    <button onClick={() => handleCompareAction('battle')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
+                    <button onClick={() => handleCompareAction('battle')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
                         {battleModeLoading === 'battle' ? 'Membandingkan...' : 'Battle Mode'}
                     </button>
                 </div>
@@ -288,8 +288,8 @@ const SpecItem: FC<{ label: string; value: any }> = ({ label, value }) => value 
 
 const LeaderboardCard: FC<{title: string, data: {name: string, share: string}[]}> = ({title, data}) => {
     const barColors = [
-        'bg-gradient-to-r from-[color:var(--accent1)] to-teal-400', // #1
-        'bg-gradient-to-r from-[color:var(--accent2)] to-sky-400', // #2
+        'bg-[color:var(--accent1)]', // #1
+        'bg-[color:var(--accent1)]', // #2
         'bg-slate-400' // #3
     ];
     return (

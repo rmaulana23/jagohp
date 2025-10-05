@@ -244,7 +244,7 @@ const ChatMessage: FC<{ message: Message }> = ({ message }) => {
             <div
                 className={`rounded-xl p-3 max-w-[85%] break-words text-sm ${
                     isUser
-                        ? 'bg-gradient-to-br from-[color:var(--accent1)] to-[color:var(--accent2)] text-white rounded-br-none'
+                        ? 'bg-[color:var(--accent1)] text-white rounded-br-none'
                         : 'bg-slate-200 text-slate-800 rounded-bl-none prose'
                 }`}
             >

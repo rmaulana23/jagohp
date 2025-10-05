@@ -249,7 +249,7 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
                                     type="submit"
                                     disabled={loading}
                                     aria-busy={loading}
-                                    className="w-full max-w-xs px-8 py-3 rounded-lg bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] text-white font-semibold
+                                    className="w-full max-w-xs px-8 py-3 rounded-lg bg-[color:var(--accent1)] text-white font-semibold
                                                hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                                 >
                                     {loading ? 'Membandingkan...' : 'Adu Spesifikasi'}
@@ -357,7 +357,7 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
                     return (
                         <div key={index} className={`relative glass p-5 flex flex-col transition-all duration-300 ${isWinner ? 'border border-[color:var(--accent1)]' : ''}`}>
                             {isWinner && (
-                                <div className="absolute -top-3.5 right-4 bg-gradient-to-r from-[color:var(--accent1)] to-teal-400 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                                <div className="absolute -top-3.5 right-4 bg-[color:var(--accent1)] text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
                                     <CrownIcon className="w-4 h-4" />
                                     <span>Pemenang</span>
                                 </div>

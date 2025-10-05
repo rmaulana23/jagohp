@@ -358,7 +358,7 @@ const PerformanceChart: FC<{ mainPhone: { name: string; score: number | null }, 
                 return (
                     <div key={index} className="text-sm">
                         <div className="flex justify-between items-center mb-1"><span className={`font-semibold ${isMain ? 'text-slate-800' : 'text-slate-600'}`}>{phone.name}</span><span className={`font-bold ${isMain ? 'text-[color:var(--accent1)]' : 'text-slate-500'}`}>{phone.score?.toLocaleString('id-ID') || 'N/A'}</span></div>
-                        <div className="w-full bg-slate-200 rounded-full h-2.5"><div className={`h-2.5 rounded-full ${isMain ? 'bg-gradient-to-r from-[color:var(--accent1)] to-teal-400' : 'bg-slate-400'}`} style={{ width: `${barWidth}%`, transition: 'width 0.5s ease-in-out' }}></div></div>
+                        <div className="w-full bg-slate-200 rounded-full h-2.5"><div className={`h-2.5 rounded-full ${isMain ? 'bg-[color:var(--accent1)]' : 'bg-slate-400'}`} style={{ width: `${barWidth}%`, transition: 'width 0.5s ease-in-out' }}></div></div>
                     </div>
                 );
             })}

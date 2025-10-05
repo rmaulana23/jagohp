@@ -60,7 +60,7 @@ const Partnership: React.FC = () => {
           <p className="text-slate-500 mb-4">Tertarik untuk berdiskusi lebih lanjut?</p>
           <a
             href="mailto:timjagohp@gmail.com"
-            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 rounded-lg bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] text-white font-semibold
+            className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 rounded-lg bg-[color:var(--accent1)] text-white font-semibold
                        hover:opacity-90 transition-opacity duration-200 shadow-md"
           >
             Hubungi Kami via Email

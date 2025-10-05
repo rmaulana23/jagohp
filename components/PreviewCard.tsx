@@ -38,7 +38,7 @@ const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
     const brand = phoneName.split(' ')[0] || 'Unknown';
     
     return (
-        <div className="p-4 animate-fade-in flex flex-col bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] rounded-2xl shadow-lg">
+        <div className="p-4 animate-fade-in flex flex-col bg-[color:var(--accent1)] rounded-2xl shadow-lg">
             <div className="flex-1">
                 <div className="flex items-start justify-between">
                     <div>
