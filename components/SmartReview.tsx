@@ -218,14 +218,14 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
 
     return (
         <section id="review" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
-            <div className="w-full max-w-4xl mx-auto">
+            <div className="w-full max-w-5xl mx-auto">
                 { !review && (
                     <>
                         <div className="text-center mb-8">
-                            <h1 className="text-3xl md:text-4xl font-bold text-white font-orbitron">
+                            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">
                                 Smart AI Review
                             </h1>
-                            <p className="text-base text-slate-400 max-w-2xl mx-auto mt-2">
+                            <p className="text-base text-slate-500 max-w-2xl mx-auto mt-2">
                                 Tulis tipe HP yang ingin diulas, dan dapatkan analisis lengkap dalam hitungan detik.
                             </p>
                         </div>
@@ -236,27 +236,27 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Contoh: Samsung S25 Ultra..."
-                                className="w-full bg-[color:var(--card)] border border-white/10 rounded-lg py-3 pl-5 pr-14 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all duration-200"
+                                className="w-full bg-white border border-slate-300 rounded-lg py-3 pl-5 pr-14 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all duration-200 shadow-sm"
                                 aria-label="Smartphone search input"
                             />
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-lg bg-[color:var(--accent1)] text-slate-900 flex items-center justify-center
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-lg bg-[color:var(--accent1)] text-white flex items-center justify-center
                                            hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                 aria-label="Search for smartphone review"
                             >
-                                {loading ? <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div> : <SearchIcon className="w-5 h-5" />}
+                                {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <SearchIcon className="w-5 h-5" />}
                             </button>
                         </form>
-                        {loading && <p className="text-sm text-slate-400 text-center -mt-8 mb-8 animate-pulse">AI sedang menganalisis...</p>}
+                        {loading && <p className="text-sm text-slate-500 text-center -mt-8 mb-8 animate-pulse">AI sedang menganalisis...</p>}
                     </>
                 )}
 
 
                 <div aria-live="polite">
                     {loading && !review && <ReviewSkeleton />}
-                    {error && <div className="text-center text-red-400 border border-red-500/30 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
+                    {error && <div className="text-center text-red-500 border border-red-500/30 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
                     {review && <ReviewResultDisplay review={review} />}
                 </div>
             </div>
@@ -265,18 +265,18 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
 };
 
 const ReviewSkeleton: FC = () => (
-    <div className="glass rounded-2xl p-5 md:p-6 text-left space-y-6 animate-pulse">
-        <div className="h-7 bg-slate-700 rounded-md w-3/4 mx-auto mb-4"></div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5 border-y border-white/10 py-5">
+    <div className="glass p-5 md:p-6 text-left space-y-6 animate-pulse">
+        <div className="h-7 bg-slate-200 rounded-md w-3/4 mx-auto mb-4"></div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5 border-y border-slate-200 py-5">
             {[...Array(6)].map((_, i) => (
                 <div key={i} className="space-y-2">
-                    <div className="h-4 bg-slate-700 rounded w-5/6"></div>
-                    <div className="h-5 bg-slate-700 rounded w-1/2"></div>
+                    <div className="h-4 bg-slate-200 rounded w-5/6"></div>
+                    <div className="h-5 bg-slate-200 rounded w-1/2"></div>
                 </div>
             ))}
         </div>
-        <div className="flex space-x-4 border-b border-white/10"><div className="h-9 bg-white/5 rounded-t-md w-24"></div><div className="h-9 bg-white/5 rounded-t-md w-24"></div><div className="h-9 bg-white/5 rounded-t-md w-24"></div></div>
-        <div className="space-y-3 pt-3"><div className="h-5 bg-slate-700 rounded-md w-1/3 mb-2"></div><div className="h-4 bg-slate-700 rounded-md w-full"></div><div className="h-4 bg-slate-700 rounded-md w-5/6"></div></div>
+        <div className="flex space-x-4 border-b border-slate-200"><div className="h-9 bg-slate-100 rounded-t-md w-24"></div><div className="h-9 bg-slate-100 rounded-t-md w-24"></div><div className="h-9 bg-slate-100 rounded-t-md w-24"></div></div>
+        <div className="space-y-3 pt-3"><div className="h-5 bg-slate-200 rounded-md w-1/3 mb-2"></div><div className="h-4 bg-slate-200 rounded-md w-full"></div><div className="h-4 bg-slate-200 rounded-md w-5/6"></div></div>
     </div>
 );
 
@@ -287,13 +287,13 @@ const ReviewResultDisplay: FC<{ review: ReviewResult }> = ({ review }) => {
     const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
     return (
-        <div className="glass rounded-2xl p-4 md:p-6 text-left animate-fade-in">
-            <h2 className="text-xl md:text-2xl font-bold text-center mb-1 text-white">{review.phoneName}</h2>
+        <div className="glass p-4 md:p-6 text-left animate-fade-in">
+            <h2 className="text-xl md:text-2xl font-bold text-center mb-1 text-slate-900">{review.phoneName}</h2>
             <p className="text-center text-sm small-muted mb-4">{review.specs.rilis ? `Rilis: ${review.specs.rilis}` : ''}</p>
             <RatingsDisplay ratings={review.ratings} />
-            <div className="mt-6 flex space-x-2 sm:space-x-4 justify-center bg-[color:var(--card)]/50 p-1 rounded-lg">
+            <div className="mt-6 flex space-x-2 sm:space-x-4 justify-center bg-slate-100 p-1 rounded-lg">
                 {tabs.map(tab => (
-                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full px-3 sm:px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-300 relative focus:outline-none ${activeTab === tab.id ? 'bg-[color:var(--bg)] text-[color:var(--accent1)] shadow' : 'text-slate-300 hover:bg-white/10'}`}>{tab.label}</button>
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full px-3 sm:px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-300 relative focus:outline-none ${activeTab === tab.id ? 'bg-white text-[color:var(--accent1)] shadow' : 'text-slate-600 hover:bg-white/50'}`}>{tab.label}</button>
                 ))}
             </div>
             <div className="pt-5 min-h-[200px]">
@@ -312,13 +312,13 @@ const RatingsDisplay: FC<{ ratings: Ratings }> = ({ ratings }) => {
         { label: 'Layar & Desain', score: ratings.layarDesain }, { label: 'Performa', score: ratings.performa }, { label: 'Storage & RAM', score: ratings.storageRam },
     ];
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5 border-y border-white/10 py-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5 border-y border-slate-200 py-5">
             {ratingItems.map(item => (
                 <div key={item.label}>
-                    <p className="text-sm text-slate-300 font-medium mb-1">{item.label}</p>
+                    <p className="text-sm text-slate-600 font-medium mb-1">{item.label}</p>
                     <div className="flex items-baseline gap-1">
-                        <span className="font-bold text-lg text-white">{item.score.toFixed(1)}</span>
-                        <span className="text-sm text-slate-400">/ 10</span>
+                        <span className="font-bold text-lg text-slate-800">{item.score.toFixed(1)}</span>
+                        <span className="text-sm text-slate-500">/ 10</span>
                     </div>
                 </div>
             ))}
@@ -328,13 +328,13 @@ const RatingsDisplay: FC<{ ratings: Ratings }> = ({ ratings }) => {
 
 const TabContentRingkasan: FC<{ review: ReviewResult }> = ({ review }) => (
     <div className="space-y-6 text-sm">
-        <div><h3 className="text-base font-bold text-white mb-2">Ringkasan Cepat</h3><p className="text-slate-300 leading-relaxed">{review.quickReview.summary}</p></div>
+        <div><h3 className="text-base font-bold text-slate-800 mb-2">Ringkasan Cepat</h3><p className="text-slate-600 leading-relaxed">{review.quickReview.summary}</p></div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div><h4 className="font-semibold text-green-400 mb-2">Kelebihan 👍</h4><ul className="list-disc list-inside space-y-1 text-slate-300">{review.quickReview.pros.map((pro, i) => <li key={i}>{pro}</li>)}</ul></div>
-            <div><h4 className="font-semibold text-red-400 mb-2">Kekurangan 👎</h4><ul className="list-disc list-inside space-y-1 text-slate-300">{review.quickReview.cons.map((con, i) => <li key={i}>{con}</li>)}</ul></div>
+            <div><h4 className="font-semibold text-green-600 mb-2">Kelebihan 👍</h4><ul className="list-disc list-inside space-y-1 text-slate-600">{review.quickReview.pros.map((pro, i) => <li key={i}>{pro}</li>)}</ul></div>
+            <div><h4 className="font-semibold text-red-600 mb-2">Kekurangan 👎</h4><ul className="list-disc list-inside space-y-1 text-slate-600">{review.quickReview.cons.map((con, i) => <li key={i}>{con}</li>)}</ul></div>
         </div>
         <div>
-            <h3 className="text-base font-bold text-white mb-3">Spesifikasi Kunci</h3>
+            <h3 className="text-base font-bold text-slate-800 mb-3">Spesifikasi Kunci</h3>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:text-sm">
                 <SpecItem label="Prosesor" value={review.specs.processor} /><SpecItem label="RAM" value={review.specs.ram} />
                 <SpecItem label="Layar" value={review.specs.display} /><SpecItem label="Baterai" value={review.specs.battery} />
@@ -357,8 +357,8 @@ const PerformanceChart: FC<{ mainPhone: { name: string; score: number | null }, 
                 const barWidth = phone.score ? (phone.score / maxScore) * 100 : 0;
                 return (
                     <div key={index} className="text-sm">
-                        <div className="flex justify-between items-center mb-1"><span className={`font-semibold ${isMain ? 'text-white' : 'text-slate-300'}`}>{phone.name}</span><span className={`font-bold ${isMain ? 'text-[color:var(--accent1)]' : 'text-slate-400'}`}>{phone.score?.toLocaleString('id-ID') || 'N/A'}</span></div>
-                        <div className="w-full bg-slate-700 rounded-full h-2.5"><div className={`h-2.5 rounded-full ${isMain ? 'bg-[color:var(--accent1)]' : 'bg-slate-500'}`} style={{ width: `${barWidth}%`, transition: 'width 0.5s ease-in-out' }}></div></div>
+                        <div className="flex justify-between items-center mb-1"><span className={`font-semibold ${isMain ? 'text-slate-800' : 'text-slate-600'}`}>{phone.name}</span><span className={`font-bold ${isMain ? 'text-[color:var(--accent1)]' : 'text-slate-500'}`}>{phone.score?.toLocaleString('id-ID') || 'N/A'}</span></div>
+                        <div className="w-full bg-slate-200 rounded-full h-2.5"><div className={`h-2.5 rounded-full ${isMain ? 'bg-gradient-to-r from-[color:var(--accent1)] to-teal-400' : 'bg-slate-400'}`} style={{ width: `${barWidth}%`, transition: 'width 0.5s ease-in-out' }}></div></div>
                     </div>
                 );
             })}
@@ -368,33 +368,33 @@ const PerformanceChart: FC<{ mainPhone: { name: string; score: number | null }, 
 
 const TabContentPerforma: FC<{ review: ReviewResult }> = ({ review }) => (
     <div className="space-y-6 text-sm">
-        <div><h3 className="text-base font-bold text-white mb-3">Perbandingan AnTuTu v10</h3><PerformanceChart mainPhone={{ name: review.phoneName, score: review.performance.antutuScore }} competitors={review.performance.competitors} /><p className="text-slate-300 mt-4"><strong>Geekbench 6:</strong> <span className="font-semibold text-white">{review.performance.geekbenchScore || 'N/A'}</span></p></div>
-        <div><h3 className="text-base font-bold text-white mb-2">Review Gaming</h3><p className="text-slate-300 leading-relaxed">{review.performance.gamingReview}</p></div>
+        <div><h3 className="text-base font-bold text-slate-800 mb-3">Perbandingan AnTuTu v10</h3><PerformanceChart mainPhone={{ name: review.phoneName, score: review.performance.antutuScore }} competitors={review.performance.competitors} /><p className="text-slate-600 mt-4"><strong>Geekbench 6:</strong> <span className="font-semibold text-slate-800">{review.performance.geekbenchScore || 'N/A'}</span></p></div>
+        <div><h3 className="text-base font-bold text-slate-800 mb-2">Review Gaming</h3><p className="text-slate-600 leading-relaxed">{review.performance.gamingReview}</p></div>
     </div>
 );
 
 const DxOMarkScoreDisplay: FC<{ score: number | null }> = ({ score }) => {
-    if (score === null || score === 0) return <div className="flex flex-col items-center"><p className="text-base font-bold text-white mb-2">Skor DXOMark</p><p className="text-slate-400 text-3xl font-semibold">N/A</p></div>;
-    return <div className="flex flex-col items-center text-center"><p className="text-base font-bold text-white mb-2">Skor DXOMark</p><p className="text-5xl font-bold text-[color:var(--accent1)]">{score}</p></div>;
+    if (score === null || score === 0) return <div className="flex flex-col items-center"><p className="text-base font-bold text-slate-800 mb-2">Skor DXOMark</p><p className="text-slate-400 text-3xl font-semibold">N/A</p></div>;
+    return <div className="flex flex-col items-center text-center"><p className="text-base font-bold text-slate-800 mb-2">Skor DXOMark</p><p className="text-5xl font-bold text-[color:var(--accent1)]">{score}</p></div>;
 };
 
 const TabContentCamera: FC<{ review: ReviewResult }> = ({ review }) => (
      <div className="space-y-5 text-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1 flex justify-center items-center p-4 bg-black/20 rounded-lg"><DxOMarkScoreDisplay score={review.cameraAssessment.dxomarkScore} /></div>
-            <div className="md:col-span-2"><h3 className="text-base font-bold text-white mb-2">Ulasan Foto</h3><p className="text-slate-300 leading-relaxed mb-3">{review.cameraAssessment.photoSummary}</p>
+            <div className="md:col-span-1 flex justify-center items-center p-4 bg-slate-100 rounded-lg"><DxOMarkScoreDisplay score={review.cameraAssessment.dxomarkScore} /></div>
+            <div className="md:col-span-2"><h3 className="text-base font-bold text-slate-800 mb-2">Ulasan Foto</h3><p className="text-slate-600 leading-relaxed mb-3">{review.cameraAssessment.photoSummary}</p>
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <div><h4 className="font-semibold text-green-400 mb-2">Kelebihan 👍</h4><ul className="list-disc list-inside space-y-1 text-slate-300">{review.cameraAssessment.photoPros.map((pro, i) => <li key={i}>{pro}</li>)}</ul></div>
-                     <div><h4 className="font-semibold text-red-400 mb-2">Kekurangan 👎</h4><ul className="list-disc list-inside space-y-1 text-slate-300">{review.cameraAssessment.photoCons.map((con, i) => <li key={i}>{con}</li>)}</ul></div>
+                     <div><h4 className="font-semibold text-green-600 mb-2">Kelebihan 👍</h4><ul className="list-disc list-inside space-y-1 text-slate-600">{review.cameraAssessment.photoPros.map((pro, i) => <li key={i}>{pro}</li>)}</ul></div>
+                     <div><h4 className="font-semibold text-red-600 mb-2">Kekurangan 👎</h4><ul className="list-disc list-inside space-y-1 text-slate-600">{review.cameraAssessment.photoCons.map((con, i) => <li key={i}>{con}</li>)}</ul></div>
                  </div>
             </div>
         </div>
-         <div className="border-t border-white/10 pt-4"><h3 className="text-base font-bold text-white mb-2">Ulasan Video</h3><p className="text-slate-300 leading-relaxed">{review.cameraAssessment.videoSummary}</p></div>
+         <div className="border-t border-slate-200 pt-4"><h3 className="text-base font-bold text-slate-800 mb-2">Ulasan Video</h3><p className="text-slate-600 leading-relaxed">{review.cameraAssessment.videoSummary}</p></div>
     </div>
 );
 
 const SpecItem: FC<{ label: string; value: string | undefined | null }> = ({ label, value }) => (
-    value ? (<><dt className="small-muted truncate">{label}</dt><dd className="text-slate-200 text-right">{value}</dd></>) : null
+    value ? (<><dt className="small-muted truncate">{label}</dt><dd className="text-slate-700 text-right">{value}</dd></>) : null
 );
 
 export default SmartReview;

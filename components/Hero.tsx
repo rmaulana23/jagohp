@@ -187,51 +187,51 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
 
   return (
     <section className="pb-10">
-      <div className="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+      <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         {/* LEFT: CONTENT & INTERACTION */}
         <div className="md:col-span-7 space-y-8">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron text-white">JAGO-HP</h1>
-              <p className="mt-2 text-sm text-slate-300">Temukan Smartphone Terbaikmu Melalui Kecerdasan AI, Jangan Salah Pilih!</p>
+              <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] bg-clip-text text-transparent">JAGO-HP</h1>
+              <p className="mt-2 text-sm text-slate-600">Temukan Smartphone Terbaikmu Melalui Kecerdasan AI, Jangan Salah Pilih!</p>
               <div className="mt-6 flex gap-4">
-                <button onClick={openChat} className="px-5 py-3 rounded-lg bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity">AI Assistant</button>
-                <button onClick={() => setPage('review')} className="px-5 py-3 rounded-lg border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/10 transition-colors">Smart Review</button>
+                <button onClick={openChat} className="px-5 py-3 rounded-lg bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">AI Assistant</button>
+                <button onClick={() => setPage('review')} className="px-5 py-3 rounded-lg border border-[color:var(--accent1)] text-[color:var(--accent1)] font-semibold hover:bg-[color:var(--accent1)]/10 transition-colors">Smart Review</button>
               </div>
             </div>
 
             {/* QUICK SEARCH */}
             <div>
-              <label className="font-semibold text-white text-lg">Quick Review</label>
+              <label className="font-semibold text-slate-800 text-lg">Quick Review</label>
               <div className="mt-2 flex gap-3 items-center">
-                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung S25 Ultra..." />
-                <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Cari'}</button>
+                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung S25 Ultra..." />
+                <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Cari'}</button>
               </div>
               <div className="mt-2 text-sm small-muted">Ketik brand atau tipe HP</div>
             </div>
              {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">AI sedang menganalisis...</div>}
-             {reviewError && <div className="text-center p-4 text-red-400">{reviewError}</div>}
+             {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
              
             {/* Quick Compare */}
-            <div className="glass rounded-2xl p-6">
+            <div className="glass p-6">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-white text-lg">Quick Compare</h3>
+                    <h3 className="font-semibold text-slate-800 text-lg">Quick Compare</h3>
                     <div className="text-sm small-muted">Bandingkan 2 HP tipe berbeda</div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input id="cmpA" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 1" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
-                    <input id="cmpB" className="px-3 py-2.5 rounded-md bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 2" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
+                    <input id="cmpA" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 1" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
+                    <input id="cmpB" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 2" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
                 </div>
                 <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                    <button onClick={() => handleCompareAction('compare')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-slate-500 text-slate-300 font-semibold hover:bg-slate-700/50 transition-colors disabled:opacity-50">
+                    <button onClick={() => handleCompareAction('compare')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-slate-400 text-slate-600 font-semibold hover:bg-slate-100 transition-colors disabled:opacity-50">
                         {battleModeLoading === 'compare' ? 'Membandingkan...' : 'Compare'}
                     </button>
-                    <button onClick={() => handleCompareAction('battle')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-[color:var(--accent1)] text-[color:var(--accent1)] font-semibold hover:bg-[color:var(--accent1)]/10 transition-colors disabled:opacity-50">
+                    <button onClick={() => handleCompareAction('battle')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
                         {battleModeLoading === 'battle' ? 'Membandingkan...' : 'Battle Mode'}
                     </button>
                 </div>
             </div>
              {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">AI sedang membandingkan...</div>}
-             {battleError && <div className="text-center p-4 text-red-400">{battleError}</div>}
+             {battleError && <div className="text-center p-4 text-red-500">{battleError}</div>}
              {battleData && <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />}
         </div>
 
@@ -249,9 +249,9 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
 // --- Snippet Components ---
 
 const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ result, onSeeFull }) => (
-    <div className="glass rounded-2xl p-4 mt-4 animate-fade-in space-y-4">
+    <div className="glass p-4 mt-4 animate-fade-in space-y-4">
         {result.battleSummary && (
-             <p className="text-sm text-slate-300 leading-relaxed border-b border-white/10 pb-3 mb-3">
+             <p className="text-sm text-slate-600 leading-relaxed border-b border-slate-200 pb-3 mb-3">
                 {result.battleSummary}
             </p>
         )}
@@ -260,10 +260,10 @@ const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ re
                 const isWinner = phone.name === result.winnerName;
                 const purchaseUrl = `https://shopee.co.id/search?keyword=${encodeURIComponent(phone.name)}`;
                 return (
-                    <div key={index} className={`relative bg-black/20 p-3 rounded-lg ${isWinner ? 'border border-[color:var(--accent1)]' : 'border border-transparent'}`}>
-                        {isWinner && <div className="absolute -top-3 right-2 bg-[color:var(--accent1)] text-slate-900 px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1"><CrownIcon className="w-3 h-3"/>Pemenang</div>}
-                        <h4 className="font-semibold text-white text-base truncate">{phone.name}</h4>
-                        <dl className="mt-2 space-y-1.5 text-xs text-slate-300">
+                    <div key={index} className={`relative bg-slate-50 p-3 rounded-lg ${isWinner ? 'border border-[color:var(--accent1)]' : 'border border-slate-200'}`}>
+                        {isWinner && <div className="absolute -top-3 right-2 bg-[color:var(--accent1)] text-white px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1"><CrownIcon className="w-3 h-3"/>Pemenang</div>}
+                        <h4 className="font-semibold text-slate-800 text-base truncate">{phone.name}</h4>
+                        <dl className="mt-2 space-y-1.5 text-xs text-slate-600">
                             <SpecItem label="Layar" value={phone.specs.display} />
                             <SpecItem label="NFC" value={phone.specs.nfc} />
                             <SpecItem label="Harga" value={phone.specs.hargaIndonesia} />
@@ -272,7 +272,7 @@ const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ re
                           href={purchaseUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block text-center w-full mt-3 px-3 py-1.5 rounded-md text-xs bg-green-500/10 text-green-400 border border-green-500/30 font-semibold hover:bg-green-500/20 transition-colors"
+                          className="block text-center w-full mt-3 px-3 py-1.5 rounded-md text-xs bg-green-500/10 text-green-600 border border-green-500/30 font-semibold hover:bg-green-500/20 transition-colors"
                         >
                             Beli Sekarang
                         </a>
@@ -284,27 +284,27 @@ const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ re
     </div>
 );
 
-const SpecItem: FC<{ label: string; value: any }> = ({ label, value }) => value ? (<div className="flex justify-between gap-2"><dt className="font-normal text-slate-400 truncate">{label}</dt><dd className="font-medium text-right truncate">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</dd></div>) : null;
+const SpecItem: FC<{ label: string; value: any }> = ({ label, value }) => value ? (<div className="flex justify-between gap-2"><dt className="font-normal text-slate-500 truncate">{label}</dt><dd className="font-medium text-slate-700 text-right truncate">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</dd></div>) : null;
 
 const LeaderboardCard: FC<{title: string, data: {name: string, share: string}[]}> = ({title, data}) => {
     const barColors = [
-        'bg-[color:var(--accent1)]', // #1
-        'bg-sky-500',              // #2
-        'bg-slate-500'             // #3
+        'bg-gradient-to-r from-[color:var(--accent1)] to-teal-400', // #1
+        'bg-gradient-to-r from-[color:var(--accent2)] to-sky-400', // #2
+        'bg-slate-400' // #3
     ];
     return (
-        <div className="glass rounded-2xl p-4">
-            <h3 className="font-semibold text-white mb-4 text-base">{title}</h3>
+        <div className="glass p-4 border-t-4 border-[color:var(--accent2)]">
+            <h3 className="font-semibold text-slate-800 mb-4 text-base">{title}</h3>
             <div className="space-y-4">
                 {data.map((item, index) => (
                     <div key={item.name}>
                         <div className="flex justify-between items-center text-sm mb-1">
-                            <span className="font-semibold text-slate-200">#{index + 1} {item.name}</span>
+                            <span className="font-semibold text-slate-700">#{index + 1} {item.name}</span>
                             <span className="small-muted font-medium">{item.share}</span>
                         </div>
-                        <div className="w-full bg-slate-700/50 rounded-full h-2">
+                        <div className="w-full bg-slate-200 rounded-full h-2">
                             <div
-                                className={`h-2 rounded-full ${barColors[index] || 'bg-slate-600'}`}
+                                className={`h-2 rounded-full ${barColors[index] || 'bg-slate-400'}`}
                                 style={{ width: item.share, transition: 'width 0.5s ease-in-out' }}
                             ></div>
                         </div>

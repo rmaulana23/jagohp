@@ -134,7 +134,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose }) => {
     return (
         <>
             <div 
-                className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 onClick={onClose}
                 aria-hidden="true"
             ></div>
@@ -143,16 +143,16 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose }) => {
                 aria-modal="true"
                 role="dialog"
             >
-                <div className={`w-full max-w-2xl h-[80vh] max-h-[700px] flex flex-col glass rounded-2xl shadow-2xl shadow-black/30
+                <div className={`w-full max-w-2xl h-[80vh] max-h-[700px] flex flex-col glass shadow-2xl
                            transition-transform duration-300 ease-out ${isOpen ? 'scale-100' : 'scale-95'}`}>
-                     <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
+                     <div className="flex items-center justify-between p-4 border-b border-slate-200 flex-shrink-0">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 flex items-center justify-center bg-[color:var(--accent1)]/10 rounded-full">
                                 <SparklesIcon className="w-5 h-5 text-[color:var(--accent1)]"/>
                             </div>
-                            <h2 className="text-base font-semibold text-white">JAGO-HP AI Assistant</h2>
+                            <h2 className="text-base font-semibold text-slate-800">JAGO-HP AI Assistant</h2>
                         </div>
-                        <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors" aria-label="Tutup obrolan">
+                        <button onClick={onClose} className="text-slate-500 hover:text-slate-800 transition-colors" aria-label="Tutup obrolan">
                             <XMarkIcon className="w-6 h-6" />
                         </button>
                      </div>
@@ -167,7 +167,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose }) => {
                                     <button
                                         key={i}
                                         onClick={() => sendMessage(q)}
-                                        className="text-left text-sm text-[color:var(--accent2)] bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/30 px-3 py-1.5 rounded-lg hover:bg-[color:var(--accent2)]/20 transition-colors"
+                                        className="text-left text-sm text-[color:var(--accent1)] bg-[color:var(--accent1)]/10 border border-[color:var(--accent1)]/30 px-3 py-1.5 rounded-lg hover:bg-[color:var(--accent1)]/20 transition-colors"
                                     >
                                         {q}
                                     </button>
@@ -177,20 +177,20 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose }) => {
                         <div ref={messagesEndRef} />
                     </div>
                     
-                    <div className="p-3 border-t border-white/10 flex-shrink-0">
+                    <div className="p-3 border-t border-slate-200 flex-shrink-0 bg-white rounded-b-2xl">
                          <form onSubmit={handleFormSubmit} className="relative">
                             <input
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFormSubmit(e); } }}
                                 placeholder="Tulis pertanyaanmu..."
-                                className="w-full bg-[color:var(--card)] border-2 border-white/10 rounded-lg py-2.5 pl-4 pr-12 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] focus:border-[color:var(--accent1)] transition-all duration-200"
+                                className="w-full bg-slate-100 border-2 border-slate-300 rounded-lg py-2.5 pl-4 pr-12 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] focus:border-[color:var(--accent1)] transition-all duration-200"
                                 aria-label="Chat input"
                             />
                             <button
                                 type="submit"
                                 disabled={loading || !input.trim()}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md bg-[color:var(--accent1)] text-slate-900 flex items-center justify-center
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md bg-[color:var(--accent1)] text-white flex items-center justify-center
                                            hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                 aria-label="Send message"
                             >
@@ -211,10 +211,10 @@ const ChatMessage: FC<{ message: Message }> = ({ message }) => {
     if (!hasContent && !isUser) {
         return (
             <div className="flex justify-start items-center gap-3 animate-fade-in">
-                <div className="bg-slate-700 p-2 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
-                    <SparklesIcon className="w-4 h-4 text-slate-400"/>
+                <div className="bg-slate-200 p-2 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
+                    <SparklesIcon className="w-4 h-4 text-slate-500"/>
                 </div>
-                <div className="bg-[color:var(--card)] rounded-xl rounded-bl-none px-3 py-2">
+                <div className="bg-slate-200 rounded-xl rounded-bl-none px-3 py-2">
                     <div className="flex items-center gap-1.5">
                         <span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-pulse delay-0"></span>
                         <span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-pulse delay-150"></span>
@@ -237,15 +237,15 @@ const ChatMessage: FC<{ message: Message }> = ({ message }) => {
     return (
         <div className={`flex items-start gap-3 ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}>
             {!isUser && (
-                <div className="bg-slate-700 p-2 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
-                     <SparklesIcon className="w-4 h-4 text-slate-400"/>
+                <div className="bg-slate-200 p-2 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
+                     <SparklesIcon className="w-4 h-4 text-slate-500"/>
                 </div>
             )}
             <div
                 className={`rounded-xl p-3 max-w-[85%] break-words text-sm ${
                     isUser
-                        ? 'bg-[color:var(--accent1)] text-slate-900 rounded-br-none'
-                        : 'bg-[color:var(--card)] text-slate-200 rounded-bl-none prose'
+                        ? 'bg-gradient-to-br from-[color:var(--accent1)] to-[color:var(--accent2)] text-white rounded-br-none'
+                        : 'bg-slate-200 text-slate-800 rounded-bl-none prose'
                 }`}
             >
                 <div dangerouslySetInnerHTML={formatText(message.text)}></div>

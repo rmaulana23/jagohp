@@ -9,11 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg: #0f172a; /* slate-900 */
-      --card: #1e293b; /* slate-800 */
-      --accent1: #38bdf8; /* sky-400 */
-      --accent2: #38bdf8; /* sky-400 (unified accent) */
-      --muted: #94a3b8; /* slate-400 */
+      --bg: #f8fafc; /* slate-50 */
+      --card: #ffffff; /* white */
+      --accent1: #14b8a6; /* teal-500 */
+      --accent2: #0ea5e9; /* sky-500 */
+      --muted: #64748b; /* slate-500 */
     }
     html,body,#root{height:100%;}
     html {
@@ -22,7 +22,7 @@
     body{
       background-color: var(--bg);
       font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial; 
-      color:#e2e8f0; /* slate-200 */
+      color:#1e293b; /* slate-800 */
       /* Hide scrollbar for Firefox */
       scrollbar-width: none;
       /* Hide scrollbar for IE, Edge */
@@ -32,7 +32,12 @@
     body::-webkit-scrollbar {
       display: none;
     }
-    .glass{background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.08)}
+    .glass{
+      background-color: var(--card);
+      border: 1px solid #e2e8f0; /* slate-200 */
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      border-radius: 1rem; /* rounded-2xl */
+    }
     .small-muted{color:var(--muted);font-size:.9rem}
     .font-orbitron{font-family:'Orbitron', sans-serif;}
   </style>

@@ -18,21 +18,21 @@ const FAQ: React.FC = () => {
 
     return (
         <section id="faq" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
-            <div className="container mx-auto max-w-4xl animate-fade-in">
+            <div className="container mx-auto max-w-5xl animate-fade-in">
                 <div className="text-center mb-10">
-                    <h1 className="text-3xl md:text-4xl font-bold text-white font-orbitron">
+                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">
                         Pertanyaan Umum (FAQ)
                     </h1>
                 </div>
-                <div className="glass rounded-2xl p-6 md:p-8">
+                <div className="glass p-6 md:p-8">
                     <div className="space-y-4">
                         {faqItems.map((item, index) => (
-                            <div key={index} className="border-b border-white/10 pb-4 last:border-b-0 last:pb-0">
+                            <div key={index} className="border-b border-slate-200 pb-4 last:border-b-0 last:pb-0">
                                 <button
                                     onClick={() => toggleFAQ(index)}
                                     className="w-full flex justify-between items-center text-left"
                                 >
-                                    <h3 className="text-lg font-semibold text-white">
+                                    <h3 className="text-lg font-semibold text-slate-800">
                                         {item.q}
                                     </h3>
                                     <span className={`transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`}>
@@ -40,7 +40,7 @@ const FAQ: React.FC = () => {
                                     </span>
                                 </button>
                                 <div className={`overflow-hidden transition-all duration-300 ease-in-out ${openIndex === index ? 'max-h-96 mt-2' : 'max-h-0'}`}>
-                                    <p className="text-slate-400 leading-relaxed text-sm pt-2">
+                                    <p className="text-slate-500 leading-relaxed text-sm pt-2">
                                         {item.a}
                                     </p>
                                 </div>

@@ -209,17 +209,17 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
 
     return (
         <section id="battle" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
-            <div className="container mx-auto max-w-5xl">
+            <div className="container mx-auto max-w-6xl">
                 
                 { !result && (
                     <>
                         <div className="text-center mb-8">
-                            <h2 className="text-3xl md:text-4xl font-bold mb-2 text-white font-orbitron">
+                            <h2 className="text-3xl md:text-4xl font-bold mb-2 text-slate-900 font-orbitron">
                                 Phone Battle
                             </h2>
-                            <p className="text-base text-slate-400">Bandingkan spesifikasi HP secara berdampingan, biar tidak salah pilih.</p>
+                            <p className="text-base text-slate-500">Bandingkan spesifikasi HP secara berdampingan, biar tidak salah pilih.</p>
                         </div>
-                        <form onSubmit={handleBattle} className="glass rounded-2xl p-6 md:p-8">
+                        <form onSubmit={handleBattle} className="glass p-6 md:p-8">
                             <div className="flex flex-col lg:flex-row items-center justify-center gap-4">
                                 {phoneNames.map((name, index) => (
                                     <React.Fragment key={index}>
@@ -236,10 +236,10 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
                                     <button
                                         type="button"
                                         onClick={handleAddPhone}
-                                        className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors duration-200 group mt-4 lg:mt-0"
+                                        className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors duration-200 group mt-4 lg:mt-0"
                                         aria-label="Tambah HP Lain"
                                     >
-                                        <PlusCircleIcon className="w-7 h-7 text-slate-500 group-hover:text-[color:var(--accent2)] transition-colors"/>
+                                        <PlusCircleIcon className="w-7 h-7 text-slate-400 group-hover:text-[color:var(--accent2)] transition-colors"/>
                                         <span className="font-semibold text-sm">Tambah Pembanding</span>
                                     </button>
                                 )}
@@ -249,13 +249,13 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
                                     type="submit"
                                     disabled={loading}
                                     aria-busy={loading}
-                                    className="w-full max-w-xs px-8 py-3 rounded-lg bg-[color:var(--accent1)] text-slate-900 font-semibold
-                                               hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full max-w-xs px-8 py-3 rounded-lg bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] text-white font-semibold
+                                               hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                                 >
                                     {loading ? 'Membandingkan...' : 'Adu Spesifikasi'}
                                 </button>
                                 {loading && (
-                                    <p className="text-sm text-slate-400 mt-3 animate-pulse">
+                                    <p className="text-sm text-slate-500 mt-3 animate-pulse">
                                         AI sedang menganalisis, mohon tunggu sebentar...
                                     </p>
                                 )}
@@ -266,14 +266,14 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
                 
                 <div className="mt-12" aria-live="polite">
                     {loading && !result && <BattleSkeleton phoneCount={phoneNames.length} />}
-                    {error && <div className="text-center text-red-400 border border-red-500/30 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
+                    {error && <div className="text-center text-red-500 border border-red-500/30 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
                     {result && (
                         <>
-                            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white font-orbitron text-center">
+                            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-slate-900 font-orbitron text-center">
                                 Hasil Perbandingan
                             </h2>
                             <BattleResultDisplay result={result} />
-                            <p className="text-xs text-slate-500 text-center mt-6">
+                            <p className="text-xs text-slate-400 text-center mt-6">
                                 Sumber data: GSMArena, nanoreview.net, Phone Arena, AnTuTu, GeekBench dan DXOMark
                             </p>
                         </>
@@ -294,7 +294,7 @@ const PhoneInputCard: FC<{phoneName: string; setPhoneName: (name: string) => voi
                 value={phoneName}
                 onChange={(e) => setPhoneName(e.target.value)}
                 placeholder={placeholder}
-                className={`w-full bg-[color:var(--card)] border border-white/10 rounded-lg text-center py-2.5 ${onRemove ? 'pl-4 pr-10' : 'px-4'} text-white placeholder-slate-400
+                className={`w-full bg-slate-100 border border-slate-300 rounded-lg text-center py-2.5 ${onRemove ? 'pl-4 pr-10' : 'px-4'} text-slate-800 placeholder-slate-400
                            focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[color:var(--accent1)] focus:border-[color:var(--accent1)] transition-all duration-200`}
             />
             {onRemove && (
@@ -310,14 +310,14 @@ const BattleSkeleton: FC<{ phoneCount: number }> = ({ phoneCount }) => (
     <div className="space-y-8 animate-pulse">
         <div className={`grid grid-cols-1 ${phoneCount > 1 ? `md:grid-cols-${phoneCount}` : ''} gap-6`}>
             {[...Array(phoneCount)].map((_, i) => (
-                <div key={i} className="glass rounded-2xl p-5 space-y-3">
-                    <div className="h-6 bg-slate-700 rounded w-3/4"></div>
-                    <div className="h-4 bg-slate-700 rounded w-1/2"></div>
-                    <div className="space-y-2 pt-4 mt-2 border-t border-white/10">
+                <div key={i} className="glass p-5 space-y-3">
+                    <div className="h-6 bg-slate-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+                    <div className="space-y-2 pt-4 mt-2 border-t border-slate-200">
                         {[...Array(6)].map((_, j) => (
                             <div key={j} className="flex justify-between">
-                                <div className="h-4 bg-slate-700 rounded w-1/3"></div>
-                                <div className="h-4 bg-slate-700 rounded w-1/2"></div>
+                                <div className="h-4 bg-slate-200 rounded w-1/3"></div>
+                                <div className="h-4 bg-slate-200 rounded w-1/2"></div>
                             </div>
                         ))}
                     </div>
@@ -325,15 +325,15 @@ const BattleSkeleton: FC<{ phoneCount: number }> = ({ phoneCount }) => (
             ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="glass rounded-2xl p-5 space-y-3">
-                <div className="h-6 bg-slate-700 rounded w-1/3"></div>
-                <div className="h-4 bg-slate-700 rounded w-full"></div>
-                <div className="h-4 bg-slate-700 rounded w-5/6"></div>
+            <div className="glass p-5 space-y-3">
+                <div className="h-6 bg-slate-200 rounded w-1/3"></div>
+                <div className="h-4 bg-slate-200 rounded w-full"></div>
+                <div className="h-4 bg-slate-200 rounded w-5/6"></div>
             </div>
-            <div className="glass rounded-2xl p-5 space-y-3">
-                <div className="h-6 bg-slate-700 rounded w-1/3"></div>
-                <div className="h-4 bg-slate-700 rounded w-full"></div>
-                <div className="h-4 bg-slate-700 rounded w-5/6"></div>
+            <div className="glass p-5 space-y-3">
+                <div className="h-6 bg-slate-200 rounded w-1/3"></div>
+                <div className="h-4 bg-slate-200 rounded w-full"></div>
+                <div className="h-4 bg-slate-200 rounded w-5/6"></div>
             </div>
         </div>
     </div>
@@ -341,9 +341,9 @@ const BattleSkeleton: FC<{ phoneCount: number }> = ({ phoneCount }) => (
 
 const SpecItem: FC<{ label: string; value: string | number | null | undefined }> = ({ label, value }) => (
     value ? (
-        <div className="flex justify-between items-start gap-4 py-2 border-b border-white/5 last:border-b-0">
+        <div className="flex justify-between items-start gap-4 py-2 border-b border-slate-200/60 last:border-b-0">
             <dt className="small-muted flex-shrink-0">{label}</dt>
-            <dd className="text-slate-200 text-right break-words font-medium">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</dd>
+            <dd className="text-slate-700 text-right break-words font-medium">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</dd>
         </div>
     ) : null
 );
@@ -355,14 +355,14 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
                 {result.phones.map((phone, index) => {
                     const isWinner = phone.name === result.winnerName;
                     return (
-                        <div key={index} className={`relative glass rounded-2xl p-5 flex flex-col transition-all duration-300 ${isWinner ? 'border border-[color:var(--accent1)]' : ''}`}>
+                        <div key={index} className={`relative glass p-5 flex flex-col transition-all duration-300 ${isWinner ? 'border border-[color:var(--accent1)]' : ''}`}>
                             {isWinner && (
-                                <div className="absolute -top-3.5 right-4 bg-[color:var(--accent1)] text-slate-900 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                                <div className="absolute -top-3.5 right-4 bg-gradient-to-r from-[color:var(--accent1)] to-teal-400 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
                                     <CrownIcon className="w-4 h-4" />
                                     <span>Pemenang</span>
                                 </div>
                             )}
-                            <h3 className="text-lg font-bold text-white mb-1">{phone.name}</h3>
+                            <h3 className="text-lg font-bold text-slate-900 mb-1">{phone.name}</h3>
                             <p className="text-sm small-muted mb-4">{phone.specs.rilis || 'Info rilis tidak tersedia'}</p>
                             
                             <dl className="space-y-1 text-sm flex-grow">
@@ -381,17 +381,17 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="glass rounded-2xl p-5">
-                    <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <div className="glass p-5">
+                    <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
                         <LightbulbIcon className="w-6 h-6 text-[color:var(--accent1)]" /> Ringkasan Adu
                     </h3>
-                    <p className="text-sm text-slate-300 leading-relaxed">{result.battleSummary}</p>
+                    <p className="text-sm text-slate-600 leading-relaxed">{result.battleSummary}</p>
                 </div>
-                <div className="glass rounded-2xl p-5">
-                    <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <div className="glass p-5">
+                    <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
                         <UsersIcon className="w-6 h-6 text-[color:var(--accent1)]" /> Cocok Untuk Siapa
                     </h3>
-                    <p className="text-sm text-slate-300 leading-relaxed">{result.targetAudience}</p>
+                    <p className="text-sm text-slate-600 leading-relaxed">{result.targetAudience}</p>
                 </div>
             </div>
         </div>

@@ -13,11 +13,11 @@ const Leaderboard: React.FC = () => {
 
     return (
         <section id="leaderboard" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
-            <div className="container mx-auto max-w-5xl text-center">
-                <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white font-orbitron">
+            <div className="container mx-auto max-w-6xl text-center">
+                <h1 className="text-3xl md:text-4xl font-bold mb-3 text-slate-900 font-orbitron">
                     Brand Leaderboard
                 </h1>
-                <p className="text-base text-slate-400 mb-10">
+                <p className="text-base text-slate-500 mb-10">
                     Pangsa pasar brand smartphone teratas di Indonesia dan Dunia.
                 </p>
 
@@ -37,20 +37,20 @@ interface CardProps {
 }
 
 const LeaderboardCard: React.FC<CardProps> = ({ title, data, source }) => (
-    <div className="glass rounded-2xl p-6 flex flex-col">
-        <h2 className="text-xl font-bold mb-4 text-white">{title}</h2>
+    <div className="glass p-6 flex flex-col">
+        <h2 className="text-xl font-bold mb-4 text-slate-800">{title}</h2>
         <div className="flex-grow space-y-3">
             {data.map((brand, index) => (
-                <div key={brand.name} className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+                <div key={brand.name} className="flex items-center justify-between p-3 bg-slate-100 rounded-lg">
                     <div className="flex items-center gap-3">
-                        <span className={`text-sm font-bold ${index < 3 ? 'text-[color:var(--accent1)]' : 'text-slate-400'}`}>#{index + 1}</span>
-                        <span className="font-semibold text-slate-200">{brand.name}</span>
+                        <span className={`text-sm font-bold ${index < 3 ? 'text-[color:var(--accent1)]' : 'text-slate-500'}`}>#{index + 1}</span>
+                        <span className="font-semibold text-slate-700">{brand.name}</span>
                     </div>
-                    <span className="font-semibold text-white">{brand.value}%</span>
+                    <span className="font-semibold text-slate-800">{brand.value}%</span>
                 </div>
             ))}
         </div>
-        <p className="text-xs text-slate-500 mt-4 text-center">
+        <p className="text-xs text-slate-400 mt-4 text-center">
             Proyeksi 2025 berdasarkan tren. Sumber: {source}
         </p>
     </div>

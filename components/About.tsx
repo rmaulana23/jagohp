@@ -30,17 +30,17 @@ const pillars = [
 const About: React.FC = () => {
   return (
     <section id="about" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
-      <div className="container mx-auto max-w-4xl animate-fade-in">
+      <div className="container mx-auto max-w-5xl animate-fade-in">
         <div className="text-center mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold text-white font-orbitron">
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">
             Tentang JAGO-HP
           </h1>
-          <p className="text-base text-slate-400 leading-relaxed max-w-3xl mx-auto mt-3">
+          <p className="text-base text-slate-500 leading-relaxed max-w-3xl mx-auto mt-3">
             JAGO-HP adalah platform review smartphone berbasis AI yang dirancang untuk menyederhanakan proses pengambilan keputusan Anda. Kami merangkum ribuan data dan ulasan menjadi satu analisis yang singkat, jelas, dan akurat.
           </p>
         </div>
 
-        <div className="glass rounded-2xl p-8">
+        <div className="glass p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {pillars.map((pillar, index) => (
               <div 
@@ -51,10 +51,10 @@ const About: React.FC = () => {
                   {pillar.icon}
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-white">
+                  <h2 className="text-lg font-semibold text-slate-800">
                     {pillar.title}
                   </h2>
-                  <p className="text-slate-400 text-sm leading-normal mt-1">
+                  <p className="text-slate-500 text-sm leading-normal mt-1">
                     {pillar.description}
                   </p>
                 </div>

@@ -20,7 +20,7 @@ const Footer: React.FC<FooterProps> = ({ setPage }) => {
 
   return (
     <footer className="mt-auto py-8">
-      <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-slate-500 text-sm text-center sm:text-left">
           © JAGO-HP 2025 All Rights Reserved.
         </div>

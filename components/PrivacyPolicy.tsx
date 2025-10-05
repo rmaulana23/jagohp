@@ -14,22 +14,22 @@ const PrivacyPolicy: React.FC = () => {
 
   return (
     <section id="privacy" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
-      <div className="container mx-auto max-w-4xl animate-fade-in">
+      <div className="container mx-auto max-w-5xl animate-fade-in">
         <div className="text-center mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold text-white font-orbitron">
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">
             Kebijakan Privasi
           </h1>
         </div>
-        <div className="glass rounded-2xl p-6 md:p-10 space-y-6">
-          <p className="text-slate-400 leading-relaxed text-sm text-center">
+        <div className="glass p-6 md:p-10 space-y-6">
+          <p className="text-slate-500 leading-relaxed text-sm text-center">
             Terakhir diperbarui: 2 Oktober 2025. Privasi Anda penting bagi kami. Dokumen ini menjelaskan bagaimana JAGO-HP mengumpulkan, menggunakan, dan melindungi informasi Anda.
           </p>
           {policySections.map((section) => (
-            <div key={section.title} className="border-t border-white/10 pt-5 first:border-t-0 first:pt-0">
-              <h3 className="text-lg font-semibold text-white mb-2">
+            <div key={section.title} className="border-t border-slate-200 pt-5 first:border-t-0 first:pt-0">
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">
                 {section.title}
               </h3>
-              <p className="text-slate-400 leading-relaxed text-sm">
+              <p className="text-slate-500 leading-relaxed text-sm">
                 {section.content}
               </p>
             </div>

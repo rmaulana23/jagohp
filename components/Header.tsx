@@ -19,13 +19,13 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
 
   return (
     <header className="w-full fixed top-2 left-0 px-4 z-40">
-      <nav className="max-w-5xl mx-auto flex items-center justify-between py-3 glass rounded-2xl px-4">
+      <nav className="max-w-6xl mx-auto flex items-center justify-between py-3 rounded-2xl px-4 bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] shadow-lg">
         {/* Left: Logo & Title */}
         <a href="#" className="flex items-center gap-3 cursor-pointer" onClick={(e) => handleNavClick(e, 'home')}>
-          <div className="w-10 h-10 rounded-lg bg-[color:var(--accent1)] flex items-center justify-center font-orbitron text-black text-lg">JH</div>
+          <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center font-orbitron text-[color:var(--accent1)] text-lg">JH</div>
           <div>
-            <div className="text-base font-semibold">JAGO-HP</div>
-            <div className="text-xs small-muted">#1 Platform Rekomendasi HP Berbasis AI</div>
+            <div className="text-base font-semibold text-white">JAGO-HP</div>
+            <div className="text-xs text-slate-200">#1 Platform Rekomendasi HP Berbasis AI</div>
           </div>
         </a>
 
@@ -38,7 +38,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
                 <a
                   href="#"
                   onClick={(e) => handleNavClick(e, item.key)}
-                  className={`transition-colors duration-200 ${isActive ? 'text-[color:var(--accent1)] font-semibold' : 'hover:text-white'}`}
+                  className={`transition-colors duration-200 text-slate-200 ${isActive ? 'text-white font-semibold' : 'hover:text-white'}`}
                 >
                   {item.label}
                 </a>
@@ -51,7 +51,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setPage('leaderboard')} 
-            className="hidden md:inline-block px-3 py-1.5 rounded-md text-sm border border-[color:var(--accent1)] bg-[color:var(--accent1)]/10 text-[color:var(--accent1)] hover:bg-[color:var(--accent1)]/20 transition-colors"
+            className="hidden md:inline-block px-3 py-1.5 rounded-md text-sm border border-white text-white hover:bg-white/20 transition-colors"
           >
             Top Leaderboard
           </button>
@@ -59,7 +59,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 text-slate-300 hover:text-white"
+              className="p-2 text-slate-200 hover:text-white"
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? (
@@ -74,7 +74,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden mt-3 glass rounded-2xl p-4 animate-fade-in-down">
+        <div className="md:hidden mt-3 glass p-4 animate-fade-in-down">
           <ul className="flex flex-col gap-3">
             {navItems.map(item => {
               const isActive = page === item.key;
@@ -83,7 +83,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
                   <a
                     href="#"
                     onClick={(e) => handleNavClick(e, item.key)}
-                    className={`block text-center py-2 rounded-lg ${isActive ? 'bg-[color:var(--accent1)]/10 text-[color:var(--accent1)] font-semibold' : 'hover:bg-white/5'}`}
+                    className={`block text-center py-2 rounded-lg ${isActive ? 'bg-[color:var(--accent1)]/10 text-[color:var(--accent1)] font-semibold' : 'hover:bg-slate-100'}`}
                   >
                     {item.label}
                   </a>

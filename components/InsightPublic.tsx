@@ -109,12 +109,12 @@ const InsightPublic: React.FC = () => {
     
     if (loading) {
         return (
-            <div className="glass rounded-2xl p-4 animate-pulse">
-                <div className="h-5 bg-slate-700 rounded w-3/4 mb-4"></div>
+            <div className="glass p-4 animate-pulse">
+                <div className="h-5 bg-slate-200 rounded w-3/4 mb-4"></div>
                 <div className="space-y-3">
-                    <div className="h-8 bg-slate-700/50 rounded-lg"></div>
-                    <div className="h-8 bg-slate-700/50 rounded-lg"></div>
-                    <div className="h-8 bg-slate-700/50 rounded-lg"></div>
+                    <div className="h-8 bg-slate-200 rounded-lg"></div>
+                    <div className="h-8 bg-slate-200 rounded-lg"></div>
+                    <div className="h-8 bg-slate-200 rounded-lg"></div>
                 </div>
             </div>
         );
@@ -122,9 +122,9 @@ const InsightPublic: React.FC = () => {
 
     if (error) {
         return (
-           <div className="glass rounded-2xl p-4">
-               <h3 className="font-semibold text-white mb-2 text-base">Polling: Apa Dealbreaker-mu?</h3>
-               <div className="text-center text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+           <div className="glass p-4">
+               <h3 className="font-semibold text-slate-800 mb-2 text-base">Polling: Apa Dealbreaker-mu?</h3>
+               <div className="text-center text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg p-3">
                    {error}
                </div>
            </div>
@@ -136,10 +136,10 @@ const InsightPublic: React.FC = () => {
     }
 
     return (
-        <div className="glass rounded-2xl p-4">
-            <h3 className="font-semibold text-white mb-4 text-base flex items-center gap-2">
+        <div className="glass p-4 border-t-4 border-[color:var(--accent1)]">
+            <h3 className="font-semibold text-slate-800 mb-4 text-base flex items-center gap-2">
                 <span>Polling: Apa Dealbreaker-mu?</span>
-                <span className="text-xs font-medium bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">Live Voting</span>
+                <span className="text-xs font-medium bg-red-500 text-white px-2 py-0.5 rounded-full">Live Voting</span>
             </h3>
             <div className="space-y-2">
                 {options.map((option) => {
@@ -149,20 +149,20 @@ const InsightPublic: React.FC = () => {
                     return (
                         <div key={option.id} className="text-sm">
                             {votedId !== null ? (
-                                <div className="relative w-full bg-slate-700/50 rounded-lg p-2 overflow-hidden border-2 border-transparent">
+                                <div className="relative w-full bg-slate-200 rounded-lg p-2 overflow-hidden border-2 border-transparent">
                                     <div
-                                        className={`absolute top-0 left-0 h-full rounded-md ${isVotedOption ? 'bg-[color:var(--accent1)]/30' : 'bg-slate-600/30'}`}
+                                        className={`absolute top-0 left-0 h-full rounded-md ${isVotedOption ? 'bg-[color:var(--accent1)]/30' : 'bg-slate-300'}`}
                                         style={{ width: `${percentage}%`, transition: 'width 0.5s ease-in-out' }}
                                     ></div>
-                                    <div className="relative flex justify-between items-center text-slate-200">
-                                        <span className={`font-medium ${isVotedOption ? 'text-white' : ''}`}>{option.text}</span>
+                                    <div className="relative flex justify-between items-center text-slate-800">
+                                        <span className={`font-medium ${isVotedOption ? 'text-slate-900' : ''}`}>{option.text}</span>
                                         <span className="font-semibold">{percentage.toFixed(0)}%</span>
                                     </div>
                                 </div>
                             ) : (
                                 <button
                                     onClick={() => handleVote(option.id)}
-                                    className="w-full text-left p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition-colors text-slate-200"
+                                    className="w-full text-left p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors text-slate-700"
                                 >
                                     {option.text}
                                 </button>
