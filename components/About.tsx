@@ -4,6 +4,7 @@ import ScaleIcon from './icons/ScaleIcon';
 import ChartBarIcon from './icons/ChartBarIcon';
 import UsersIcon from './icons/UsersIcon';
 
+// FIX: Added 'icon' property to each pillar object to match its usage in the JSX.
 const pillars = [
   {
     icon: <SparklesIcon className="w-6 h-6 text-[color:var(--accent1)]" />,

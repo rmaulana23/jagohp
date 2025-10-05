@@ -10,6 +10,9 @@ const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
     const { phoneName, ratings, quickReview, specs, performance } = result;
 
     const calculateOverallScore = () => {
+        if (!ratings) {
+            return 'N/A';
+        }
         const scores = [ratings.gaming, ratings.kamera, ratings.baterai, ratings.layarDesain, ratings.performa, ratings.storageRam];
         const validScores = scores.filter(s => typeof s === 'number' && s > 0);
         if (validScores.length === 0) return 'N/A';
@@ -43,22 +46,22 @@ const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
                 <div className="flex items-start justify-between">
                     <div>
                         <div className="text-base font-semibold text-white leading-tight">{phoneName}</div>
-                        <div className="text-xs text-slate-200 mt-0.5">{`Rilis: ${specs.rilis || 'N/A'} • ${brand}`}</div> 
+                        <div className="text-xs text-slate-200 mt-0.5">{`Rilis: ${specs?.rilis || 'N/A'} • ${brand}`}</div> 
                     </div>
                     <div className="text-sm font-semibold text-white flex-shrink-0 ml-2">Score {overallScore}</div>
                 </div>
 
                 <div className="mt-3 text-sm">
                     <div className="font-medium text-white">Quick Review</div>
-                    <p className="text-slate-200 text-sm mt-1 leading-relaxed">{quickReview.summary}</p>
+                    <p className="text-slate-200 text-sm mt-1 leading-relaxed">{quickReview?.summary}</p>
                 </div>
 
                 <dl className="mt-4 grid grid-cols-2 gap-x-2 gap-y-1.5 text-xs border-t border-white/30 pt-3">
-                    <SpecItem label="CPU" value={shortenSpec(specs.processor)} />
-                    <SpecItem label="RAM" value={specs.ram} />
-                    <SpecItem label="Kamera" value={specs.camera} />
-                    <SpecItem label="Baterai" value={specs.battery} />
-                    <SpecItem label="AnTuTu v10" value={performance.antutuScore?.toLocaleString('id-ID')} />
+                    <SpecItem label="CPU" value={shortenSpec(specs?.processor)} />
+                    <SpecItem label="RAM" value={specs?.ram} />
+                    <SpecItem label="Kamera" value={specs?.camera} />
+                    <SpecItem label="Baterai" value={specs?.battery} />
+                    <SpecItem label="AnTuTu v10" value={performance?.antutuScore?.toLocaleString('id-ID')} />
                 </dl>
             </div>
              <button

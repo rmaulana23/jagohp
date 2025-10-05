@@ -75,8 +75,9 @@ const PhoneFinder: React.FC = () => {
     const nfcRequired = activities.includes("Butuh NFC");
     const mainActivities = activities.filter(act => act !== "Butuh NFC").join(', ') || "Tidak ada preferensi spesifik";
 
-    const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia, memberikan **SATU rekomendasi smartphone TUNGGAL** paling TEPAT berdasarkan kuesioner. Sumber data: GSMArena, nanoreview.net, dll.
-    **Konteks Waktu:** 5 Oktober 2025. Data harga dan ketersediaan harus relevan. Samsung S25 series, iPhone 17 & Xiaomi 17 series sudah rilis.
+    const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia, memberikan **SATU rekomendasi smartphone TUNGGAL** paling TEPAT berdasarkan kuesioner.
+    **Sumber Data (Wajib):** GSMArena, nanoreview.net, AnTuTu, Geekbench, DXOMark.
+    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **5 Oktober 2025**. Ini berarti data harga dan ketersediaan harus relevan. Seri Samsung S25 (S25, S25 Ultra, S25 FE), iPhone 17 & Xiaomi 17 series sudah dianggap **resmi rilis** dengan data final.
     ---
     **Input Pengguna:**
     - **Aktivitas Utama & Fitur:** ${mainActivities}
@@ -86,14 +87,14 @@ const PhoneFinder: React.FC = () => {
     ${nfcRequired ? '- **Fitur Wajib:** NFC\n' : ''}
     ---
     **PROSES ANALISIS WAJIB:**
-    1.  **Sintesis Profil Pengguna:** Buat profil mental singkat pengguna (Contoh: "gamer budget menengah", "fotografer butuh baterai awet").
+    1.  **Sintesis Profil Pengguna:** Buat profil singkat pengguna (Contoh: "gamer budget menengah", "fotografer butuh baterai awet").
     2.  **Filter & Prioritas:**
-        -   **Merek (Tertinggi):** Jika disebut di "Preferensi Lain", patuhi merek tersebut.
+        -   **Merek:** Jika disebut di "Preferensi Lain", patuhi merek tersebut.
         -   **Logika Agresif:** Prioritaskan fitur kunci yang dipilih (Layar 120Hz, Gaming, Baterai) sebagai faktor utama.
         -   **Budget:** Batasan keras. Jangan melebihi. '1 Jutaan' berarti maks Rp 1.999.000, '2 Jutaan' maks Rp 2.999.000, dst.
     3.  **Personalisasi Alasan:** Field 'reason' **WAJIB** merujuk kembali ke profil pengguna. (Contoh: "Melihat profilmu sebagai gamer dengan budget menengah, ponsel ini paling pas karena...").
     4.  **Fitur Wajib:** Jika NFC diminta, rekomendasi **WAJIB** punya NFC.
-    5.  **Output:** Berikan **SATU** rekomendasi. Isi semua field JSON sesuai skema.`;
+    5.  **Output:** Berikan **SATU** rekomendasi paling optimal. Isi semua field JSON sesuai skema.`;
 
     try {
       const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema } });
@@ -144,10 +145,11 @@ const PhoneFinder: React.FC = () => {
                           <input type="text" value={otherPrefs} onChange={e => setOtherPrefs(e.target.value)} placeholder="Misal: Suka merk Samsung..." className="w-full bg-slate-50 border-2 border-slate-300 rounded-lg p-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all"/>
                       </QuestionSection>
                       <div className="pt-2">
+                          {/* FIX: Corrected a JSX syntax error by replacing malformed code with a SparklesIcon component. */}
                           <button type="submit" disabled={loading} className="w-full px-8 py-3 rounded-lg bg-[color:var(--accent1)] text-white font-semibold flex items-center justify-center gap-3 hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 shadow-md">
                               {loading ? 'Menganalisis...' : 'Cari Rekomendasi'}{!loading && <SparklesIcon className="w-5 h-5" />}
                           </button>
-                          {loading && <p className="text-sm text-slate-500 mt-2 text-center animate-pulse">AI sedang menganalisis...</p>}
+                          {loading && <p className="text-sm text-slate-500 mt-2 text-center animate-pulse">Kami coba bantu carikan, mohon tunggu..</p>}
                           {error && <p className="text-red-500 mt-2 text-sm text-center">{error}</p>}
                       </div>
                   </div>

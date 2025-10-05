@@ -133,42 +133,29 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
 
         const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
 
-        const prompt = `**Core Role: GSMArena Data Extractor**
-        You are an AI trained to understand and extract structured data. Your primary task is to:
-        - Identify and parse data for multiple devices: smartphones, tablets, pads & feature phones.
-        - Source data from a wide range of reliable sources: GSMArena, nanoreview.net, PhoneArena, Jagat Review, AnTuTu, Geekbench, DXOMark, and other top-tier tech media.
-        - Recognize and compare specifications across devices.
-        - Handle variations and missing specs gracefully.
+        const prompt = `**Core Role: AI Data Synthesizer & Battle Analyst for JAGO-HP**
+        Your primary task is to perform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.
 
-        **Your Secondary Task: AI Battle Analyst for JAGO-HP**
-        Based on the structured data you extract, perform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.
+        **Context & Knowledge Cut-off (Mandatory):**
+        - **Knowledge Date:** Your knowledge is fully updated as of **5 Oktober 2025**.
+        - **Device Status:** You **MUST** treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), iPhone 17 series, etc., as **officially released** products. All data for them is final and available.
 
-        **Context & Knowledge Cut-off:**
-        - **Mandatory Update:** Your knowledge is considered fully updated as of today, **5 Oktober 2025**.
-        - **Data Requirement:** You **MUST** use the latest available specifications and market data for all devices being compared. This includes devices like the Samsung S25 series, iPhone 17 series, and Xiaomi 17 series, which are now considered **officially released**.
+        **Data Sources (Mandatory):**
+        - You **MUST** source and synthesize data from a wide range of reliable sources, prioritizing: **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
 
-        **Universal Brand & Device Knowledge (Core Mandate):**
-        Your knowledge base is built upon a comprehensive understanding of every device (smartphones, tablets, pads, feature phones) from the following extensive list of brands. You are an expert on all of these:
-        Acer, alcatel, Allview, Amazon, Amoi, Apple, Archos, Asus, AT&T, Benefon, BenQ, BenQ-Siemens, Bird, BlackBerry, Blackview, BLU, Bosch, BQ, Casio, Cat, Celkon, Chea, Coolpad, Cubot, Dell, Doogee, Emporia, Energizer, Ericsson, Eten, Fairphone, Fujitsu Siemens, Garmin-Asus, Gigabyte, Gionee, Google, Haier, HMD, Honor, HP, HTC, Huawei, i-mate, i-mobile, Icemobile, Infinix, Innostream, iNQ, Intex, itel, Jolla, Karbonn, Kyocera, Lava, LeEco, Lenovo, LG, Maxon, Maxwest, Meizu, Micromax, Microsoft, Mitac, Mitsubishi, Modu, Motorola, MWg, NEC, Neonode, NIU, Nokia, Nothing, Nvidia, O2, OnePlus, Oppo, Orange, Oscal, Oukitel, Palm, Panasonic, Pantech, Parla, Philips, Plum, Posh, Prestigio, QMobile, Qtek, Razer, Realme, Sagem, Samsung, Sendo, Sewon, Sharp, Siemens, Sonim, Sony, Sony Ericsson, Spice, T-Mobile, TCL, Tecno, Tel.Me., Telit, Thuraya, Toshiba, Ulefone, Umidigi, Unnecto, Vertu, verykool, vivo, VK Mobile, Vodafone, Wiko, WND, XCute, Xiaomi, XOLO, Yezz, Yota, YU, ZTE.
-
-        **Crucial Rule:** If a device from any of these brands exists, you **MUST** be able to retrieve and display its full, official data.
+        **Universal Brand & Device Knowledge:**
+        You are an expert on all devices (smartphones, tablets, feature phones) from all major brands (Samsung, Apple, Xiaomi, Google, etc.). You **MUST** retrieve full, official data for any existing device from these brands.
 
         **Execution Steps & Rules (Strictly Follow):**
-        1.  **Identify Gadgets:** For each name in ${phoneList}, identify the official name and device type (smartphone, tablet, feature phone). Assume all devices mentioned are released and data is available.
-        2.  **Extract Data for All:** Perform your core data extraction role for **every single gadget** in the list, using the full range of specified sources. Include the release month and year in the 'rilis' field.
-        3.  **Handle Unannounced/Rumored Devices:** This rule now applies to devices rumored for release **AFTER 5 Oktober 2025**. If a user includes such a device, you **MUST**:
-            -   Extract and display any available rumored specifications.
-            -   In the \`battleSummary\`, explicitly state that the specs for that device are based on rumors and are subject to change.
-            -   For unavailable data (e.g., \`antutuScore\`), use \`null\`.
-            -   Frame the comparison involving the unreleased device with caution.
-        4.  **Handle Cross-Category Battles:** If the devices are from different categories (e.g., smartphone vs. tablet), state this clearly in the \`battleSummary\`. The comparison should still proceed.
-        5.  **Handle Missing Data:** For older devices or where a spec is genuinely unavailable, you **MUST** use \`null\` in the JSON output for that field. **DO NOT FAIL** the request.
-        6.  **Holistic Analysis & Winner Determination:**
-            -   Compare the extracted specs. **DO NOT** rely solely on one metric like AnTuTu.
-            -   Consider the overall value: performance, display, camera, battery, price, and features.
-            -   Based on this holistic view, declare **one winner** in the \`winnerName\` field. If it's a clear tie, you may use 'Seri'.
-        7.  **Generate Summaries:** Write the \`battleSummary\` and \`targetAudience\` based on your comparative analysis.
-        8.  **Failure Condition:** If any of the inputs are clearly not gadgets (e.g., "mobil"), the \`battleSummary\` field MUST contain the error message.
+        1.  **Identify Gadgets:** Identify the official name and type for each device in ${phoneList}.
+        2.  **Extract & Synthesize Data:** Extract all relevant specs for every device, synthesizing information from your full range of specified sources to get the most accurate, final data.
+        3.  **Handle Unannounced Devices (Post-Oct 2025):** If a user requests a device rumored for release **AFTER 5 Oktober 2025**, state that its specs are based on rumors and use \`null\` for unavailable data.
+        4.  **Holistic Analysis & Winner Determination:**
+            -   Compare the synthesized final specs. **DO NOT** rely on a single metric.
+            -   Consider overall value: performance, display, camera, battery, price.
+            -   Declare **one winner** in the \`winnerName\` field based on this holistic view. Use 'Seri' for a tie.
+        5.  **Generate Summaries:** Write the \`battleSummary\` and \`targetAudience\` based on your comparative analysis.
+        6.  **Failure Condition:** If an input is not a gadget, the \`battleSummary\` MUST contain an error message.
 
         **Final Output:**
         - Ensure the JSON strictly follows the schema.
@@ -364,17 +351,17 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
                                 </div>
                             )}
                             <h3 className="text-lg font-bold text-slate-900 mb-1">{phone.name}</h3>
-                            <p className="text-sm small-muted mb-4">{phone.specs.rilis || 'Info rilis tidak tersedia'}</p>
+                            <p className="text-sm small-muted mb-4">{phone.specs?.rilis || 'Info rilis tidak tersedia'}</p>
                             
                             <dl className="space-y-1 text-sm flex-grow">
-                                <SpecItem label="Harga" value={phone.specs.hargaIndonesia} />
-                                <SpecItem label="Processor" value={phone.specs.processor} />
-                                <SpecItem label="AnTuTu v10" value={phone.specs.antutuScore} />
-                                <SpecItem label="Layar" value={phone.specs.display} />
-                                <SpecItem label="Kamera" value={phone.specs.camera} />
-                                <SpecItem label="Baterai" value={phone.specs.battery} />
-                                <SpecItem label="Charging" value={phone.specs.charging} />
-                                <SpecItem label="NFC" value={phone.specs.nfc} />
+                                <SpecItem label="Harga" value={phone.specs?.hargaIndonesia} />
+                                <SpecItem label="Processor" value={phone.specs?.processor} />
+                                <SpecItem label="AnTuTu v10" value={phone.specs?.antutuScore} />
+                                <SpecItem label="Layar" value={phone.specs?.display} />
+                                <SpecItem label="Kamera" value={phone.specs?.camera} />
+                                <SpecItem label="Baterai" value={phone.specs?.battery} />
+                                <SpecItem label="Charging" value={phone.specs?.charging} />
+                                <SpecItem label="NFC" value={phone.specs?.nfc} />
                             </dl>
                             <EcommerceButtons phoneName={phone.name} isCompact={true} />
                         </div>

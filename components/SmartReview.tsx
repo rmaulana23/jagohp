@@ -51,7 +51,7 @@ export interface ReviewResult {
     }[];
     gamingReview: string;
   };
-  cameraAssessment: {
+  cameraAssessment?: {
     dxomarkScore: number | null;
     photoSummary: string;
     photoPros: string[];
@@ -140,45 +140,34 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
             }
         }
 
-        const prompt = `**Core Role: Comprehensive Data Synthesizer**
-        You are an AI trained to understand and extract structured data. Your primary task is to:
-        - Identify and parse all available phone data (smartphones, tablets, pads & feature phones).
-        - Source data from a wide range of reliable sources: **GSMArena, nanoreview.net, PhoneArena, Jagat Review, AnTuTu, Geekbench, DXOMark, and other top-tier tech media.**
-        - Handle variations and missing specs gracefully.
-        - Extract metadata like Brand, Model, Release date, and Device type.
+        const prompt = `**Core Role: Comprehensive Data Synthesizer & AI Gadget Reviewer for JAGO-HP**
+        Your primary task is to generate a comprehensive, data-driven review in **Bahasa Indonesia** for the gadget: '${searchQuery}'.
 
-        **Your Secondary Task: AI Gadget Reviewer for JAGO-HP**
-        Based on the structured data you extract, generate a comprehensive review in **Bahasa Indonesia** for the **gadget**: '${searchQuery}'.
+        **Context & Knowledge Cut-off (Mandatory):**
+        - **Knowledge Date:** Your knowledge is fully updated as of **5 Oktober 2025**.
+        - **Device Status:** You **MUST** treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), iPhone 17 series, etc., as **officially released** products. All data for them is final and available.
 
-        **Context & Knowledge Cut-off:**
-        - **Mandatory Update:** Your knowledge is considered fully updated as of today, **5 Oktober 2025**.
-        - **Data Requirement:** You **MUST** use the latest available information for all data points. This includes devices like the Samsung S25 series, iPhone 17 series, and Xiaomi 17 series, which are now considered **officially released** and have full, final data available across all your sources.
+        **Data Sources (Mandatory):**
+        - You **MUST** source and synthesize data from a wide range of reliable, top-tier sources, prioritizing: **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
 
-        **Universal Brand & Device Knowledge (Core Mandate):**
-        Your knowledge base is built upon a comprehensive understanding of every device (smartphones, tablets, pads, feature phones) from the following extensive list of brands. You are an expert on all of these:
-        Acer, alcatel, Allview, Amazon, Amoi, Apple, Archos, Asus, AT&T, Benefon, BenQ, BenQ-Siemens, Bird, BlackBerry, Blackview, BLU, Bosch, BQ, Casio, Cat, Celkon, Chea, Coolpad, Cubot, Dell, Doogee, Emporia, Energizer, Ericsson, Eten, Fairphone, Fujitsu Siemens, Garmin-Asus, Gigabyte, Gionee, Google, Haier, HMD, Honor, HP, HTC, Huawei, i-mate, i-mobile, Icemobile, Infinix, Innostream, iNQ, Intex, itel, Jolla, Karbonn, Kyocera, Lava, LeEco, Lenovo, LG, Maxon, Maxwest, Meizu, Micromax, Microsoft, Mitac, Mitsubishi, Modu, Motorola, MWg, NEC, Neonode, NIU, Nokia, Nothing, Nvidia, O2, OnePlus, Oppo, Orange, Oscal, Oukitel, Palm, Panasonic, Pantech, Parla, Philips, Plum, Posh, Prestigio, QMobile, Qtek, Razer, Realme, Sagem, Samsung, Sendo, Sewon, Sharp, Siemens, Sonim, Sony, Sony Ericsson, Spice, T-Mobile, TCL, Tecno, Tel.Me., Telit, Thuraya, Toshiba, Ulefone, Umidigi, Unnecto, Vertu, verykool, vivo, VK Mobile, Vodafone, Wiko, WND, XCute, Xiaomi, XOLO, Yezz, Yota, YU, ZTE.
-
-        **Crucial Rule:** If a device from any of these brands exists, you **MUST** be able to retrieve and display its full, official data.
+        **Universal Brand & Device Knowledge:**
+        You are an expert on all devices (smartphones, tablets, feature phones) from all major brands (Samsung, Apple, Xiaomi, Google, etc.). You **MUST** retrieve full, official data for any existing device from these brands.
 
         **Execution Steps & Rules (Strictly Follow):**
-        1.  **Identify Gadget:** First, identify the official name of '${searchQuery}', correcting any typos. Assume it is a released product with available data.
-        2.  **Extract Data:** Perform your core role by extracting all relevant specifications for the identified gadget, synthesizing information from your full range of sources.
-        3.  **Handle Missing Data:** For older devices (like feature phones) or where data is genuinely unavailable even after checking all sources, you **MUST** use \`null\` for numbers or "N/A" for strings. **DO NOT FAIL** the request because a field is empty.
-        4.  **Generate Full Review Content:** Using the comprehensive data, populate the entire JSON schema.
+        1.  **Identify Gadget:** Identify the official name of '${searchQuery}', correcting typos. Assume it's a released product.
+        2.  **Extract & Synthesize Data:** Extract all relevant specifications for the gadget, synthesizing information from your full range of specified sources to get the most accurate, final data.
+        3.  **Handle Missing Data:** If data is genuinely unavailable after checking all sources, use \`null\` for numbers or "N/A" for strings. **DO NOT FAIL** the request for empty fields.
+        4.  **Generate Full Review Content:** Populate the entire JSON schema using the synthesized data.
             -   **Ratings:** Provide a 1-10 score for each category based on the final, official product performance.
-            -   **Summaries & Analysis:** Write all textual content based on the objective data you've extracted.
+            -   **Summaries & Analysis:** Write all textual content based on objective, synthesized data.
         5.  **Handling Unreleased/Rumored Devices (for releases AFTER 5 Oktober 2025):**
-            -   This rule now applies **only** to devices rumored for release **after** your current knowledge date of 5 Oktober 2025.
-            -   If a user requests such a device:
-                a.  Populate the \`specs\` object with available rumored specifications.
-                b.  Set all numeric ratings in \`ratings\` to \`0\`.
-                c.  In the \`quickReview.summary\`, state: "Ponsel ini belum resmi dirilis. Ulasan lengkap dan rating belum tersedia. Berikut adalah rangkuman spesifikasi yang dirumorkan per 5 Oktober 2025."
-                d.  Fill all other analytical fields with appropriate text indicating data is not yet available. Use \`null\` for scores like \`antutuScore\` and \`dxomarkScore\`.
-        6.  **True Failure Condition (Not Found):** Only if the device cannot be found at all, even as a rumor on any of your sources, should you populate the \`phoneName\` field with a message like "Maaf: Perangkat '${searchQuery}' tidak dapat ditemukan."
+            -   This rule applies **only** to devices rumored for release **after** your current knowledge date.
+            -   For such a device: set numeric ratings to \`0\`, use \`null\` for scores, and state in the \`quickReview.summary\` that the review is based on rumored specs.
+        6.  **True Failure Condition (Not Found):** Only if the device cannot be found on any source, populate the \`phoneName\` field with an error message like "Maaf: Perangkat '${searchQuery}' tidak dapat ditemukan."
 
         **Final Output:**
-        - Ensure the final JSON output strictly adheres to the provided schema.
-        - The \`phoneName\` field must contain the official, full name of the device.`;
+        - Ensure the JSON strictly adheres to the schema.
+        - The \`phoneName\` field must contain the official, full device name.`;
 
         try {
             const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema } });
@@ -291,7 +280,7 @@ const ReviewResultDisplay: FC<{ review: ReviewResult }> = ({ review }) => {
         <div className="glass p-4 md:p-6 text-left animate-fade-in">
             <h2 className="text-xl md:text-2xl font-bold text-center mb-1 text-slate-900">{review.phoneName}</h2>
             <p className="text-center text-sm small-muted mb-4">{review.specs.rilis ? `Rilis: ${review.specs.rilis}` : ''}</p>
-            <RatingsDisplay ratings={review.ratings} />
+            {review.ratings && <RatingsDisplay ratings={review.ratings} />}
             <div className="mt-6 flex space-x-2 sm:space-x-4 justify-center bg-slate-100 p-1 rounded-lg">
                 {tabs.map(tab => (
                     <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full px-3 sm:px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-300 relative focus:outline-none ${activeTab === tab.id ? 'bg-white text-[color:var(--accent1)] shadow' : 'text-slate-600 hover:bg-white/50'}`}>{tab.label}</button>
@@ -370,8 +359,21 @@ const PerformanceChart: FC<{ mainPhone: { name: string; score: number | null }, 
 
 const TabContentPerforma: FC<{ review: ReviewResult }> = ({ review }) => (
     <div className="space-y-6 text-sm">
-        <div><h3 className="text-base font-bold text-slate-800 mb-3">Perbandingan AnTuTu v10</h3><PerformanceChart mainPhone={{ name: review.phoneName, score: review.performance.antutuScore }} competitors={review.performance.competitors} /><p className="text-slate-600 mt-4"><strong>Geekbench 6:</strong> <span className="font-semibold text-slate-800">{review.performance.geekbenchScore || 'N/A'}</span></p></div>
-        <div><h3 className="text-base font-bold text-slate-800 mb-2">Review Gaming</h3><p className="text-slate-600 leading-relaxed">{review.performance.gamingReview}</p></div>
+        <div>
+            <h3 className="text-base font-bold text-slate-800 mb-3">Perbandingan AnTuTu v10</h3>
+            <PerformanceChart 
+                mainPhone={{ name: review.phoneName, score: review.performance?.antutuScore ?? null }} 
+                competitors={review.performance?.competitors ?? []} 
+            />
+            <p className="text-slate-600 mt-4">
+                <strong>Geekbench 6:</strong> 
+                <span className="font-semibold text-slate-800">{review.performance?.geekbenchScore || 'N/A'}</span>
+            </p>
+        </div>
+        <div>
+            <h3 className="text-base font-bold text-slate-800 mb-2">Review Gaming</h3>
+            <p className="text-slate-600 leading-relaxed">{review.performance?.gamingReview || 'Ulasan gaming tidak tersedia.'}</p>
+        </div>
     </div>
 );
 
@@ -381,17 +383,32 @@ const DxOMarkScoreDisplay: FC<{ score: number | null }> = ({ score }) => {
 };
 
 const TabContentCamera: FC<{ review: ReviewResult }> = ({ review }) => (
-     <div className="space-y-5 text-sm">
+    <div className="space-y-5 text-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1 flex justify-center items-center p-4 bg-slate-100 rounded-lg"><DxOMarkScoreDisplay score={review.cameraAssessment.dxomarkScore} /></div>
-            <div className="md:col-span-2"><h3 className="text-base font-bold text-slate-800 mb-2">Ulasan Foto</h3><p className="text-slate-600 leading-relaxed mb-3">{review.cameraAssessment.photoSummary}</p>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <div><h4 className="font-semibold text-green-600 mb-2">Kelebihan 👍</h4><ul className="list-disc list-inside space-y-1 text-slate-600">{review.cameraAssessment.photoPros.map((pro, i) => <li key={i}>{pro}</li>)}</ul></div>
-                     <div><h4 className="font-semibold text-red-600 mb-2">Kekurangan 👎</h4><ul className="list-disc list-inside space-y-1 text-slate-600">{review.cameraAssessment.photoCons.map((con, i) => <li key={i}>{con}</li>)}</ul></div>
-                 </div>
+            <div className="md:col-span-1 flex justify-center items-center p-4 bg-slate-100 rounded-lg"><DxOMarkScoreDisplay score={review.cameraAssessment?.dxomarkScore ?? null} /></div>
+            <div className="md:col-span-2">
+                <h3 className="text-base font-bold text-slate-800 mb-2">Ulasan Foto</h3>
+                <p className="text-slate-600 leading-relaxed mb-3">{review.cameraAssessment?.photoSummary ?? 'Ulasan foto tidak tersedia.'}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <h4 className="font-semibold text-green-600 mb-2">Kelebihan 👍</h4>
+                        <ul className="list-disc list-inside space-y-1 text-slate-600">
+                            {(review.cameraAssessment?.photoPros ?? []).map((pro, i) => <li key={i}>{pro}</li>)}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 className="font-semibold text-red-600 mb-2">Kekurangan 👎</h4>
+                        <ul className="list-disc list-inside space-y-1 text-slate-600">
+                            {(review.cameraAssessment?.photoCons ?? []).map((con, i) => <li key={i}>{con}</li>)}
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
-         <div className="border-t border-slate-200 pt-4"><h3 className="text-base font-bold text-slate-800 mb-2">Ulasan Video</h3><p className="text-slate-600 leading-relaxed">{review.cameraAssessment.videoSummary}</p></div>
+        <div className="border-t border-slate-200 pt-4">
+            <h3 className="text-base font-bold text-slate-800 mb-2">Ulasan Video</h3>
+            <p className="text-slate-600 leading-relaxed">{review.cameraAssessment?.videoSummary ?? 'Ulasan video tidak tersedia.'}</p>
+        </div>
     </div>
 );
 

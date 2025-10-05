@@ -69,22 +69,23 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
             cameraAssessment: { type: Type.OBJECT, properties: { dxomarkScore: { type: Type.INTEGER }, photoSummary: { type: Type.STRING }, photoPros: { type: Type.ARRAY, items: { type: Type.STRING } }, photoCons: { type: Type.ARRAY, items: { type: Type.STRING } }, videoSummary: { type: Type.STRING }}}
         },
     };
-    const prompt = `**Core Role: Comprehensive Data Synthesizer**
-Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on structured data, generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
-**Context & Knowledge Cut-off:** Your knowledge is updated as of **5 Oktober 2025**. Devices like Samsung S25 series and iPhone 17 series are considered released.
+    const prompt = `**Core Role: Comprehensive Data Synthesizer for JAGO-HP**
+Your task is to act as an AI Gadget Reviewer and generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
+**Knowledge Cut-off & Context:** Your knowledge is updated as of **5 Oktober 2025**. Devices like the Samsung S25 series (S25, S25 Ultra, S25 FE) are considered **officially released** with full data.
+**Data Sources (Mandatory):** You MUST synthesize data from reliable sources like **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
 **Universal Brand Knowledge:** You are an expert on all major phone brands.
 
 **Execution Steps & Formatting Rules (VERY IMPORTANT):**
 1.  **Identify Gadget:** Find the official product based on the query.
-2.  **Extract Data:** Use reliable sources (GSMArena, nanoreview.net, etc.).
-3.  **Handle Missing Data:** Use \`null\` or "N/A".
+2.  **Extract & Synthesize Data:** Use the specified sources to gather the most accurate, final data.
+3.  **Handle Missing Data:** Use \`null\` for numeric fields or "N/A" for strings if data is genuinely unavailable after checking all sources.
 4.  **Populate JSON:** Fill all fields according to the schema with the following formatting constraints:
-    -   \`ratings\`: Each category **MUST** be rated on a scale of 1 to 10.
+    -   \`ratings\`: Each category **MUST** be rated on a scale of 1 to 10 based on final product performance.
     -   \`quickReview.summary\`: MUST be a single, concise sentence (maximum 1-2 short sentences).
-    -   \`specs.ram\`: MUST be in the format "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
-    -   \`specs.camera\`: MUST be a short summary of main lenses. Example: "Utama: 200MP + 50MP", "50MP Wide + 12MP Ultrawide".
-    -   \`specs.battery\`: MUST be just the capacity. Example: "5000 mAh".
-5.  **Failure Conditions:** If unreleased (post-5 Oct 2025), state it's based on rumors. If not found, the \`phoneName\` must contain an error message.
+    -   \`specs.ram\`: Format: "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
+    -   \`specs.camera\`: A short summary of main lenses. Example: "Utama: 200MP + 50MP", "50MP Wide + 12MP Ultrawide".
+    -   \`specs.battery\`: Just the capacity. Example: "5000 mAh".
+5.  **Failure Conditions:** If the device is unreleased (rumored for post-5 Oct 2025), state this clearly. If not found at all, the \`phoneName\` must contain an error message.
 
 **Final Output:** Strictly adhere to the JSON schema and all formatting rules.`;
     
@@ -161,8 +162,8 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
         : { type: Type.OBJECT, properties: baseSchemaProperties, required: ['phones'] };
     
     const prompt = mode === 'battle'
-        ? `**Core Role: AI Battle Analyst for JAGO-HP**\nPerform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.\n**Data Sources:** GSMArena, nanoreview.net, etc.\n**Knowledge Cut-off:** **5 Oktober 2025**. Devices like Samsung S25 series are released.\n**Execution:** Identify gadgets, extract data, analyze holistically to find a winner, and write a brief summary.\n**Output:** Strictly follow the JSON schema.`
-        : `**Core Role: Data Extractor for JAGO-HP**\nExtract key specifications in **Bahasa Indonesia** for: ${phoneList}.\n**Data Sources:** GSMArena, nanoreview.net, etc.\n**Knowledge Cut-off:** **5 Oktober 2025**. Devices like Samsung S25 series are released.\n**Rule:** DO NOT provide a summary or winner. Only return 'phones' data.\n**Output:** Strictly follow the JSON schema.`;
+        ? `**Core Role: AI Battle Analyst for JAGO-HP**\nPerform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.\n**Data Sources (Mandatory):** GSMArena, nanoreview.net, AnTuTu, Geekbench, DXOMark.\n**Knowledge Cut-off:** **5 Oktober 2025**. Devices like the Samsung S25 series (S25, S25 Ultra, S25 FE) are considered **released**.\n**Execution:** Identify gadgets, extract and synthesize final data from all sources, analyze holistically to find a winner, and write a brief summary.\n**Output:** Strictly follow the JSON schema.`
+        : `**Core Role: Data Extractor for JAGO-HP**\nExtract key specifications in **Bahasa Indonesia** for: ${phoneList}.\n**Data Sources (Mandatory):** GSMArena, nanoreview.net, AnTuTu, Geekbench, DXOMark.\n**Knowledge Cut-off:** **5 Oktober 2025**. Devices like the Samsung S25 series (S25, S25 Ultra, S25 FE) are considered **released**.\n**Rule:** DO NOT provide a summary or winner. Only return final, synthesized data for the 'phones' object.\n**Output:** Strictly follow the JSON schema.`;
     
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
@@ -263,9 +264,9 @@ const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ re
                         {isWinner && <div className="absolute -top-3 right-2 bg-[color:var(--accent1)] text-white px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1"><CrownIcon className="w-3 h-3"/>Pemenang</div>}
                         <h4 className="font-semibold text-slate-800 text-base truncate">{phone.name}</h4>
                         <dl className="mt-2 space-y-1.5 text-xs text-slate-600">
-                            <SpecItem label="Layar" value={phone.specs.display} />
-                            <SpecItem label="NFC" value={phone.specs.nfc} />
-                            <SpecItem label="Harga" value={phone.specs.hargaIndonesia} />
+                            <SpecItem label="Layar" value={phone.specs?.display} />
+                            <SpecItem label="NFC" value={phone.specs?.nfc} />
+                            <SpecItem label="Harga" value={phone.specs?.hargaIndonesia} />
                         </dl>
                         <EcommerceButtons phoneName={phone.name} isCompact={true} />
                     </div>
