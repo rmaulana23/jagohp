@@ -30,6 +30,7 @@ const InsightPublic: React.FC = () => {
     const fetchAndSetPoll = useCallback(async () => {
         setLoading(true);
         setError(null);
+        setVotedId(null);
         try {
             const { data, error: rpcError } = await supabase.rpc('get_random_poll_options');
             if (rpcError) throw rpcError;
@@ -143,10 +144,20 @@ const InsightPublic: React.FC = () => {
 
     return (
         <div className="glass p-4 border-t-4 border-[color:var(--accent1)]">
-            <h3 className="font-semibold text-slate-800 mb-4 text-base flex items-center gap-2">
-                <span>Polling: Apa Dealbreaker-mu?</span>
-                <span className="text-xs font-medium bg-red-500 text-white px-2 py-0.5 rounded-full">Live Voting</span>
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-slate-800 text-base flex items-center gap-2">
+                    <span>Polling: Apa Dealbreaker-mu?</span>
+                    <span className="text-xs font-medium bg-red-500 text-white px-2 py-0.5 rounded-full">Live Voting</span>
+                </h3>
+                <button
+                    onClick={fetchAndSetPoll}
+                    disabled={loading}
+                    className="text-xs px-2 py-1 rounded-md text-slate-500 hover:bg-slate-200 hover:text-slate-800 font-semibold transition-colors disabled:opacity-50"
+                    aria-label="Ganti polling"
+                >
+                    Ganti
+                </button>
+            </div>
             <div className="space-y-2">
                 {options.map((option) => {
                     const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
