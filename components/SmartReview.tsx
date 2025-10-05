@@ -223,7 +223,7 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
                     <>
                         <div className="text-center mb-8">
                             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">
-                                Smart AI Review
+                                Smart Review
                             </h1>
                             <p className="text-base text-slate-500 max-w-2xl mx-auto mt-2">
                                 Tulis tipe HP yang ingin diulas, dan dapatkan analisis lengkap dalam hitungan detik.

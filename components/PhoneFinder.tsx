@@ -114,8 +114,8 @@ const PhoneFinder: React.FC = () => {
     <section id="finder" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
       <div className="w-full max-w-6xl mx-auto">
         <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">Phone Match AI</h1>
-            <p className="text-base text-slate-500 mt-2 max-w-2xl mx-auto">Jawab beberapa pertanyaan, dan biarkan AI kami menemukan HP yang paling pas untukmu.</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">Phone Match</h1>
+            <p className="text-base text-slate-500 mt-2 max-w-2xl mx-auto">Jawab beberapa pertanyaan, dan biarkan AI kami menemukan HP yang pas untukmu.</p>
         </div>
         {!result && !loading && (
           <form onSubmit={handleSubmit} className="glass p-6 md:p-8 mt-4 animate-fade-in">
