@@ -38,22 +38,22 @@ const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
     const brand = phoneName.split(' ')[0] || 'Unknown';
     
     return (
-        <div className="glass p-4 animate-fade-in flex flex-col">
+        <div className="p-4 animate-fade-in flex flex-col bg-gradient-to-r from-[color:var(--accent1)] to-[color:var(--accent2)] rounded-2xl shadow-lg">
             <div className="flex-1">
                 <div className="flex items-start justify-between">
                     <div>
-                        <div className="text-base font-semibold text-slate-800 leading-tight">{phoneName}</div>
-                        <div className="text-xs small-muted mt-0.5">{`Rilis: ${specs.rilis || 'N/A'} • ${brand}`}</div> 
+                        <div className="text-base font-semibold text-white leading-tight">{phoneName}</div>
+                        <div className="text-xs text-slate-200 mt-0.5">{`Rilis: ${specs.rilis || 'N/A'} • ${brand}`}</div> 
                     </div>
-                    <div className="text-sm font-semibold text-[color:var(--accent1)] flex-shrink-0 ml-2">Score {overallScore}</div>
+                    <div className="text-sm font-semibold text-white flex-shrink-0 ml-2">Score {overallScore}</div>
                 </div>
 
                 <div className="mt-3 text-sm">
-                    <div className="font-medium text-slate-800">Quick Review</div>
-                    <p className="text-slate-600 text-sm mt-1 leading-relaxed">{quickReview.summary}</p>
+                    <div className="font-medium text-white">Quick Review</div>
+                    <p className="text-slate-200 text-sm mt-1 leading-relaxed">{quickReview.summary}</p>
                 </div>
 
-                <dl className="mt-4 grid grid-cols-2 gap-x-2 gap-y-1.5 text-xs border-t border-slate-200 pt-3">
+                <dl className="mt-4 grid grid-cols-2 gap-x-2 gap-y-1.5 text-xs border-t border-white/30 pt-3">
                     <SpecItem label="CPU" value={shortenSpec(specs.processor)} />
                     <SpecItem label="RAM" value={specs.ram} />
                     <SpecItem label="Kamera" value={specs.camera} />
@@ -63,7 +63,7 @@ const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
             </div>
              <button
                 onClick={onSeeFull}
-                className="w-full mt-4 px-3 py-1.5 rounded-md text-xs bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors"
+                className="w-full mt-4 px-3 py-1.5 rounded-md text-xs bg-white/10 border border-white/50 text-white font-semibold hover:bg-white/20 transition-colors"
             >
                 Lihat Selengkapnya
             </button>
@@ -75,8 +75,8 @@ const SpecItem: FC<{ label: string; value: string | undefined | null }> = ({ lab
     if (!value) return null;
     return (
         <>
-            <dt className="text-slate-500 font-medium">{label}</dt>
-            <dd className="text-slate-700 font-medium text-right truncate">{value}</dd>
+            <dt className="text-slate-300 font-medium">{label}</dt>
+            <dd className="text-white font-medium text-right truncate">{value}</dd>
         </>
     )
 };
