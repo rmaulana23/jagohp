@@ -20,7 +20,9 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
       <nav className="max-w-6xl mx-auto flex items-center justify-between py-3 rounded-2xl px-4 bg-[color:var(--accent1)] shadow-lg">
         {/* Left: Logo & Title */}
         <a href="#" className="flex items-center gap-3 cursor-pointer" onClick={(e) => handleNavClick(e, 'home')}>
-          <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center font-orbitron text-[color:var(--accent1)] text-lg">JH</div>
+          <div className="w-12 h-12 flex items-center justify-center">
+            <img src="https://raw.githubusercontent.com/rmaulana23/jagohp/main/JAGO-HP.png" alt="JAGO-HP Logo" className="h-full w-full object-contain" />
+          </div>
           <div>
             <div className="text-base font-semibold text-white">JAGO-HP</div>
             <div className="text-xs text-slate-200">#1 Platform Rekomendasi HP Berbasis AI</div>
