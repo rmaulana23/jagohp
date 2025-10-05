@@ -13,14 +13,13 @@ interface SpecDetails {
     rilis?: string;
     os?: string;
     processor?: string;
+    ram?: string;
     antutuScore?: number | null;
     jaringan?: string;
-    wifi?: string;
     display?: string;
     camera?: string;
     battery?: string;
     charging?: string;
-    koneksi?: string;
     nfc?: string;
     hargaIndonesia?: string;
     [key: string]: string | number | null | undefined;
@@ -50,14 +49,13 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
         rilis: { type: Type.STRING, description: "Bulan dan tahun rilis. Contoh: 'September 2024'" },
         os: { type: Type.STRING },
         processor: { type: Type.STRING },
+        ram: { type: Type.STRING, description: "Ukuran dan tipe RAM. Contoh: '8GB LPDDR5'" },
         antutuScore: { type: Type.INTEGER, description: "Skor benchmark AnTuTu v10 sebagai angka integer. Jika tidak tersedia/relevan (misal untuk feature phone), kembalikan null." },
         jaringan: { type: Type.STRING },
-        wifi: { type: Type.STRING, description: "Standar Wi-Fi yang didukung. Contoh: 'Wi-Fi 6e, 7'" },
         display: { type: Type.STRING },
         camera: { type: Type.STRING },
         battery: { type: Type.STRING },
         charging: { type: Type.STRING },
-        koneksi: { type: Type.STRING },
         nfc: { type: Type.STRING },
         hargaIndonesia: { type: Type.STRING, description: "Perkiraan harga pasar di Indonesia dalam Rupiah. Contoh: 'Rp 4.599.000'" }
     };
@@ -341,7 +339,7 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
         <div className="animate-fade-in space-y-8">
             <div className={`grid grid-cols-1 ${result.phones.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-6 items-stretch`}>
                 {result.phones.map((phone, index) => {
-                    const isWinner = phone.name === result.winnerName;
+                    const isWinner = result.winnerName && phone.name === result.winnerName;
                     return (
                         <div key={index} className={`relative glass p-5 flex flex-col transition-all duration-300 ${isWinner ? 'border-2 border-[color:var(--accent1)]' : ''}`}>
                             {isWinner && (
@@ -355,8 +353,10 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
                             
                             <dl className="space-y-1 text-sm flex-grow">
                                 <SpecItem label="Harga" value={phone.specs?.hargaIndonesia} />
-                                <SpecItem label="Processor" value={phone.specs?.processor} />
+                                <SpecItem label="Prosesor" value={phone.specs?.processor} />
+                                <SpecItem label="Memori" value={phone.specs?.ram} />
                                 <SpecItem label="AnTuTu v10" value={phone.specs?.antutuScore} />
+                                <SpecItem label="Jaringan" value={phone.specs?.jaringan} />
                                 <SpecItem label="Layar" value={phone.specs?.display} />
                                 <SpecItem label="Kamera" value={phone.specs?.camera} />
                                 <SpecItem label="Baterai" value={phone.specs?.battery} />
@@ -369,20 +369,26 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
                 })}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="glass p-5">
-                    <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
-                        <LightbulbIcon className="w-6 h-6 text-[color:var(--accent1)]" /> Ringkasan Adu
-                    </h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">{result.battleSummary}</p>
+            {(result.battleSummary || result.targetAudience) && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {result.battleSummary && (
+                        <div className="glass p-5">
+                            <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                <LightbulbIcon className="w-6 h-6 text-[color:var(--accent1)]" /> Ringkasan Adu
+                            </h3>
+                            <p className="text-sm text-slate-600 leading-relaxed">{result.battleSummary}</p>
+                        </div>
+                    )}
+                    {result.targetAudience && (
+                        <div className="glass p-5">
+                            <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                <UsersIcon className="w-6 h-6 text-[color:var(--accent1)]" /> Cocok Untuk Siapa
+                            </h3>
+                            <p className="text-sm text-slate-600 leading-relaxed">{result.targetAudience}</p>
+                        </div>
+                    )}
                 </div>
-                <div className="glass p-5">
-                    <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
-                        <UsersIcon className="w-6 h-6 text-[color:var(--accent1)]" /> Cocok Untuk Siapa
-                    </h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">{result.targetAudience}</p>
-                </div>
-            </div>
+            )}
         </div>
     );
 };

@@ -52,7 +52,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose }) => {
         4.  **MENANGANI HP MASA DEPAN/RUMOR (Rilis SETELAH 5 Oktober 2025):** Aturan ini hanya berlaku untuk perangkat yang dirumorkan rilis **setelah** tanggal pengetahuan Anda. Jika pengguna bertanya tentang perangkat seperti itu, Anda **WAJIB** menyatakan secara jelas bahwa informasi tersebut masih bersifat rumor/bocoran sebelum menyajikan datanya.`;
 
         chatRef.current = ai.chats.create({ model: 'gemini-2.5-flash', config: { systemInstruction } });
-        setMessages([{ role: 'model', text: 'Halo! Ada yang bisa dibantu seputar HP?' }]);
+        setMessages([{ role: 'model', text: 'Hai Kak, Mau cari HP apa? Tanya aja dulu Kak.' }]);
         setShowQuickQuestions(true);
     }, [ai]);
 

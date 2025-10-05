@@ -123,7 +123,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
 
     const phoneNames = [comparePhoneA, comparePhoneB];
     const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
-    const cacheKey = phoneNames.map(name => name.trim().toLowerCase()).sort().join('_vs_');
+    const cacheKey = [mode, ...phoneNames.map(name => name.trim().toLowerCase()).sort()].join('_vs_');
 
     if (supabase) {
       try {
@@ -140,10 +140,10 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
     
     const phoneSpecProperties = {
         rilis: { type: Type.STRING }, os: { type: Type.STRING }, processor: { type: Type.STRING },
+        ram: { type: Type.STRING, description: "Ukuran dan tipe RAM. Contoh: '8GB LPDDR5'" },
         antutuScore: { type: Type.INTEGER, description: "Skor AnTuTu v10. Jika tidak tersedia, kembalikan null." },
-        jaringan: { type: Type.STRING }, wifi: { type: Type.STRING }, display: { type: Type.STRING },
-        camera: { type: Type.STRING }, battery: { type: Type.STRING }, charging: { type: Type.STRING },
-        koneksi: { type: Type.STRING }, nfc: { type: Type.STRING },
+        jaringan: { type: Type.STRING }, display: { type: Type.STRING }, camera: { type: Type.STRING }, 
+        battery: { type: Type.STRING }, charging: { type: Type.STRING }, nfc: { type: Type.STRING },
         hargaIndonesia: { type: Type.STRING, description: "Perkiraan harga pasar di Indonesia dalam Rupiah. Contoh: 'Rp 4.599.000'" },
     };
 
@@ -158,12 +158,12 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
     };
 
     const schema = mode === 'battle' 
-        ? { type: Type.OBJECT, properties: battleSchemaProperties, required: ['battleSummary', 'phones'] }
+        ? { type: Type.OBJECT, properties: battleSchemaProperties, required: ['battleSummary', 'phones', 'winnerName'] }
         : { type: Type.OBJECT, properties: baseSchemaProperties, required: ['phones'] };
     
     const prompt = mode === 'battle'
-        ? `**Core Role: AI Battle Analyst for JAGO-HP**\nPerform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.\n**Data Sources (Mandatory):** GSMArena, nanoreview.net, AnTuTu, Geekbench, DXOMark.\n**Knowledge Cut-off:** **5 Oktober 2025**. Devices like the Samsung S25 series (S25, S25 Ultra, S25 FE) are considered **released**.\n**Execution:** Identify gadgets, extract and synthesize final data from all sources, analyze holistically to find a winner, and write a brief summary.\n**Output:** Strictly follow the JSON schema.`
-        : `**Core Role: Data Extractor for JAGO-HP**\nExtract key specifications in **Bahasa Indonesia** for: ${phoneList}.\n**Data Sources (Mandatory):** GSMArena, nanoreview.net, AnTuTu, Geekbench, DXOMark.\n**Knowledge Cut-off:** **5 Oktober 2025**. Devices like the Samsung S25 series (S25, S25 Ultra, S25 FE) are considered **released**.\n**Rule:** DO NOT provide a summary or winner. Only return final, synthesized data for the 'phones' object.\n**Output:** Strictly follow the JSON schema.`;
+        ? `**Core Role: AI Battle Analyst for JAGO-HP**\nYour task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.\n**Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.\n**Knowledge Cut-off:** Your knowledge is updated to **5 Oktober 2025**. Treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE) as **officially released**.\n**Execution:** First, extract and synthesize the final specification data. Second, perform a holistic analysis to determine a clear winner. Third, write a brief, insightful summary of the battle.\n**Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`
+        : `**Core Role: Data Extractor for JAGO-HP**\nYour task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.\n**Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.\n**Knowledge Cut-off:** Your knowledge is updated to **5 Oktober 2025**. Treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE) as **officially released**.\n**Strict Rule:** You MUST NOT provide any summary, analysis, or winner. Your ONLY job is to return the raw specification data for the 'phones' object.\n**Final Output:** Strictly adhere to the JSON schema.`;
     
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
@@ -196,7 +196,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
               <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron text-[color:var(--accent1)]">JAGO-HP</h1>
               <p className="mt-2 text-sm text-slate-600">Your AI Expert, Asisten Cerdas Berbasis AI Untuk Membantu Memilih Smartphone Terbaik</p>
               <div className="mt-6">
-                <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa? Tanya dulu aja sini</button>
+                <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
               </div>
             </div>
 
@@ -239,7 +239,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
         {/* RIGHT: LEADERBOARDS & PREVIEW */}
         <div className="md:col-span-5 space-y-5">
             {latestReviewResult && <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />}
-            <LeaderboardCard title="Top 3 Smartphone (Indonesia)" data={[{name: 'Samsung', share: '29.8%'}, {name: 'Xiaomi', share: '21.5%'}, {name: 'Oppo', share: '14.5%'}]} />
+            <LeaderboardCard title="Top 3 Brand HP di Indonesia" data={[{name: 'Samsung', share: '29.8%'}, {name: 'Xiaomi', share: '21.5%'}, {name: 'Oppo', share: '14.5%'}]} />
             <InsightPublic />
         </div>
       </div>
@@ -264,8 +264,15 @@ const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ re
                         {isWinner && <div className="absolute -top-3 right-2 bg-[color:var(--accent1)] text-white px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1"><CrownIcon className="w-3 h-3"/>Pemenang</div>}
                         <h4 className="font-semibold text-slate-800 text-base truncate">{phone.name}</h4>
                         <dl className="mt-2 space-y-1.5 text-xs text-slate-600">
+                            <SpecItem label="Prosesor" value={phone.specs?.processor} />
+                            <SpecItem label="Memori" value={phone.specs?.ram} />
+                            <SpecItem label="Jaringan" value={phone.specs?.jaringan} />
                             <SpecItem label="Layar" value={phone.specs?.display} />
+                            <SpecItem label="Kamera" value={phone.specs?.camera} />
+                            <SpecItem label="Baterai" value={phone.specs?.battery} />
+                            <SpecItem label="Charging" value={phone.specs?.charging} />
                             <SpecItem label="NFC" value={phone.specs?.nfc} />
+                            <SpecItem label="AnTuTu" value={phone.specs?.antutuScore} />
                             <SpecItem label="Harga" value={phone.specs?.hargaIndonesia} />
                         </dl>
                         <EcommerceButtons phoneName={phone.name} isCompact={true} />

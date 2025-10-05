@@ -26,7 +26,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
             <img src="https://raw.githubusercontent.com/rmaulana23/jagohp/main/JAGO-HP.png" alt="JAGO-HP Logo" className="h-full w-full object-contain" />
           </div>
           <div>
-            <div className="text-base font-semibold text-white">JAGO-HP</div>
+            <div className="text-base font-semibold text-white"> </div>
             <div className="text-xs text-slate-200">#1 Platform Rekomendasi HP Berbasis AI</div>
           </div>
         </a>
