@@ -6,7 +6,6 @@ interface FooterProps {
 
 const Footer: React.FC<FooterProps> = ({ setPage }) => {
   const footerLinks = [
-    { label: 'FAQ', key: 'faq' },
     { label: 'Saran', key: 'saran' },
     { label: 'Partnership', key: 'partnership' },
     { label: 'Privacy Policy', key: 'privacy' },
@@ -30,7 +29,7 @@ const Footer: React.FC<FooterProps> = ({ setPage }) => {
               key={link.key}
               href="#"
               onClick={(e) => handleNavClick(e, link.key)}
-              className="text-sm text-slate-400 hover:text-white transition-colors"
+              className="text-sm text-slate-400 hover:text-slate-800 transition-colors"
             >
               {link.label}
             </a>
