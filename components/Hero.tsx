@@ -192,7 +192,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
         <div className="md:col-span-7 space-y-8">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron text-[color:var(--accent1)]">JAGO-HP</h1>
-              <p className="mt-2 text-sm text-slate-600">Cara Cerdas Pilih Smartphone!</p>
+              <p className="mt-2 text-sm text-slate-600">Your AI Expert, Cara Cerdas Pilih Smartphone!</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <button onClick={openChat} className="px-5 py-3 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">AI Assistant</button>
                 <button onClick={() => setPage('review')} className="px-5 py-3 rounded-lg border border-[color:var(--accent1)] text-[color:var(--accent1)] font-semibold hover:bg-[color:var(--accent1)]/10 transition-colors">Smart Review</button>

@@ -36,7 +36,7 @@ const About: React.FC = () => {
             Tentang JAGO-HP
           </h1>
           <p className="text-base text-slate-500 leading-relaxed max-w-3xl mx-auto mt-3">
-            JAGO-HP adalah platform review smartphone berbasis AI.
+            JAGO-HP adalah platform review smartphone berbasis AI di Indonesia.
           </p>
         </div>
 
