@@ -74,8 +74,8 @@ const PhoneFinder: React.FC = () => {
     const nfcRequired = activities.includes("Butuh NFC");
     const mainActivities = activities.filter(act => act !== "Butuh NFC").join(', ') || "Tidak ada preferensi spesifik";
 
-    const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia, memberikan **SATU rekomendasi smartphone TUNGGAL** paling TEPAT berdasarkan kuesioner.
-    **Konteks Waktu:** 2 Oktober 2025. Data harga dan ketersediaan harus relevan. iPhone 17 & Xiaomi 17 series sudah rilis.
+    const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia, memberikan **SATU rekomendasi smartphone TUNGGAL** paling TEPAT berdasarkan kuesioner. Sumber data: GSMArena, nanoreview.net, dll.
+    **Konteks Waktu:** 5 Oktober 2025. Data harga dan ketersediaan harus relevan. Samsung S25 series, iPhone 17 & Xiaomi 17 series sudah rilis.
     ---
     **Input Pengguna:**
     - **Aktivitas Utama & Fitur:** ${mainActivities}

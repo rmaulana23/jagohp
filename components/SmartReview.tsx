@@ -2,7 +2,6 @@ import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
 import SearchIcon from './icons/SearchIcon';
-import StarIcon from './icons/StarIcon';
 import ShareButtons from './ShareButtons';
 
 // --- INTERFACES ---
@@ -143,7 +142,7 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
         const prompt = `**Core Role: Comprehensive Data Synthesizer**
         You are an AI trained to understand and extract structured data. Your primary task is to:
         - Identify and parse all available phone data (smartphones, tablets, pads & feature phones).
-        - Source data from a wide range of reliable sources: **GSMArena, PhoneArena, Jagat Review, AnTuTu, Geekbench, DXOMark, and other top-tier tech media.**
+        - Source data from a wide range of reliable sources: **GSMArena, nanoreview.net, PhoneArena, Jagat Review, AnTuTu, Geekbench, DXOMark, and other top-tier tech media.**
         - Handle variations and missing specs gracefully.
         - Extract metadata like Brand, Model, Release date, and Device type.
 
@@ -151,8 +150,8 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
         Based on the structured data you extract, generate a comprehensive review in **Bahasa Indonesia** for the **gadget**: '${searchQuery}'.
 
         **Context & Knowledge Cut-off:**
-        - **Mandatory Update:** Your knowledge is considered fully updated as of today, **2 Oktober 2025**.
-        - **Data Requirement:** You **MUST** use the latest available information for all data points. This includes devices like the iPhone 16 series, iPhone 17 series, and Xiaomi 17 series, which are now considered **officially released** and have full, final data available across all your sources.
+        - **Mandatory Update:** Your knowledge is considered fully updated as of today, **5 Oktober 2025**.
+        - **Data Requirement:** You **MUST** use the latest available information for all data points. This includes devices like the Samsung S25 series, iPhone 17 series, and Xiaomi 17 series, which are now considered **officially released** and have full, final data available across all your sources.
 
         **Universal Brand & Device Knowledge (Core Mandate):**
         Your knowledge base is built upon a comprehensive understanding of every device (smartphones, tablets, pads, feature phones) from the following extensive list of brands. You are an expert on all of these:
@@ -165,14 +164,14 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
         2.  **Extract Data:** Perform your core role by extracting all relevant specifications for the identified gadget, synthesizing information from your full range of sources.
         3.  **Handle Missing Data:** For older devices (like feature phones) or where data is genuinely unavailable even after checking all sources, you **MUST** use \`null\` for numbers or "N/A" for strings. **DO NOT FAIL** the request because a field is empty.
         4.  **Generate Full Review Content:** Using the comprehensive data, populate the entire JSON schema.
-            -   **Ratings:** Provide a 1-5 score for each category based on the final, official product performance.
+            -   **Ratings:** Provide a 1-10 score for each category based on the final, official product performance.
             -   **Summaries & Analysis:** Write all textual content based on the objective data you've extracted.
-        5.  **Handling Unreleased/Rumored Devices (for releases AFTER Oktober 2025):**
-            -   This rule now applies **only** to devices rumored for release **after** your current knowledge date of 2 Oktober 2025.
+        5.  **Handling Unreleased/Rumored Devices (for releases AFTER 5 Oktober 2025):**
+            -   This rule now applies **only** to devices rumored for release **after** your current knowledge date of 5 Oktober 2025.
             -   If a user requests such a device:
                 a.  Populate the \`specs\` object with available rumored specifications.
                 b.  Set all numeric ratings in \`ratings\` to \`0\`.
-                c.  In the \`quickReview.summary\`, state: "Ponsel ini belum resmi dirilis. Ulasan lengkap dan rating belum tersedia. Berikut adalah rangkuman spesifikasi yang dirumorkan per 2 Oktober 2025."
+                c.  In the \`quickReview.summary\`, state: "Ponsel ini belum resmi dirilis. Ulasan lengkap dan rating belum tersedia. Berikut adalah rangkuman spesifikasi yang dirumorkan per 5 Oktober 2025."
                 d.  Fill all other analytical fields with appropriate text indicating data is not yet available. Use \`null\` for scores like \`antutuScore\` and \`dxomarkScore\`.
         6.  **True Failure Condition (Not Found):** Only if the device cannot be found at all, even as a rumor on any of your sources, should you populate the \`phoneName\` field with a message like "Maaf: Perangkat '${searchQuery}' tidak dapat ditemukan."
 
@@ -236,7 +235,7 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Contoh: iPhone 17 Pro Max..."
+                                placeholder="Contoh: Samsung S25 Ultra..."
                                 className="w-full bg-[color:var(--card)] border border-white/10 rounded-lg py-3 pl-5 pr-14 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all duration-200"
                                 aria-label="Smartphone search input"
                             />
@@ -317,9 +316,9 @@ const RatingsDisplay: FC<{ ratings: Ratings }> = ({ ratings }) => {
             {ratingItems.map(item => (
                 <div key={item.label}>
                     <p className="text-sm text-slate-300 font-medium mb-1">{item.label}</p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-baseline gap-1">
                         <span className="font-bold text-lg text-white">{item.score.toFixed(1)}</span>
-                        <StarRating score={item.score} />
+                        <span className="text-sm text-slate-400">/ 10</span>
                     </div>
                 </div>
             ))}
@@ -393,14 +392,6 @@ const TabContentCamera: FC<{ review: ReviewResult }> = ({ review }) => (
          <div className="border-t border-white/10 pt-4"><h3 className="text-base font-bold text-white mb-2">Ulasan Video</h3><p className="text-slate-300 leading-relaxed">{review.cameraAssessment.videoSummary}</p></div>
     </div>
 );
-
-const StarRating: FC<{ score: number; maxScore?: number }> = ({ score, maxScore = 5 }) => {
-    const clampedScore = Math.max(0, Math.min(score, maxScore));
-    const fullStars = Math.floor(clampedScore);
-    const halfStar = clampedScore % 1 >= 0.4;
-    const emptyStars = maxScore - fullStars - (halfStar ? 1 : 0);
-    return (<div className="flex">{[...Array(fullStars)].map((_, i) => <StarIcon key={`full-${i}`} variant="full" />)}{halfStar && <StarIcon key="half" variant="half" />}{[...Array(emptyStars)].map((_, i) => <StarIcon key={`empty-${i}`} variant="empty" />)}</div>);
-};
 
 const SpecItem: FC<{ label: string; value: string | undefined | null }> = ({ label, value }) => (
     value ? (<><dt className="small-muted truncate">{label}</dt><dd className="text-slate-200 text-right">{value}</dd></>) : null

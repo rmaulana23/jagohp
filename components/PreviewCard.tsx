@@ -15,7 +15,7 @@ const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
         if (validScores.length === 0) return 'N/A';
         const sum = validScores.reduce((acc, score) => acc + score, 0);
         const average = sum / validScores.length;
-        return (average * 2).toFixed(1);
+        return average.toFixed(1);
     };
 
     const overallScore = calculateOverallScore();

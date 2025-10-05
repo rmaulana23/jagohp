@@ -70,19 +70,20 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     };
     const prompt = `**Core Role: Comprehensive Data Synthesizer**
 Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on structured data, generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
-**Context & Knowledge Cut-off:** Your knowledge is updated as of **2 Oktober 2025**. Devices like iPhone 17 series are considered released.
+**Context & Knowledge Cut-off:** Your knowledge is updated as of **5 Oktober 2025**. Devices like Samsung S25 series and iPhone 17 series are considered released.
 **Universal Brand Knowledge:** You are an expert on all major phone brands.
 
 **Execution Steps & Formatting Rules (VERY IMPORTANT):**
 1.  **Identify Gadget:** Find the official product based on the query.
-2.  **Extract Data:** Use reliable sources (GSMArena, etc.).
+2.  **Extract Data:** Use reliable sources (GSMArena, nanoreview.net, etc.).
 3.  **Handle Missing Data:** Use \`null\` or "N/A".
 4.  **Populate JSON:** Fill all fields according to the schema with the following formatting constraints:
+    -   \`ratings\`: Each category **MUST** be rated on a scale of 1 to 10.
     -   \`quickReview.summary\`: MUST be a single, concise sentence (maximum 1-2 short sentences).
     -   \`specs.ram\`: MUST be in the format "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
     -   \`specs.camera\`: MUST be a short summary of main lenses. Example: "Utama: 200MP + 50MP", "50MP Wide + 12MP Ultrawide".
     -   \`specs.battery\`: MUST be just the capacity. Example: "5000 mAh".
-5.  **Failure Conditions:** If unreleased (post-Oct 2025), state it's based on rumors. If not found, the \`phoneName\` must contain an error message.
+5.  **Failure Conditions:** If unreleased (post-5 Oct 2025), state it's based on rumors. If not found, the \`phoneName\` must contain an error message.
 
 **Final Output:** Strictly adhere to the JSON schema and all formatting rules.`;
     
@@ -159,8 +160,8 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
         : { type: Type.OBJECT, properties: baseSchemaProperties, required: ['phones'] };
     
     const prompt = mode === 'battle'
-        ? `**Core Role: GSMArena Data Extractor & AI Battle Analyst for JAGO-HP**\nPerform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.\n**Context & Knowledge Cut-off:** Your knowledge is updated as of **2 Oktober 2025**.\n**Execution Steps:** Identify gadgets, extract data, perform holistic analysis to determine a winner, and generate a very brief summary.\n**Final Output:** Strictly follow the JSON schema.`
-        : `**Core Role: GSMArena Data Extractor for JAGO-HP**\nExtract and return ONLY the key specifications in **Bahasa Indonesia** for these devices: ${phoneList}.\n**Context & Knowledge Cut-off:** Your knowledge is updated as of **2 Oktober 2025**.\n**Crucial Rule:** DO NOT determine a winner. DO NOT provide any summary or analysis. ONLY return the structured 'phones' data.\n**Final Output:** Strictly follow the JSON schema.`;
+        ? `**Core Role: AI Battle Analyst for JAGO-HP**\nPerform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.\n**Data Sources:** GSMArena, nanoreview.net, etc.\n**Knowledge Cut-off:** **5 Oktober 2025**. Devices like Samsung S25 series are released.\n**Execution:** Identify gadgets, extract data, analyze holistically to find a winner, and write a brief summary.\n**Output:** Strictly follow the JSON schema.`
+        : `**Core Role: Data Extractor for JAGO-HP**\nExtract key specifications in **Bahasa Indonesia** for: ${phoneList}.\n**Data Sources:** GSMArena, nanoreview.net, etc.\n**Knowledge Cut-off:** **5 Oktober 2025**. Devices like Samsung S25 series are released.\n**Rule:** DO NOT provide a summary or winner. Only return 'phones' data.\n**Output:** Strictly follow the JSON schema.`;
     
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
@@ -202,7 +203,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
             <div>
               <label className="font-semibold text-white text-lg">Quick Review</label>
               <div className="mt-2 flex gap-3 items-center">
-                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: iPhone 17 Pro Max..." />
+                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-[color:var(--card)] border border-white/10 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung S25 Ultra..." />
                 <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-slate-900 font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Cari'}</button>
               </div>
               <div className="mt-2 text-sm small-muted">Ketik brand atau tipe HP</div>

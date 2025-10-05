@@ -135,7 +135,7 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
         const prompt = `**Core Role: GSMArena Data Extractor**
         You are an AI trained to understand and extract structured data. Your primary task is to:
         - Identify and parse data for multiple devices: smartphones, tablets, pads & feature phones.
-        - Source data from a wide range of reliable sources: GSMArena, PhoneArena, Jagat Review, AnTuTu, Geekbench, DXOMark, and other top-tier tech media.
+        - Source data from a wide range of reliable sources: GSMArena, nanoreview.net, PhoneArena, Jagat Review, AnTuTu, Geekbench, DXOMark, and other top-tier tech media.
         - Recognize and compare specifications across devices.
         - Handle variations and missing specs gracefully.
 
@@ -143,8 +143,8 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
         Based on the structured data you extract, perform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.
 
         **Context & Knowledge Cut-off:**
-        - **Mandatory Update:** Your knowledge is considered fully updated as of today, **2 Oktober 2025**.
-        - **Data Requirement:** You **MUST** use the latest available specifications and market data for all devices being compared. This includes devices like the iPhone 16 series, iPhone 17 series, and Xiaomi 17 series, which are now considered **officially released**.
+        - **Mandatory Update:** Your knowledge is considered fully updated as of today, **5 Oktober 2025**.
+        - **Data Requirement:** You **MUST** use the latest available specifications and market data for all devices being compared. This includes devices like the Samsung S25 series, iPhone 17 series, and Xiaomi 17 series, which are now considered **officially released**.
 
         **Universal Brand & Device Knowledge (Core Mandate):**
         Your knowledge base is built upon a comprehensive understanding of every device (smartphones, tablets, pads, feature phones) from the following extensive list of brands. You are an expert on all of these:
@@ -155,7 +155,7 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
         **Execution Steps & Rules (Strictly Follow):**
         1.  **Identify Gadgets:** For each name in ${phoneList}, identify the official name and device type (smartphone, tablet, feature phone). Assume all devices mentioned are released and data is available.
         2.  **Extract Data for All:** Perform your core data extraction role for **every single gadget** in the list, using the full range of specified sources. Include the release month and year in the 'rilis' field.
-        3.  **Handle Unannounced/Rumored Devices:** This rule now applies to devices rumored for release **AFTER Oktober 2025**. If a user includes such a device, you **MUST**:
+        3.  **Handle Unannounced/Rumored Devices:** This rule now applies to devices rumored for release **AFTER 5 Oktober 2025**. If a user includes such a device, you **MUST**:
             -   Extract and display any available rumored specifications.
             -   In the \`battleSummary\`, explicitly state that the specs for that device are based on rumors and are subject to change.
             -   For unavailable data (e.g., \`antutuScore\`), use \`null\`.
@@ -274,7 +274,7 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
                             </h2>
                             <BattleResultDisplay result={result} />
                             <p className="text-xs text-slate-500 text-center mt-6">
-                                Sumber data: GSMArena, Phone Arena, AnTuTu, GeekBench dan DXOMark
+                                Sumber data: GSMArena, nanoreview.net, Phone Arena, AnTuTu, GeekBench dan DXOMark
                             </p>
                         </>
                     )}
