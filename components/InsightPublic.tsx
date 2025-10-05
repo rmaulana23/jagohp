@@ -14,21 +14,23 @@ const InsightPublic: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    if (!supabase) {
+        return (
+            <div className="glass p-4">
+                <h3 className="font-semibold text-slate-800 mb-2 text-base">Polling Publik</h3>
+                <div className="text-center text-sm text-slate-500 bg-slate-100 rounded-lg p-3">
+                    Fitur polling tidak tersedia saat ini.
+                </div>
+            </div>
+        );
+    }
+
     const calculateTotalVotes = (opts: PollOption[]) => opts.reduce((sum, opt) => sum + opt.votes, 0);
 
     const fetchAndSetPoll = useCallback(async () => {
-        if (!supabase) {
-            setLoading(false);
-            return;
-        }
         setLoading(true);
         setError(null);
         try {
-            // This RPC function should be created in Supabase:
-            // CREATE OR REPLACE FUNCTION get_random_poll_options()
-            // RETURNS TABLE(id bigint, text text, votes bigint) AS $$
-            //   SELECT id, text, votes FROM dealbreakers_poll ORDER BY random() LIMIT 3;
-            // $$ LANGUAGE sql;
             const { data, error: rpcError } = await supabase.rpc('get_random_poll_options');
             if (rpcError) throw rpcError;
 
@@ -40,6 +42,8 @@ const InsightPublic: React.FC = () => {
                     options: data
                 }));
                  localStorage.removeItem('dailyPollVoteId'); // Clear old vote
+            } else {
+                setOptions([]); // Ensure options are cleared if DB is empty
             }
         } catch (err: any) {
             console.error("Error fetching poll:", err.message || err);
@@ -88,11 +92,6 @@ const InsightPublic: React.FC = () => {
         localStorage.setItem('dailyPoll', JSON.stringify({ ...storedPollData, options: newOptions }));
 
         try {
-            // This RPC function should be created in Supabase:
-            // CREATE OR REPLACE FUNCTION increment_poll_vote(option_id bigint)
-            // RETURNS void AS $$
-            //   UPDATE dealbreakers_poll SET votes = votes + 1 WHERE id = option_id;
-            // $$ LANGUAGE sql SECURITY DEFINER;
             const { error: rpcError } = await supabase.rpc('increment_poll_vote', { option_id: id });
             if (rpcError) throw rpcError;
         } catch (err: any) {
@@ -132,7 +131,14 @@ const InsightPublic: React.FC = () => {
    }
 
     if (!options || options.length === 0) {
-        return null; // Don't render if no options are available
+        return (
+            <div className="glass p-4">
+                <h3 className="font-semibold text-slate-800 mb-2 text-base">Polling: Apa Dealbreaker-mu?</h3>
+                <div className="text-center text-sm text-slate-500 bg-slate-100 rounded-lg p-3">
+                    Saat ini tidak ada polling yang aktif.
+                </div>
+            </div>
+        );
     }
 
     return (
