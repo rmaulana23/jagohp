@@ -5,8 +5,10 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
 
   const navItems = [
     { label: 'Beranda', key: 'home' },
-    { label: 'FAQ', key: 'faq' },
-    { label: 'Tentang Kami', key: 'about' }
+    { label: 'Smart Review', key: 'review' },
+    { label: 'Compare', key: 'battle' },
+    { label: 'Phone Match', key: 'finder' },
+    { label: 'Tentang', key: 'about' }
   ];
 
   const handleNavClick = (e: React.MouseEvent, pageKey: string) => {
