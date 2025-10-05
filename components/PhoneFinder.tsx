@@ -18,14 +18,14 @@ const activityOptions = [
 ];
 
 const budgetOptions = [
-  "Di Bawah Rp 2 Juta", "Rp 2 Juta - 4 Juta", "Rp 4 Juta - 7 Juta",
-  "Rp 7 Juta - 10 Juta", "Di Atas Rp 10 Juta"
+  "1 Jutaan", "2 Jutaan", "3 Jutaan", "4 Juta - 5 Juta", 
+  "5 Juta - 7 Juta", "7 Juta - 10 Juta", "Di Atas 10 Juta"
 ];
 
 const PhoneFinder: React.FC = () => {
   const [activities, setActivities] = useState<string[]>([]);
   const [cameraPriority, setCameraPriority] = useState(3);
-  const [budget, setBudget] = useState(budgetOptions[1]);
+  const [budget, setBudget] = useState(budgetOptions[2]); // Default: 3 Jutaan
   const [otherPrefs, setOtherPrefs] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +89,7 @@ const PhoneFinder: React.FC = () => {
     2.  **Filter & Prioritas:**
         -   **Merek (Tertinggi):** Jika disebut di "Preferensi Lain", patuhi merek tersebut.
         -   **Logika Agresif:** Prioritaskan fitur kunci yang dipilih (Layar 120Hz, Gaming, Baterai) sebagai faktor utama.
-        -   **Budget:** Batasan keras. Jangan melebihi.
+        -   **Budget:** Batasan keras. Jangan melebihi. '1 Jutaan' berarti maks Rp 1.999.000, '2 Jutaan' maks Rp 2.999.000, dst.
     3.  **Personalisasi Alasan:** Field 'reason' **WAJIB** merujuk kembali ke profil pengguna. (Contoh: "Melihat profilmu sebagai gamer dengan budget menengah, ponsel ini paling pas karena...").
     4.  **Fitur Wajib:** Jika NFC diminta, rekomendasi **WAJIB** punya NFC.
     5.  **Output:** Berikan **SATU** rekomendasi. Isi semua field JSON sesuai skema.`;
@@ -119,13 +119,15 @@ const PhoneFinder: React.FC = () => {
         </div>
         {!result && !loading && (
           <form onSubmit={handleSubmit} className="glass p-6 md:p-8 mt-4 animate-fade-in">
-              <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 gap-y-8">
-                  <QuestionSection title="1. Apa aktivitas & kebutuhan utamamu?">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {activityOptions.map(activity => <Checkbox key={activity} label={activity} checked={activities.includes(activity)} onChange={() => handleActivityChange(activity)} />)}
-                      </div>
-                  </QuestionSection>
-                  <div className="space-y-8 flex flex-col">
+              <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-x-8 gap-y-8">
+                  <div className="lg:col-span-2">
+                      <QuestionSection title="1. Apa aktivitas & kebutuhan utamamu?">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {activityOptions.map(activity => <Checkbox key={activity} label={activity} checked={activities.includes(activity)} onChange={() => handleActivityChange(activity)} />)}
+                          </div>
+                      </QuestionSection>
+                  </div>
+                  <div className="space-y-6">
                       <QuestionSection title="2. Seberapa penting kualitas kamera?">
                           <div className="pt-2">
                               <input type="range" min="1" max="5" value={cameraPriority} onChange={e => setCameraPriority(parseInt(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer range-lg accent-[color:var(--accent1)]"/>
