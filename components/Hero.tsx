@@ -192,7 +192,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
         <div className="md:col-span-7 space-y-8">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron text-[color:var(--accent1)]">JAGO-HP</h1>
-              <p className="mt-2 text-sm text-slate-600">Your AI Expert, Pendamping cerdas berbasis AI untuk membantu memilih smartphone terbaik</p>
+              <p className="mt-2 text-sm text-slate-600">Your AI Expert, Asisten Cerdas Berbasis AI Untuk Membantu Memilih Smartphone Terbaik</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <button onClick={openChat} className="px-5 py-3 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">AI Assistant</button>
                 <button onClick={() => setPage('review')} className="px-5 py-3 rounded-lg border border-[color:var(--accent1)] text-[color:var(--accent1)] font-semibold hover:bg-[color:var(--accent1)]/10 transition-colors">Smart Review</button>
@@ -206,7 +206,7 @@ Your secondary task is to act as an AI Gadget Reviewer for JAGO-HP. Based on str
               <label className="font-semibold text-slate-800 text-lg">Quick Review</label>
               <div className="mt-2 flex gap-3 items-center">
                 <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung S25 Ultra..." />
-                <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Cari'}</button>
+                <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Review'}</button>
               </div>
               <div className="mt-2 text-sm small-muted">Ketik model atau tipe HP</div>
             </div>
