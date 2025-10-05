@@ -313,6 +313,9 @@ const LeaderboardCard: FC<{title: string, data: {name: string, share: string}[]}
                     </div>
                 ))}
             </div>
+            <p className="text-xs text-slate-400 mt-4 text-center">
+                Sumber: Top Brand Index
+            </p>
         </div>
     );
 };

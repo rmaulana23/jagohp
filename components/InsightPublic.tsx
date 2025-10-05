@@ -24,11 +24,6 @@ const InsightPublic: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            // This RPC function should be created in Supabase:
-            // CREATE OR REPLACE FUNCTION get_random_poll_options()
-            // RETURNS TABLE(id bigint, text text, votes bigint) AS $$
-            //   SELECT id, text, votes FROM dealbreakers_poll ORDER BY random() LIMIT 3;
-            // $$ LANGUAGE sql;
             const { data, error: rpcError } = await supabase.rpc('get_random_poll_options');
             if (rpcError) throw rpcError;
 
@@ -39,7 +34,8 @@ const InsightPublic: React.FC = () => {
                     timestamp: Date.now(),
                     options: data
                 }));
-                 localStorage.removeItem('dailyPollVoteId'); // Clear old vote
+                 localStorage.removeItem('dailyPollVoteId');
+                 setVotedId(null);
             }
         } catch (err: any) {
             console.error("Error fetching poll:", err.message || err);
@@ -70,39 +66,61 @@ const InsightPublic: React.FC = () => {
         }
     }, [fetchAndSetPoll]);
 
-    const handleVote = async (id: number) => {
-        if (votedId || !supabase) return;
+    const handleVote = async (newVoteId: number) => {
+        if (newVoteId === votedId || !supabase) return;
 
-        setVotedId(id);
-        localStorage.setItem('dailyPollVoteId', String(id));
-
-        // Optimistic UI update
-        const oldOptions = options;
-        const newOptions = options.map(opt =>
-            opt.id === id ? { ...opt, votes: opt.votes + 1 } : opt
-        );
+        const previousVoteId = votedId;
+    
+        // --- Optimistic UI Update ---
+        const oldOptions = [...options];
+        setVotedId(newVoteId);
+    
+        const newOptions = options.map(opt => {
+            if (opt.id === newVoteId) return { ...opt, votes: opt.votes + 1 };
+            if (opt.id === previousVoteId) return { ...opt, votes: Math.max(0, opt.votes - 1) };
+            return opt;
+        });
         setOptions(newOptions);
-        setTotalVotes(prev => prev + 1);
         
+        if (previousVoteId === null) {
+            setTotalVotes(prev => prev + 1);
+        }
+        
+        // --- Persist to Local Storage ---
+        localStorage.setItem('dailyPollVoteId', String(newVoteId));
         const storedPollData = JSON.parse(localStorage.getItem('dailyPoll') || '{}');
         localStorage.setItem('dailyPoll', JSON.stringify({ ...storedPollData, options: newOptions }));
-
+    
+        // --- Supabase Update ---
         try {
-            // This RPC function should be created in Supabase:
-            // CREATE OR REPLACE FUNCTION increment_poll_vote(option_id bigint)
+            // Assumes a 'decrement_poll_vote' RPC function exists in Supabase.
+            // CREATE OR REPLACE FUNCTION decrement_poll_vote(option_id bigint)
             // RETURNS void AS $$
-            //   UPDATE dealbreakers_poll SET votes = votes + 1 WHERE id = option_id;
+            //   UPDATE dealbreakers_poll SET votes = votes - 1 WHERE id = option_id AND votes > 0;
             // $$ LANGUAGE sql SECURITY DEFINER;
-            const { error: rpcError } = await supabase.rpc('increment_poll_vote', { option_id: id });
-            if (rpcError) throw rpcError;
+            const promises = [supabase.rpc('increment_poll_vote', { option_id: newVoteId })];
+            if (previousVoteId !== null) {
+                promises.push(supabase.rpc('decrement_poll_vote', { option_id: previousVoteId }));
+            }
+    
+            const results = await Promise.all(promises);
+            for (const result of results) {
+                if (result.error) throw result.error;
+            }
         } catch (err: any) {
-            console.error("Failed to save vote:", err.message || err);
-            // Rollback optimistic update on failure
+            console.error("Failed to save vote change:", err.message || err);
+            // Rollback on failure
             setOptions(oldOptions);
-            setTotalVotes(calculateTotalVotes(oldOptions));
-            setVotedId(null);
+            setVotedId(previousVoteId);
+            if (previousVoteId === null) {
+                setTotalVotes(prev => prev - 1);
+            }
             localStorage.setItem('dailyPoll', JSON.stringify({ ...storedPollData, options: oldOptions }));
-            localStorage.removeItem('dailyPollVoteId');
+            if (previousVoteId) {
+                localStorage.setItem('dailyPollVoteId', String(previousVoteId));
+            } else {
+                localStorage.removeItem('dailyPollVoteId');
+            }
             setError('Gagal menyimpan suara.');
         }
     };
@@ -112,9 +130,9 @@ const InsightPublic: React.FC = () => {
             <div className="glass p-4 animate-pulse">
                 <div className="h-5 bg-slate-200 rounded w-3/4 mb-4"></div>
                 <div className="space-y-3">
-                    <div className="h-8 bg-slate-200 rounded-lg"></div>
-                    <div className="h-8 bg-slate-200 rounded-lg"></div>
-                    <div className="h-8 bg-slate-200 rounded-lg"></div>
+                    <div className="h-10 bg-slate-200 rounded-lg"></div>
+                    <div className="h-10 bg-slate-200 rounded-lg"></div>
+                    <div className="h-10 bg-slate-200 rounded-lg"></div>
                 </div>
             </div>
         );
@@ -141,32 +159,34 @@ const InsightPublic: React.FC = () => {
                 <span>Polling: Apa Dealbreaker-mu?</span>
                 <span className="text-xs font-medium bg-red-500 text-white px-2 py-0.5 rounded-full">Live Voting</span>
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
                 {options.map((option) => {
                     const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
                     const isVotedOption = option.id === votedId;
 
                     return (
-                        <div key={option.id} className="text-sm">
-                            {votedId !== null ? (
-                                <div className="relative w-full bg-slate-200 rounded-lg p-2 overflow-hidden border-2 border-transparent">
-                                    <div
-                                        className={`absolute top-0 left-0 h-full rounded-md ${isVotedOption ? 'bg-[color:var(--accent1)]/30' : 'bg-slate-300'}`}
-                                        style={{ width: `${percentage}%`, transition: 'width 0.5s ease-in-out' }}
-                                    ></div>
-                                    <div className="relative flex justify-between items-center text-slate-800">
-                                        <span className={`font-medium ${isVotedOption ? 'text-slate-900' : ''}`}>{option.text}</span>
-                                        <span className="font-semibold">{percentage.toFixed(0)}%</span>
-                                    </div>
+                        <div key={option.id} className="flex items-center gap-3 text-sm">
+                             <div className="relative flex-grow bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
+                                <div
+                                    className={`absolute top-0 left-0 h-full ${isVotedOption ? 'bg-[color:var(--accent1)]/20' : 'bg-slate-200'}`}
+                                    style={{ width: `${percentage}%`, transition: 'width 0.5s ease-in-out' }}
+                                />
+                                <div className="relative flex justify-between items-center text-slate-800 px-3 py-2.5">
+                                    <span className={`font-medium ${isVotedOption ? 'text-[color:var(--accent1)]' : ''}`}>{option.text}</span>
+                                    <span className="font-semibold">{percentage.toFixed(0)}%</span>
                                 </div>
-                            ) : (
-                                <button
-                                    onClick={() => handleVote(option.id)}
-                                    className="w-full text-left p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors text-slate-700"
-                                >
-                                    {option.text}
-                                </button>
-                            )}
+                            </div>
+                            <button
+                                onClick={() => handleVote(option.id)}
+                                disabled={isVotedOption}
+                                className={`w-[75px] text-center px-3 py-2.5 rounded-lg font-semibold transition-colors flex-shrink-0 text-xs ${
+                                    isVotedOption 
+                                    ? 'bg-[color:var(--accent1)] text-white cursor-not-allowed'
+                                    : 'bg-white hover:bg-slate-200 text-slate-700 border border-slate-300'
+                                }`}
+                            >
+                                {isVotedOption ? 'VOTED' : 'VOTE'}
+                            </button>
                         </div>
                     );
                 })}
