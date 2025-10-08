@@ -9,6 +9,18 @@ import PreviewCard from './PreviewCard';
 import InsightPublic from './InsightPublic';
 import EcommerceButtons from './EcommerceButtons';
 
+interface QuickMatchResult {
+  phoneName: string;
+  reason: string;
+  specs: {
+    processor: string;
+    ram: string;
+    camera: string;
+    battery: string;
+  };
+  estimatedPrice: string;
+}
+
 interface HeroProps {
   setPage: (page: string) => void;
   openChat: () => void;
@@ -16,9 +28,10 @@ interface HeroProps {
   navigateToFullBattle: (result: BattleResult) => void;
   latestReviewResult: ReviewResult | null;
   setLatestReviewResult: (result: ReviewResult | null) => void;
+  navigateToReviewWithQuery: (phoneName: string) => void;
 }
 
-const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, latestReviewResult, setLatestReviewResult }) => {
+const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, latestReviewResult, setLatestReviewResult, navigateToReviewWithQuery }) => {
   const [reviewQuery, setReviewQuery] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
@@ -28,6 +41,11 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
   const [battleModeLoading, setBattleModeLoading] = useState<'compare' | 'battle' | null>(null);
   const [battleError, setBattleError] = useState<string | null>(null);
   const [battleData, setBattleData] = useState<BattleResult | null>(null);
+
+  const [quickMatchBudget, setQuickMatchBudget] = useState<string | null>(null);
+  const [quickMatchLoading, setQuickMatchLoading] = useState(false);
+  const [quickMatchError, setQuickMatchError] = useState<string | null>(null);
+  const [quickMatchResult, setQuickMatchResult] = useState<QuickMatchResult | null>(null);
 
   const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
 
@@ -187,6 +205,71 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
     }
   };
 
+  const handleQuickMatch = async (budget: string) => {
+    if (quickMatchLoading) return;
+    setQuickMatchBudget(budget);
+    setQuickMatchLoading(true);
+    setQuickMatchError(null);
+    setQuickMatchResult(null);
+
+    const cacheKey = `quickmatch_${budget.replace(/\s+/g, '_').toLowerCase()}`;
+
+    if (supabase) {
+      try {
+        const { data } = await supabase.from('quick_match_cache').select('result_data').eq('cache_key', cacheKey).single();
+        if (data && data.result_data) {
+          setQuickMatchResult(data.result_data as QuickMatchResult);
+          setQuickMatchLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Supabase quick match cache check failed', err);
+      }
+    }
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            phoneName: { type: Type.STRING },
+            reason: { type: Type.STRING },
+            specs: {
+                type: Type.OBJECT,
+                properties: {
+                    processor: { type: Type.STRING },
+                    ram: { type: Type.STRING },
+                    camera: { type: Type.STRING },
+                    battery: { type: Type.STRING },
+                }
+            },
+            estimatedPrice: { type: Type.STRING },
+        },
+        required: ["phoneName", "reason", "specs", "estimatedPrice"]
+    };
+
+    const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia.
+    **Tugas:** Berdasarkan budget **${budget}**, berikan **SATU** rekomendasi smartphone **all-rounder** terbaik. All-rounder berarti seimbang antara performa, kamera, dan baterai untuk harganya.
+    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **5 Oktober 2025**. Seri Samsung S25, iPhone 17 & Xiaomi 17 sudah dianggap **resmi rilis**.
+    **Output:** Berikan jawaban dalam format JSON sesuai skema yang disediakan. 'reason' harus sangat singkat (1 kalimat).`;
+
+    try {
+        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
+        const parsedResult: QuickMatchResult = JSON.parse(response.text.trim());
+        setQuickMatchResult(parsedResult);
+        if (supabase) {
+            try {
+                await supabase.from('quick_match_cache').insert({ cache_key: cacheKey, result_data: parsedResult });
+            } catch (err) {
+                console.warn('Supabase quick match cache write failed', err);
+            }
+        }
+    } catch (e) {
+        console.error(e);
+        setQuickMatchError("Gagal mendapatkan rekomendasi. Coba lagi.");
+    } finally {
+        setQuickMatchLoading(false);
+    }
+  };
+
   return (
     <section className="pb-10">
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
@@ -231,9 +314,23 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
                     </button>
                 </div>
             </div>
-             {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang membandingkan, mohon tunggu..</div>}
-             {battleError && <div className="text-center p-4 text-red-500">{battleError}</div>}
-             {battleData && <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />}
+
+            {/* Quick Phone Match */}
+            <QuickPhoneMatch
+                options={["1 Jutaan", "2 Jutaan", "3 Jutaan", "Diatas 4 Juta"]}
+                selectedBudget={quickMatchBudget}
+                onSelectBudget={handleQuickMatch}
+                loading={quickMatchLoading}
+            />
+
+            {/* --- DYNAMIC RESULTS AREA --- */}
+            {quickMatchLoading && <div className="text-center p-4 small-muted animate-pulse">Mencari HP terbaik untukmu...</div>}
+            {quickMatchError && <div className="text-center p-4 text-red-500">{quickMatchError}</div>}
+            {quickMatchResult && <QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} />}
+
+            {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang membandingkan, mohon tunggu..</div>}
+            {battleError && <div className="text-center p-4 text-red-500">{battleError}</div>}
+            {battleData && <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />}
         </div>
 
         {/* RIGHT: LEADERBOARDS & PREVIEW */}
@@ -281,6 +378,57 @@ const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ re
             })}
         </div>
         <button onClick={onSeeFull} className="w-full mt-2 px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors">Lihat Perbandingan Lengkap</button>
+    </div>
+);
+
+const QuickPhoneMatch: FC<{
+    options: string[];
+    selectedBudget: string | null;
+    onSelectBudget: (budget: string) => void;
+    loading: boolean;
+}> = ({ options, selectedBudget, onSelectBudget, loading }) => (
+    <div className="glass p-6">
+        <h3 className="font-semibold text-slate-800 text-lg mb-1">Quick Phone Match</h3>
+        <p className="text-sm small-muted mb-4">Temukan HP All-Rounder terbaik sesuai budgetmu.</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {options.map(opt => (
+                <button
+                    key={opt}
+                    onClick={() => onSelectBudget(opt)}
+                    disabled={loading}
+                    className={`px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 border-2 disabled:opacity-50
+                        ${selectedBudget === opt
+                            ? 'bg-[color:var(--accent1)]/10 border-[color:var(--accent1)] text-[color:var(--accent1)]'
+                            : 'bg-slate-100 border-slate-200 text-slate-600 hover:border-slate-400'
+                        }`}
+                >
+                    {opt}
+                </button>
+            ))}
+        </div>
+    </div>
+);
+
+const QuickMatchResultCard: FC<{ result: QuickMatchResult; onSeeFull: () => void }> = ({ result, onSeeFull }) => (
+    <div className="glass p-4 animate-fade-in space-y-3">
+        <h4 className="font-bold text-slate-800 text-lg">{result.phoneName}</h4>
+        <p className="text-sm text-slate-500 font-semibold">{result.estimatedPrice}</p>
+        <div className="my-2 p-3 bg-slate-100 border-l-4 border-[color:var(--accent1)] rounded-r-md">
+            <p className="text-slate-600 text-sm leading-relaxed">{result.reason}</p>
+        </div>
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+            <SpecItem label="CPU" value={result.specs.processor} />
+            <SpecItem label="RAM" value={result.specs.ram} />
+            <SpecItem label="Kamera" value={result.specs.camera} />
+            <SpecItem label="Baterai" value={result.specs.battery} />
+        </dl>
+        <EcommerceButtons phoneName={result.phoneName} isCompact={true} />
+        <button
+            onClick={onSeeFull}
+            className="w-full mt-2 px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors"
+        >
+            Lihat Review Lengkap
+        </button>
     </div>
 );
 

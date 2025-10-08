@@ -21,6 +21,7 @@ const App: React.FC = () => {
   const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
   const [latestReviewResult, setLatestReviewResult] = useState<ReviewResult | null>(null);
+  const [reviewQuery, setReviewQuery] = useState('');
 
   useEffect(() => {
     try {
@@ -49,12 +50,19 @@ const App: React.FC = () => {
 
   const navigateToFullReview = (result: ReviewResult) => {
     setReviewResult(result);
+    setReviewQuery(''); // Clear query when navigating with full data
     setPage('review');
   };
 
   const navigateToFullBattle = (result: BattleResult) => {
     setBattleResult(result);
     setPage('battle');
+  };
+
+  const navigateToReviewWithQuery = (phoneName: string) => {
+    setReviewResult(null); // Clear full result data
+    setReviewQuery(phoneName); // Set the query string
+    setPage('review');
   };
   
   const openChat = () => setIsChatModalOpen(true);
@@ -68,9 +76,10 @@ const App: React.FC = () => {
                             navigateToFullBattle={navigateToFullBattle} 
                             latestReviewResult={latestReviewResult}
                             setLatestReviewResult={handleSetLatestReviewResult}
+                            navigateToReviewWithQuery={navigateToReviewWithQuery}
                            />;
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
-      case 'review': return <SmartReview initialResult={reviewResult} />;
+      case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} />;
       case 'finder': return <PhoneFinder />;
       case 'leaderboard': return <Leaderboard />;
       case 'about': return <About />;
@@ -85,6 +94,7 @@ const App: React.FC = () => {
                         navigateToFullBattle={navigateToFullBattle} 
                         latestReviewResult={latestReviewResult}
                         setLatestReviewResult={handleSetLatestReviewResult}
+                        navigateToReviewWithQuery={navigateToReviewWithQuery}
                        />;
     }
   }
