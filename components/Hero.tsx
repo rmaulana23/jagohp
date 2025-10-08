@@ -285,7 +285,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
 
             {/* QUICK SEARCH */}
             <div>
-              <label className="font-semibold text-slate-800 text-lg">Quick Review</label>
+              <label className="font-semibold text-slate-800 text-lg">Quick Smart Review</label>
               <div className="mt-2 flex gap-3 items-center">
                 <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung S25 Ultra..." />
                 <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Review'}</button>
