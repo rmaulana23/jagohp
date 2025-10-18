@@ -135,8 +135,8 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
         Your primary task is to perform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.
 
         **Context & Knowledge Cut-off (Mandatory):**
-        - **Knowledge Date:** Your knowledge is fully updated as of **5 Oktober 2025**.
-        - **Device Status:** You **MUST** treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), iPhone 17 series, etc., as **officially released** products. All data for them is final and available.
+        - **Knowledge Date:** Your knowledge is fully updated as of **1 Desember 2025**.
+        - **Device Status:** You **MUST** treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), iPhone 17 series, Xiaomi 15T series, etc., as **officially released** products. All data for them is final and available.
 
         **Data Sources (Mandatory):**
         - You **MUST** source and synthesize data from a wide range of reliable sources, prioritizing: **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
@@ -147,7 +147,7 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
         **Execution Steps & Rules (Strictly Follow):**
         1.  **Identify Gadgets:** Identify the official name and type for each device in ${phoneList}.
         2.  **Extract & Synthesize Data:** Extract all relevant specs for every device, synthesizing information from your full range of specified sources to get the most accurate, final data.
-        3.  **Handle Unannounced Devices (Post-Oct 2025):** If a user requests a device rumored for release **AFTER 5 Oktober 2025**, state that its specs are based on rumors and use \`null\` for unavailable data.
+        3.  **Handle Unannounced Devices (Post-Dec 2025):** If a user requests a device rumored for release **AFTER 1 Desember 2025**, state that its specs are based on rumors and use \`null\` for unavailable data.
         4.  **Holistic Analysis & Winner Determination:**
             -   Compare the synthesized final specs. **DO NOT** rely on a single metric.
             -   Consider overall value: performance, display, camera, battery, price.
@@ -258,7 +258,7 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
                             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-slate-900 font-orbitron text-center">
                                 Hasil Perbandingan
                             </h2>
-                            <BattleResultDisplay result={result} />
+                            <BattleResultDisplay result={result} onReset={() => { setResult(null); setPhoneNames(['', '']); }} />
                             <p className="text-xs text-slate-400 text-center mt-6">
                                 Sumber data: GSMArena, nanoreview.net, Phone Arena, AnTuTu, GeekBench dan DXOMark
                             </p>
@@ -334,7 +334,7 @@ const SpecItem: FC<{ label: string; value: string | number | null | undefined }>
     ) : null
 );
 
-const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
+const BattleResultDisplay: FC<{ result: BattleResult; onReset: () => void }> = ({ result, onReset }) => {
     return (
         <div className="animate-fade-in space-y-8">
             <div className={`grid grid-cols-1 ${result.phones.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-6 items-stretch`}>
@@ -389,6 +389,14 @@ const BattleResultDisplay: FC<{ result: BattleResult }> = ({ result }) => {
                     )}
                 </div>
             )}
+            <div className="text-center">
+                <button
+                    onClick={onReset}
+                    className="px-6 py-2 rounded-lg text-sm bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors"
+                >
+                    Bandingkan Lagi
+                </button>
+            </div>
         </div>
     );
 };

@@ -7,7 +7,6 @@ interface FooterProps {
 const Footer: React.FC<FooterProps> = ({ setPage }) => {
   const footerLinks = [
     { label: 'FAQ', key: 'faq' },
-    { label: 'Saran', key: 'saran' },
     { label: 'Partnership', key: 'partnership' },
     { label: 'Privacy Policy', key: 'privacy' },
   ];

@@ -89,7 +89,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     };
     const prompt = `**Core Role: Comprehensive Data Synthesizer for JAGO-HP**
 Your task is to act as an AI Gadget Reviewer and generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
-**Knowledge Cut-off & Context:** Your knowledge is updated as of **5 Oktober 2025**. Devices like the Samsung S25 series (S25, S25 Ultra, S25 FE) are considered **officially released** with full data.
+**Knowledge Cut-off & Context:** Your knowledge is updated as of **1 Desember 2025**. Devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), Xiaomi 15T series, etc. are considered **officially released** with full data.
 **Data Sources (Mandatory):** You MUST synthesize data from reliable sources like **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
 **Universal Brand Knowledge:** You are an expert on all major phone brands.
 
@@ -103,7 +103,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
     -   \`specs.ram\`: Format: "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
     -   \`specs.camera\`: A short summary of main lenses. Example: "Utama: 200MP + 50MP", "50MP Wide + 12MP Ultrawide".
     -   \`specs.battery\`: Just the capacity. Example: "5000 mAh".
-5.  **Failure Conditions:** If the device is unreleased (rumored for post-5 Oct 2025), state this clearly. If not found at all, the \`phoneName\` must contain an error message.
+5.  **Failure Conditions:** If the device is unreleased (rumored for post-1 Dec 2025), state this clearly. If not found at all, the \`phoneName\` must contain an error message.
 
 **Final Output:** Strictly adhere to the JSON schema and all formatting rules.`;
     
@@ -180,8 +180,8 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
         : { type: Type.OBJECT, properties: baseSchemaProperties, required: ['phones'] };
     
     const prompt = mode === 'battle'
-        ? `**Core Role: AI Battle Analyst for JAGO-HP**\nYour task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.\n**Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.\n**Knowledge Cut-off:** Your knowledge is updated to **5 Oktober 2025**. Treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE) as **officially released**.\n**Execution:** First, extract and synthesize the final specification data. Second, perform a holistic analysis to determine a clear winner. Third, write a brief, insightful summary of the battle.\n**Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`
-        : `**Core Role: Data Extractor for JAGO-HP**\nYour task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.\n**Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.\n**Knowledge Cut-off:** Your knowledge is updated to **5 Oktober 2025**. Treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE) as **officially released**.\n**Strict Rule:** You MUST NOT provide any summary, analysis, or winner. Your ONLY job is to return the raw specification data for the 'phones' object.\n**Final Output:** Strictly adhere to the JSON schema.`;
+        ? `**Core Role: AI Battle Analyst for JAGO-HP**\nYour task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.\n**Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.\n**Knowledge Cut-off:** Your knowledge is updated to **1 Desember 2025**. Treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), Xiaomi 15T series, etc. as **officially released**.\n**Execution:** First, extract and synthesize the final specification data. Second, perform a holistic analysis to determine a clear winner. Third, write a brief, insightful summary of the battle.\n**Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`
+        : `**Core Role: Data Extractor for JAGO-HP**\nYour task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.\n**Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.\n**Knowledge Cut-off:** Your knowledge is updated to **1 Desember 2025**. Treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), Xiaomi 15T series, etc. as **officially released**.\n**Strict Rule:** You MUST NOT provide any summary, analysis, or winner. Your ONLY job is to return the raw specification data for the 'phones' object.\n**Final Output:** Strictly adhere to the JSON schema.`;
     
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
@@ -248,7 +248,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
 
     const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia.
     **Tugas:** Berdasarkan budget **${budget}**, berikan **SATU** rekomendasi smartphone **all-rounder** terbaik. All-rounder berarti seimbang antara performa, kamera, dan baterai untuk harganya.
-    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **5 Oktober 2025**. Seri Samsung S25, iPhone 17 & Xiaomi 17 sudah dianggap **resmi rilis**.
+    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **1 Desember 2025**. Seri Samsung S25, iPhone 17, Xiaomi 17, dan seri Xiaomi 15T sudah dianggap **resmi rilis**.
     **Output:** Berikan jawaban dalam format JSON sesuai skema yang disediakan. 'reason' harus sangat singkat (1 kalimat).`;
 
     try {

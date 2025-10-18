@@ -15,7 +15,8 @@ interface Recommendation {
 
 const activityOptions = [
   "Sosial Media & Browsing", "Gaming Berat", "Fotografi & Videografi", "Produktivitas (Email, Doc.)",
-  "Streaming Film & Video", "Baterai Tahan Lama", "Layar Super Mulus (120Hz+)", "Butuh NFC"
+  "Streaming Film & Video", "Baterai Tahan Lama", "Layar Super Mulus (120Hz+)", "Butuh NFC",
+  "RAM Min. 8GB atau Lebih", "Storage Min. 128GB atau Lebih"
 ];
 
 const budgetOptions = [
@@ -73,11 +74,13 @@ const PhoneFinder: React.FC = () => {
 
     const cameraPriorityText = ["Tidak penting", "Kurang penting", "Cukup penting", "Penting", "Sangat penting"][cameraPriority - 1];
     const nfcRequired = activities.includes("Butuh NFC");
-    const mainActivities = activities.filter(act => act !== "Butuh NFC").join(', ') || "Tidak ada preferensi spesifik";
+    const ramRequired = activities.includes("RAM Min. 8GB atau Lebih");
+    const storageRequired = activities.includes("Storage Min. 128GB atau Lebih");
+    const mainActivities = activities.filter(act => !["Butuh NFC", "RAM Min. 8GB atau Lebih", "Storage Min. 128GB atau Lebih"].includes(act)).join(', ') || "Tidak ada preferensi spesifik";
 
     const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia, memberikan **SATU rekomendasi smartphone TUNGGAL** paling TEPAT berdasarkan kuesioner.
     **Sumber Data (Wajib):** GSMArena, nanoreview.net, AnTuTu, Geekbench, DXOMark.
-    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **5 Oktober 2025**. Ini berarti data harga dan ketersediaan harus relevan. Seri Samsung S25 (S25, S25 Ultra, S25 FE), iPhone 17 & Xiaomi 17 series sudah dianggap **resmi rilis** dengan data final.
+    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **1 Desember 2025**. Ini berarti data harga dan ketersediaan harus relevan. Seri Samsung S25 (S25, S25 Ultra, S25 FE), iPhone 17, Xiaomi 17 & Xiaomi 15T series sudah dianggap **resmi rilis** dengan data final.
     ---
     **Input Pengguna:**
     - **Aktivitas Utama & Fitur:** ${mainActivities}
@@ -85,6 +88,8 @@ const PhoneFinder: React.FC = () => {
     - **Budget Maksimal:** ${budget}
     - **Preferensi Lain:** ${otherPrefs || "Tidak ada"}
     ${nfcRequired ? '- **Fitur Wajib:** NFC\n' : ''}
+    ${ramRequired ? '- **Spesifikasi Wajib:** RAM minimal 8GB\n' : ''}
+    ${storageRequired ? '- **Spesifikasi Wajib:** Storage minimal 128GB\n' : ''}
     ---
     **PROSES ANALISIS WAJIB:**
     1.  **Sintesis Profil Pengguna:** Buat profil singkat pengguna (Contoh: "gamer budget menengah", "fotografer butuh baterai awet").
@@ -93,7 +98,7 @@ const PhoneFinder: React.FC = () => {
         -   **Logika Agresif:** Prioritaskan fitur kunci yang dipilih (Layar 120Hz, Gaming, Baterai) sebagai faktor utama.
         -   **Budget:** Batasan keras. Jangan melebihi. '1 Jutaan' berarti maks Rp 1.999.000, '2 Jutaan' maks Rp 2.999.000, dst.
     3.  **Personalisasi Alasan:** Field 'reason' **WAJIB** merujuk kembali ke profil pengguna. (Contoh: "Melihat profilmu sebagai gamer dengan budget menengah, ponsel ini paling pas karena...").
-    4.  **Fitur Wajib:** Jika NFC diminta, rekomendasi **WAJIB** punya NFC.
+    4.  **Fitur Wajib:** Jika NFC, RAM, atau Storage minimum diminta, rekomendasi **WAJIB** memenuhi kriteria tersebut.
     5.  **Output:** Berikan **SATU** rekomendasi paling optimal. Isi semua field JSON sesuai skema.`;
 
     try {
@@ -145,7 +150,6 @@ const PhoneFinder: React.FC = () => {
                           <input type="text" value={otherPrefs} onChange={e => setOtherPrefs(e.target.value)} placeholder="Misal: Suka merk Samsung..." className="w-full bg-slate-50 border-2 border-slate-300 rounded-lg p-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all"/>
                       </QuestionSection>
                       <div className="pt-2">
-                          {/* FIX: Corrected a JSX syntax error by replacing malformed code with a SparklesIcon component. */}
                           <button type="submit" disabled={loading} className="w-full px-8 py-3 rounded-lg bg-[color:var(--accent1)] text-white font-semibold flex items-center justify-center gap-3 hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 shadow-md">
                               {loading ? 'Menganalisis...' : 'Cari Rekomendasi'}{!loading && <SparklesIcon className="w-5 h-5" />}
                           </button>
@@ -204,7 +208,14 @@ const ResultsDisplay: FC<{ result: Recommendation; onReset: () => void }> = ({ r
             )}
             <EcommerceButtons phoneName={result.phoneName} />
             <ShareButtons shareText={shareText} shareUrl={shareUrl} />
-            <div className="mt-6 text-center"><button onClick={onReset} className="text-sm text-[color:var(--accent1)] font-semibold hover:underline">Cari Rekomendasi Lain</button></div>
+            <div className="mt-6 text-center">
+              <button 
+                onClick={onReset} 
+                className="px-6 py-2 rounded-lg text-sm bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors"
+              >
+                Cari Rekomendasi Lain
+              </button>
+            </div>
           </div>
         </div>
       </div>
