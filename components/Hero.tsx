@@ -8,6 +8,7 @@ import CrownIcon from './icons/CrownIcon';
 import PreviewCard from './PreviewCard';
 import InsightPublic from './InsightPublic';
 import EcommerceButtons from './EcommerceButtons';
+import SparklesIcon from './icons/SparklesIcon';
 
 interface QuickMatchResult {
   phoneName: string;
@@ -270,6 +271,19 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
     }
   };
 
+  const JagoCardArenaButton = (
+    <button
+      onClick={() => setPage('jago-card-arena')}
+      className="w-full text-left p-4 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-between"
+    >
+      <div>
+        <h3 className="font-bold text-lg font-orbitron">JAGO Card Arena</h3>
+        <p className="text-xs text-indigo-200 mt-1">Masuk ke arena dan adu kartu HP-mu!</p>
+      </div>
+      <SparklesIcon className="w-8 h-8 text-yellow-300" />
+    </button>
+  );
+
   return (
     <section className="pb-10">
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
@@ -335,7 +349,13 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
 
         {/* RIGHT: LEADERBOARDS & PREVIEW */}
         <div className="md:col-span-5 space-y-5">
-            {latestReviewResult && <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />}
+            {latestReviewResult && (
+                <>
+                    {JagoCardArenaButton}
+                    <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
+                </>
+            )}
+            {!latestReviewResult && JagoCardArenaButton}
             <LeaderboardCard title="Top 3 Brand HP di Indonesia" data={[{name: 'Samsung', share: '29.8%'}, {name: 'Xiaomi', share: '21.5%'}, {name: 'Oppo', share: '14.5%'}]} />
             <InsightPublic />
         </div>

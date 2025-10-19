@@ -8,7 +8,6 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
     { label: 'Smart Review', key: 'review' },
     { label: 'Compare', key: 'battle' },
     { label: 'Phone Match', key: 'finder' },
-    { label: 'JCC', key: 'jcc' },
     { label: 'Tentang', key: 'about' }
   ];
 
@@ -18,17 +17,25 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
       setIsMobileMenuOpen(false);
   };
 
+  const navClasses = 'bg-[color:var(--accent1)] shadow-lg';
+  const logoSubtextClasses = 'text-slate-200';
+  const navLinkClasses = 'text-slate-200 hover:text-white';
+  const activeNavLinkClasses = 'text-white font-semibold';
+  const leaderboardBtnClasses = 'border-white text-white hover:bg-white/20';
+  const hamburgerClasses = 'text-slate-200 hover:text-white';
+
+
   return (
     <header className="w-full fixed top-2 left-0 px-4 z-40">
-      <nav className="max-w-6xl mx-auto flex items-center justify-between py-3 rounded-2xl px-4 bg-[color:var(--accent1)] shadow-lg">
+      <nav className={`max-w-6xl mx-auto flex items-center justify-between py-3 rounded-2xl px-4 transition-colors duration-300 ${navClasses}`}>
         {/* Left: Logo & Title */}
         <a href="#" className="flex items-center gap-3 cursor-pointer" onClick={(e) => handleNavClick(e, 'home')}>
           <div className="w-12 h-12 flex items-center justify-center">
             <img src="https://raw.githubusercontent.com/rmaulana23/jagohp/main/JAGO-HP.png" alt="JAGO-HP Logo" className="h-full w-full object-contain" />
           </div>
           <div>
-            <div className="text-base font-semibold text-white"> </div>
-            <div className="text-xs text-slate-200">#1 Platform Rekomendasi HP Berbasis AI</div>
+            <div className={`text-base font-semibold text-white`}> </div>
+            <div className={`text-xs ${logoSubtextClasses}`}>#1 Platform Rekomendasi HP Berbasis AI</div>
           </div>
         </a>
 
@@ -41,7 +48,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
                 <a
                   href="#"
                   onClick={(e) => handleNavClick(e, item.key)}
-                  className={`transition-colors duration-200 text-slate-200 ${isActive ? 'text-white font-semibold' : 'hover:text-white'}`}
+                  className={`transition-colors duration-200 ${isActive ? activeNavLinkClasses : navLinkClasses}`}
                 >
                   {item.label}
                 </a>
@@ -54,7 +61,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setPage('leaderboard')} 
-            className="hidden md:inline-block px-3 py-1.5 rounded-md text-sm border border-white text-white hover:bg-white/20 transition-colors"
+            className={`hidden md:inline-block px-3 py-1.5 rounded-md text-sm border transition-colors ${leaderboardBtnClasses}`}
           >
             Top Leaderboard
           </button>
@@ -62,7 +69,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 text-slate-200 hover:text-white"
+              className={`p-2 ${hamburgerClasses}`}
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? (

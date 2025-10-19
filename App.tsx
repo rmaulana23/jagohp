@@ -12,7 +12,7 @@ import FAQ from './components/FAQ';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import PhoneFinder from './components/PhoneFinder';
 import Saran from './components/Saran';
-import JCC from './components/JCC';
+import JagoCardArena from './components/JagoCardArena';
 
 const App: React.FC = () => {
   const [page, setPage] = useState('home');
@@ -82,7 +82,7 @@ const App: React.FC = () => {
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
       case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} />;
       case 'finder': return <PhoneFinder />;
-      case 'jcc': return <JCC />;
+      case 'jago-card-arena': return <JagoCardArena />;
       case 'leaderboard': return <Leaderboard />;
       case 'about': return <About />;
       case 'partnership': return <Partnership />;
@@ -102,14 +102,14 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen flex flex-col ${page === 'jago-card-arena' ? 'bg-[color:var(--accent1)]' : ''}`}>
       <Header page={page} setPage={setPage} />
       
       <main className="flex-grow pt-24">
         {mainContent()}
       </main>
 
-      <Footer setPage={setPage} />
+      <Footer setPage={setPage} page={page} />
 
       <TanyaAI 
         isOpen={isChatModalOpen} 

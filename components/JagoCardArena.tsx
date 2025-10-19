@@ -220,7 +220,7 @@ const InfoDesk: FC<{ card: CardData | null }> = ({ card }) => {
 
 
 // --- Main Game Component ---
-const JCC: React.FC = () => {
+const JagoCardArena: React.FC = () => {
   const { initializeAudio, playAttackSound, playHealSound, playSkillSound, playWinSound, playLoseSound, playStartSound } = useSoundEffects();
   const [deck, setDeck] = useState<CardData[]>([]);
   const [deckLoading, setDeckLoading] = useState(false);
@@ -729,12 +729,13 @@ const JCC: React.FC = () => {
                  <div className="text-xs text-gray-400">Opponent Energy: {opponentEnergy}/100</div>
                  <div className="w-full h-2.5 bg-white/10 rounded-full mt-1"><div className="h-full bg-rose-400 rounded-full" style={{ width: `${opponentEnergy}%` }} /></div>
             </div>
+            {/* DESKTOP HOW TO PLAY */}
             <div className="hidden lg:block bg-white/5 rounded-xl p-3 text-xs text-gray-300 space-y-1">
                 <h3 className="font-semibold text-gray-200 mb-2">How to Play</h3>
                 <p><strong className="text-red-400">Attack:</strong> Deals damage.</p>
                 <p><strong className="text-green-400">Heal:</strong> Recovers HP. <strong className="text-cyan-400">{opponentHealCooldown > 0 ? `(Opponent CD: ${opponentHealCooldown}s)`: ''}</strong></p>
                 <p><strong className="text-indigo-400">Skill:</strong> High damage, costs 40 Energy. <strong className="text-cyan-400">{opponentSkillCooldown > 0 ? `(Opponent CD: ${opponentSkillCooldown}s)`: ''}</strong></p>
-             </div>
+            </div>
         </div>
 
         {/* --- MOBILE BATTLE LOG & HOW TO PLAY --- */}
@@ -760,8 +761,8 @@ const JCC: React.FC = () => {
     <div className="min-h-full bg-[color:var(--accent1)] p-4 sm:p-6 text-gray-100 font-sans">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-6">
-          <h1 className="text-2xl sm:text-3xl font-extrabold font-orbitron">JAGO Card Clash</h1>
-          <p className="text-sm text-gray-400 mt-1">A mini-game by JAGO-HP AI</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold font-orbitron">JAGO Card Arena</h1>
+          <p className="text-sm text-gray-400 mt-1">A mini-game by JAGO-HP</p>
         </div>
         {renderGameContent()}
       </div>
@@ -769,4 +770,4 @@ const JCC: React.FC = () => {
   );
 };
 
-export default JCC;
+export default JagoCardArena;
