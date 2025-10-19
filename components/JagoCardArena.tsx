@@ -106,17 +106,19 @@ const useSoundEffects = () => {
 // --- Utility Functions ---
 const mapSpecsToStats = (specs: PhoneSpecs): GameStats => {
   // Defensive coding: Provide default values for specs that might be null/undefined from the AI
-  const cpuScore = specs?.cpuScore ?? 150000; // Default to a low-mid range score
+  const cpuScore = specs?.cpuScore ?? 150000;
   const batteryMah = specs?.batteryMah ?? 4500;
   const ramGb = specs?.ramGb ?? 6;
   const refreshRate = specs?.refreshRate ?? 90;
   const cameraScore = specs?.cameraScore ?? 50;
 
-  const attack = Math.round(Math.max(10, Math.min(99, cpuScore / 3200)));
-  const defense = Math.round(Math.max(10, Math.min(99, batteryMah / 53)));
-  const speed = Math.round(Math.max(10, Math.min(99, ramGb * 5.5 + refreshRate / 9)));
-  const intelligence = Math.round(Math.max(10, Math.min(99, cameraScore)));
-  const battery = Math.round(Math.max(10, Math.min(99, batteryMah / 52)));
+  // Rebalanced stats to ensure flagships are in the 80-90s range, not perfect 100s.
+  // Assuming top Antutu v10 scores are around 2.1M+ by late 2025.
+  const attack = Math.round(Math.max(10, Math.min(98, cpuScore / 22000)));
+  const defense = Math.round(Math.max(10, Math.min(98, batteryMah / 52)));
+  const speed = Math.round(Math.max(10, Math.min(98, ramGb * 5.5 + refreshRate / 10)));
+  const intelligence = Math.round(Math.max(10, Math.min(98, cameraScore)));
+  const battery = Math.round(Math.max(10, Math.min(98, batteryMah / 51)));
   return { attack, defense, speed, intelligence, battery };
 };
 
@@ -500,9 +502,10 @@ const JagoCardArena: React.FC = () => {
         };
         const currentDeckNames = [...playerDeck, ...opponentDeck].map(c => c.name).join(', ');
         const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
-        **Tugas:** Buat **SATU KARTU** smartphone acak yang belum ada di deck ini: ${currentDeckNames}.
+        **Tugas:** Buat **SATU KARTU** smartphone acak yang kompetitif dan belum ada di deck ini: ${currentDeckNames}.
         **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **1 Desember 2025**. Seri Samsung S25, iPhone 17, Xiaomi 17 & 15T sudah dianggap rilis.
         **Data yang Diperlukan:** id, name, specs (processorName, cpuScore, batteryMah, ramGb, refreshRate, cameraScore).
+        **Aturan Penting:** \`cameraScore\` tidak boleh 100, targetkan di atas 80.
         **Output:** Berikan jawaban HANYA dalam format JSON objek tunggal sesuai skema.`;
         
         try {
@@ -572,9 +575,17 @@ const JagoCardArena: React.FC = () => {
     };
     
     const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
-    **Tugas:** Buat sebuah "card pool" berisi **10 kartu** smartphone yang **BERBEDA SATU SAMA LAIN**, beragam, dan menarik. Sertakan campuran dari flagship, mid-ranger, dan pilihan unik.
+    **Tugas:** Buat sebuah "card pool" berisi **10 kartu** smartphone yang **BERBEDA SATU SAMA LAIN**, sangat beragam, dan menarik. Pastikan ada campuran dari berbagai merek (Samsung, Xiaomi, Apple, Google, dll.) dan segmen (flagship, mid-ranger, pilihan unik).
     **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **1 Desember 2025**. Seri Samsung S25, iPhone 17, Xiaomi 17 & 15T sudah dianggap rilis.
-    **Data yang Diperlukan per HP:** id, name, specs (processorName, cpuScore, batteryMah, ramGb, refreshRate, cameraScore).
+    **Data yang Diperlukan per HP:**
+    - \`id\`: ID unik (misal: "s25u").
+    - \`name\`: Nama resmi HP.
+    - \`specs.processorName\`: Nama chipset (e.g., "Snapdragon 8 Gen 4").
+    - \`specs.cpuScore\`: Skor AnTuTu v10 (sebagai angka). Untuk flagship, targetkan skor di atas 1.8 juta.
+    - \`specs.batteryMah\`: Kapasitas baterai (sebagai angka).
+    - \`specs.ramGb\`: Ukuran RAM (sebagai angka).
+    - \`specs.refreshRate\`: Refresh rate layar (sebagai angka).
+    - \`specs.cameraScore\`: Skor kamera 1-100 (estimasi berdasarkan kualitas keseluruhan, **jangan berikan skor sempurna 100, targetkan 85-98 untuk flagship**).
     **Output:** Berikan jawaban HANYA dalam format JSON array berisi 10 objek sesuai skema.`;
 
     try {

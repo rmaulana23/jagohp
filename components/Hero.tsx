@@ -301,7 +301,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
         <div className="md:col-span-7 space-y-8">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron text-[color:var(--accent1)]">JAGO-HP</h1>
-              <p className="mt-2 text-sm text-slate-600">Your AI Expert, Asisten Cerdas Yang Membantu Memilih Smartphone Terbaik Untuk Anda.</p>
+              <p className="mt-2 text-sm text-slate-600">Your AI Expert, Asisten Cerdas Yang Membantu Memilih Smartphone Terbaik Anda</p>
               <div className="mt-6">
                 <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
               </div>
