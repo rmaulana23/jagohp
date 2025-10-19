@@ -12,6 +12,7 @@ import FAQ from './components/FAQ';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import PhoneFinder from './components/PhoneFinder';
 import Saran from './components/Saran';
+import JCC from './components/JCC';
 
 const App: React.FC = () => {
   const [page, setPage] = useState('home');
@@ -81,6 +82,7 @@ const App: React.FC = () => {
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
       case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} />;
       case 'finder': return <PhoneFinder />;
+      case 'jcc': return <JCC />;
       case 'leaderboard': return <Leaderboard />;
       case 'about': return <About />;
       case 'partnership': return <Partnership />;

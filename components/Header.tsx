@@ -8,6 +8,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
     { label: 'Smart Review', key: 'review' },
     { label: 'Compare', key: 'battle' },
     { label: 'Phone Match', key: 'finder' },
+    { label: 'JCC', key: 'jcc' },
     { label: 'Tentang', key: 'about' }
   ];
 

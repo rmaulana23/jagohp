@@ -118,39 +118,39 @@ const PhoneFinder: React.FC = () => {
   };
 
   return (
-    <section id="finder" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
+    <section id="finder" className="flex-grow flex flex-col items-center pb-8 px-4 sm:px-6 w-full">
       <div className="w-full max-w-6xl mx-auto">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">Phone Match</h1>
             <p className="text-base text-slate-500 mt-2 max-w-2xl mx-auto">Jawab beberapa pertanyaan, dan biarkan AI kami menemukan HP yang pas untukmu.</p>
         </div>
         {!result && !loading && (
-          <form onSubmit={handleSubmit} className="glass p-6 mt-4 animate-fade-in">
-              <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-x-6 gap-y-6">
+          <form onSubmit={handleSubmit} className="glass p-4 mt-2 animate-fade-in">
+              <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-x-4 gap-y-4">
                   <div className="lg:col-span-2">
                       <QuestionSection title="1. Apa aktivitas & kebutuhan utamamu?">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                               {activityOptions.map(activity => <Checkbox key={activity} label={activity} checked={activities.includes(activity)} onChange={() => handleActivityChange(activity)} />)}
                           </div>
                       </QuestionSection>
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                       <QuestionSection title="2. Seberapa penting kualitas kamera?">
-                          <div className="pt-2">
+                          <div className="pt-1">
                               <input type="range" min="1" max="5" value={cameraPriority} onChange={e => setCameraPriority(parseInt(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer range-lg accent-[color:var(--accent1)]"/>
                               <span className="mt-2 block text-center text-[color:var(--accent1)] font-semibold text-sm">{["Tidak Penting", "Kurang Penting", "Cukup Penting", "Penting", "Sangat Penting"][cameraPriority - 1]}</span>
                           </div>
                       </QuestionSection>
                       <QuestionSection title="3. Berapa budget maksimalmu?">
-                          <select value={budget} onChange={e => setBudget(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all">
+                          <select value={budget} onChange={e => setBudget(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-300 rounded-lg p-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all">
                               {budgetOptions.map(opt => <option key={opt} value={opt} className="bg-white">{opt}</option>)}
                           </select>
                       </QuestionSection>
                       <QuestionSection title="4. Ada preferensi lain? (Opsional)">
-                          <input type="text" value={otherPrefs} onChange={e => setOtherPrefs(e.target.value)} placeholder="Misal: Suka merk Samsung..." className="w-full bg-slate-50 border-2 border-slate-300 rounded-lg p-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all"/>
+                          <input type="text" value={otherPrefs} onChange={e => setOtherPrefs(e.target.value)} placeholder="Misal: Suka merk Samsung..." className="w-full bg-slate-50 border-2 border-slate-300 rounded-lg p-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all"/>
                       </QuestionSection>
-                      <div className="pt-2">
-                          <button type="submit" disabled={loading} className="w-full px-8 py-3 rounded-lg bg-[color:var(--accent1)] text-white font-semibold flex items-center justify-center gap-3 hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 shadow-md">
+                      <div className="pt-1">
+                          <button type="submit" disabled={loading} className="w-full px-8 py-2.5 rounded-lg bg-[color:var(--accent1)] text-white font-semibold flex items-center justify-center gap-3 hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 shadow-md">
                               {loading ? 'Menganalisis...' : 'Cari Rekomendasi'}{!loading && <SparklesIcon className="w-5 h-5" />}
                           </button>
                           {loading && <p className="text-sm text-slate-500 mt-2 text-center animate-pulse">Kami coba bantu carikan, mohon tunggu..</p>}
@@ -170,11 +170,11 @@ const PhoneFinder: React.FC = () => {
 };
 
 const QuestionSection: FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div><h3 className="text-base font-semibold text-slate-800 mb-3">{title}</h3>{children}</div>
+  <div><h3 className="text-base font-semibold text-slate-800 mb-2">{title}</h3>{children}</div>
 );
 
 const Checkbox: FC<{ label: string; checked: boolean; onChange: () => void }> = ({ label, checked, onChange }) => (
-  <label className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 border-2 ${checked ? 'bg-[color:var(--accent1)]/10 border-[color:var(--accent1)]/50' : 'bg-slate-100 border-slate-200 hover:border-slate-300'}`}>
+  <label className={`flex items-center p-2.5 rounded-lg cursor-pointer transition-all duration-200 border-2 ${checked ? 'bg-[color:var(--accent1)]/10 border-[color:var(--accent1)]/50' : 'bg-slate-100 border-slate-200 hover:border-slate-300'}`}>
     <input type="checkbox" checked={checked} onChange={onChange} className="hidden" />
     <div className={`w-5 h-5 rounded-md border-2 ${checked ? 'bg-[color:var(--accent1)] border-[color:var(--accent1)]' : 'border-slate-400'} flex items-center justify-center mr-3 flex-shrink-0`}>
       {checked && <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
