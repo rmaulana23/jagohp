@@ -181,8 +181,18 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
         : { type: Type.OBJECT, properties: baseSchemaProperties, required: ['phones'] };
     
     const prompt = mode === 'battle'
-        ? `**Core Role: AI Battle Analyst for JAGO-HP**\nYour task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.\n**Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.\n**Knowledge Cut-off:** Your knowledge is updated to **1 Desember 2025**. Treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), Xiaomi 15T series, etc. as **officially released**.\n**Execution:** First, extract and synthesize the final specification data. Second, perform a holistic analysis to determine a clear winner. Third, write a brief, insightful summary of the battle.\n**Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`
-        : `**Core Role: Data Extractor for JAGO-HP**\nYour task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.\n**Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.\n**Knowledge Cut-off:** Your knowledge is updated to **1 Desember 2025**. Treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), Xiaomi 15T series, etc. as **officially released**.\n**Strict Rule:** You MUST NOT provide any summary, analysis, or winner. Your ONLY job is to return the raw specification data for the 'phones' object.\n**Final Output:** Strictly adhere to the JSON schema.`;
+        ? `**Core Role: AI Battle Analyst for JAGO-HP**
+Your task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.
+**Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.
+**Knowledge Cut-off:** Your knowledge is updated to **1 Desember 2025**. Treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), Xiaomi 15T series, etc. as **officially released**.
+**Execution:** First, extract and synthesize the final specification data. Second, perform a holistic analysis to determine a clear winner. Third, write a brief, insightful summary of the battle.
+**Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`
+        : `**Core Role: Data Extractor for JAGO-HP**
+Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.
+**Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.
+**Knowledge Cut-off:** Your knowledge is updated to **1 Desember 2025**. Treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), Xiaomi 15T series, etc. as **officially released**.
+**Strict Rule:** You MUST NOT provide any summary, analysis, or winner. Your ONLY job is to return the raw specification data for the 'phones' object.
+**Final Output:** Strictly adhere to the JSON schema.`;
     
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
@@ -274,13 +284,13 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
   const JagoCardArenaButton = (
     <button
       onClick={() => setPage('jago-card-arena')}
-      className="w-full text-left p-4 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-between"
+      className="w-full text-left p-4 rounded-2xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-between"
     >
       <div>
         <h3 className="font-bold text-lg font-orbitron">JAGO Card Arena</h3>
-        <p className="text-xs text-indigo-200 mt-1">Masuk ke arena dan adu kartu HP-mu!</p>
+        <p className="text-xs text-red-200 mt-1">Masuk ke arena dan adu kartu HP-mu!</p>
       </div>
-      <SparklesIcon className="w-8 h-8 text-yellow-300" />
+      
     </button>
   );
 
@@ -291,7 +301,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
         <div className="md:col-span-7 space-y-8">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron text-[color:var(--accent1)]">JAGO-HP</h1>
-              <p className="mt-2 text-sm text-slate-600">Your AI Expert, Asisten Cerdas Untuk Membantu Memilih Smartphone Terbaik Anda</p>
+              <p className="mt-2 text-sm text-slate-600">Your AI Expert, Asisten Cerdas Yang Membantu Memilih Smartphone Terbaik Untuk Anda.</p>
               <div className="mt-6">
                 <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
               </div>

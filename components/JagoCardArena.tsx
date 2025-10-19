@@ -105,11 +105,18 @@ const useSoundEffects = () => {
 
 // --- Utility Functions ---
 const mapSpecsToStats = (specs: PhoneSpecs): GameStats => {
-  const attack = Math.round(Math.max(10, Math.min(100, specs.cpuScore / 3000)));
-  const defense = Math.round(Math.max(10, Math.min(100, specs.batteryMah / 50)));
-  const speed = Math.round(Math.max(10, Math.min(100, specs.ramGb * 6 + specs.refreshRate / 8)));
-  const intelligence = Math.round(Math.max(10, Math.min(100, specs.cameraScore * 1.1)));
-  const battery = Math.round(Math.max(10, Math.min(100, specs.batteryMah / 45)));
+  // Defensive coding: Provide default values for specs that might be null/undefined from the AI
+  const cpuScore = specs?.cpuScore ?? 150000; // Default to a low-mid range score
+  const batteryMah = specs?.batteryMah ?? 4500;
+  const ramGb = specs?.ramGb ?? 6;
+  const refreshRate = specs?.refreshRate ?? 90;
+  const cameraScore = specs?.cameraScore ?? 50;
+
+  const attack = Math.round(Math.max(10, Math.min(99, cpuScore / 3200)));
+  const defense = Math.round(Math.max(10, Math.min(99, batteryMah / 53)));
+  const speed = Math.round(Math.max(10, Math.min(99, ramGb * 5.5 + refreshRate / 9)));
+  const intelligence = Math.round(Math.max(10, Math.min(99, cameraScore)));
+  const battery = Math.round(Math.max(10, Math.min(99, batteryMah / 52)));
   return { attack, defense, speed, intelligence, battery };
 };
 
@@ -118,7 +125,7 @@ const calcPower = (stats: GameStats, luck: number = 0): number => {
   return Math.round(power);
 };
 
-const rollLuck = (): number => Math.round((Math.random() - 0.5) * 10); // -5 to +5
+const rollLuck = (): number => Math.round((Math.random() - 0.5) * 10);
 
 // --- Sophisticated AI Logic ---
 const getOpponentChoice = (state: GameState, skillCooldown: number, healCooldown: number): Action => {
@@ -157,7 +164,7 @@ const getOpponentChoice = (state: GameState, skillCooldown: number, healCooldown
         random -= weight;
     }
 
-    return 'attack'; // Fallback
+    return 'attack';
 };
 
 // --- Card Components ---
@@ -209,7 +216,7 @@ const Card: FC<{ card: CardData | null; isPlayer?: boolean; health?: number; hig
 };
 
 const InfoDesk: FC<{ card: CardData | null }> = ({ card }) => {
-  if (!card?.specs) return <div className="h-[54px] w-56 md:w-64 hidden lg:block"></div>; // Placeholder for layout stability
+  if (!card?.specs) return <div className="h-[54px] w-56 md:w-64 hidden lg:block"></div>;
   return (
     <div className="hidden lg:block mt-2 text-center text-xs text-gray-300 w-56 md:w-64 p-2 bg-black/20 rounded-lg">
       <p className="font-semibold truncate" title={card.specs.processorName}>{card.specs.processorName}</p>
@@ -218,11 +225,31 @@ const InfoDesk: FC<{ card: CardData | null }> = ({ card }) => {
   );
 };
 
+const SetupCard: FC<{ card: CardData; onSelect: () => void; isSelected: boolean }> = ({ card, onSelect, isSelected }) => (
+    <button
+        onClick={onSelect}
+        className={`w-full text-left p-3 rounded-lg border-2 transition-all duration-200 ${isSelected ? 'bg-indigo-500/20 border-indigo-400' : 'bg-white/5 border-white/10 hover:border-white/30'}`}
+    >
+        <h4 className="font-bold text-white text-sm">{card.name}</h4>
+        <div className="mt-2 text-xs text-gray-300 space-y-1">
+            <p><strong>Chipset:</strong> {card.specs.processorName}</p>
+            <p><strong>RAM:</strong> {card.specs.ramGb} GB</p>
+            <p><strong>Baterai:</strong> {card.specs.batteryMah} mAh</p>
+        </div>
+    </button>
+);
+
 
 // --- Main Game Component ---
 const JagoCardArena: React.FC = () => {
   const { initializeAudio, playAttackSound, playHealSound, playSkillSound, playWinSound, playLoseSound, playStartSound } = useSoundEffects();
-  const [deck, setDeck] = useState<CardData[]>([]);
+  
+  const [gameState, setGameState] = useState<'initial' | 'deck-setup' | 'playing'>('initial');
+  const [cardPool, setCardPool] = useState<CardData[]>([]);
+  const [selectedSetupCards, setSelectedSetupCards] = useState<string[]>([]);
+  const [playerDeck, setPlayerDeck] = useState<CardData[]>([]);
+  const [opponentDeck, setOpponentDeck] = useState<CardData[]>([]);
+
   const [deckLoading, setDeckLoading] = useState(false);
   const [deckError, setDeckError] = useState<string|null>(null);
 
@@ -290,7 +317,16 @@ const JagoCardArena: React.FC = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-  
+
+  useEffect(() => {
+      if (currentTurn === 'opponent' && !isAnimating && !gameOver) {
+          const turnTimer = setTimeout(() => {
+              playOpponentTurn();
+          }, 1200);
+          return () => clearTimeout(turnTimer);
+      }
+  }, [currentTurn, gameOver, isAnimating]);
+
   const pushLog = (txt: string) => {
     setLog(l => [`[R${round}] ${txt}`, ...l].slice(0, 8));
   };
@@ -307,7 +343,7 @@ const JagoCardArena: React.FC = () => {
     if (!playerCard || !opponentCard) return;
     setIsAnimating(true);
 
-    const availableSwitchCards = deck.filter(c => c.id !== opponentCard.id && c.id !== playerCard.id && (opponentCardHealths[c.id] || 100) > 0);
+    const availableSwitchCards = opponentDeck.filter(c => c.id !== opponentCard.id && c.id !== playerCard.id && (opponentCardHealths[c.id] || 100) > 0);
     if (opponentHealth < 35 && availableSwitchCards.length > 0 && Math.random() < 0.5) {
         const newCard = availableSwitchCards[Math.floor(Math.random() * availableSwitchCards.length)];
         
@@ -334,9 +370,12 @@ const JagoCardArena: React.FC = () => {
         if (choice === "attack") { oPower = Math.round(oPower * 1.1); setLastHighlight('attack'); playAttackSound(); }
         if (choice === "heal") { oPower = Math.round(oPower * 0.7); setLastHighlight('defense'); playHealSound(); setOpponentHealCooldown(30); }
         if (choice === "skill" && opponentEnergy >= 40) { oPower = Math.round(oPower * 1.5); setLastHighlight('intelligence'); setOpponentEnergy(e => e - 40); setOpponentSkillCooldown(60); playSkillSound(); }
-
-        const damageToPlayer = choice !== 'heal' ? Math.max(3, Math.round((oPower - playerCard.stats.defense * 0.6) / 5) + Math.round((Math.random() - 0.5) * 4)) : 0;
         
+        const calculatedDamage = 8 + (oPower / 10) - (playerCard.stats.defense / 8);
+        const damageToPlayer = choice !== 'heal' 
+            ? Math.max(5, Math.round(calculatedDamage) + Math.round((Math.random() - 0.5) * 4)) 
+            : 0;
+
         let newPlayerHealth = playerHealth - damageToPlayer;
         if (choice === "heal") setOpponentHealth(h => Math.min(100, h + 6));
         
@@ -374,8 +413,11 @@ const JagoCardArena: React.FC = () => {
     if (choice === "heal") { pPower = Math.round(pPower * 0.7); setLastHighlight('defense'); playHealSound(); setPlayerHealCooldown(30); }
     if (choice === "skill" && playerEnergy >= 40) { pPower = Math.round(pPower * 1.5); setLastHighlight('intelligence'); setPlayerEnergy(e => e - 40); setPlayerSkillCooldown(60); playSkillSound(); }
 
-    const damageToOpponent = choice !== 'heal' ? Math.max(3, Math.round((pPower - opponentCard.stats.defense * 0.6) / 5) + Math.round((Math.random() - 0.5) * 4)) : 0;
-    
+    const calculatedDamage = 8 + (pPower / 10) - (opponentCard.stats.defense / 8);
+    const damageToOpponent = choice !== 'heal' 
+        ? Math.max(5, Math.round(calculatedDamage) + Math.round((Math.random() - 0.5) * 4)) 
+        : 0;
+
     pushLog(`You chose ${choice.toUpperCase()}`);
     await new Promise(r => setTimeout(r, 600));
 
@@ -389,13 +431,11 @@ const JagoCardArena: React.FC = () => {
     await new Promise(r => setTimeout(r, 600));
     setLastHighlight(null);
     
-    const newRound = round + 1;
     if (newOpponentHealth <= 0) {
         handleGameOver(playerHealth > 0 ? 'player' : 'draw');
     } else {
-        setRound(newRound);
+        setRound(r => r + 1);
         setCurrentTurn('opponent');
-        playOpponentTurn();
     }
     setIsAnimating(false);
   };
@@ -411,42 +451,37 @@ const JagoCardArena: React.FC = () => {
         setTimeout(() => {
             setTurnMessage(null);
             setCoinTossState('done');
-            if (firstTurn === 'opponent') {
-                playOpponentTurn();
-            }
         }, 1500);
     }, 1500);
   };
   
-  const startBattle = () => {
-    playStartSound();
-    
-    const initialPlayerHealths: { [key: string]: number } = {};
-    const initialOpponentHealths: { [key: string]: number } = {};
-    deck.forEach(card => {
-        initialPlayerHealths[card.id] = 100;
-        initialOpponentHealths[card.id] = 100;
-    });
-    setPlayerCardHealths(initialPlayerHealths);
-    setOpponentCardHealths(initialOpponentHealths);
+  const startGameWithDecks = (pDeck: CardData[], oDeck: CardData[]) => {
+      playStartSound();
+      
+      const allCards = [...pDeck, ...oDeck];
+      const initialHealths: { [key: string]: number } = {};
+      allCards.forEach(card => { initialHealths[card.id] = 100; });
 
-    setPlayerHealth(100);
-    setOpponentHealth(100);
-    setPlayerEnergy(0);
-    setOpponentEnergy(0);
-    setRound(1);
-    setLog([`A new battle begins!`]);
-    setGameOver(null);
-    setPlayerMoveHistory([]);
-    setCurrentTurn(null);
-    setPlayerSkillCooldown(0);
-    setOpponentSkillCooldown(0);
-    setPlayerHealCooldown(0);
-    setOpponentHealCooldown(0);
-    setTurnMessage(null);
-    setCoinTossState('pending');
-    localStorage.removeItem('lastGachaRound');
-    setGachaCount(0);
+      setPlayerCardHealths(initialHealths);
+      setOpponentCardHealths(initialHealths);
+
+      setPlayerHealth(100);
+      setOpponentHealth(100);
+      setPlayerEnergy(0);
+      setOpponentEnergy(0);
+      setRound(1);
+      setLog([`A new battle begins!`]);
+      setGameOver(null);
+      setPlayerMoveHistory([]);
+      setCurrentTurn(null);
+      setPlayerSkillCooldown(0);
+      setOpponentSkillCooldown(0);
+      setPlayerHealCooldown(0);
+      setOpponentHealCooldown(0);
+      setTurnMessage(null);
+      setCoinTossState('pending');
+      localStorage.removeItem('lastGachaRound');
+      setGachaCount(0);
   };
   
     const handleGachaDraw = async () => {
@@ -463,8 +498,9 @@ const JagoCardArena: React.FC = () => {
                 }}
             }
         };
+        const currentDeckNames = [...playerDeck, ...opponentDeck].map(c => c.name).join(', ');
         const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
-        **Tugas:** Buat **SATU KARTU** smartphone acak yang belum ada di deck ini: ${deck.map(c => c.name).join(', ')}.
+        **Tugas:** Buat **SATU KARTU** smartphone acak yang belum ada di deck ini: ${currentDeckNames}.
         **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **1 Desember 2025**. Seri Samsung S25, iPhone 17, Xiaomi 17 & 15T sudah dianggap rilis.
         **Data yang Diperlukan:** id, name, specs (processorName, cpuScore, batteryMah, ramGb, refreshRate, cameraScore).
         **Output:** Berikan jawaban HANYA dalam format JSON objek tunggal sesuai skema.`;
@@ -474,7 +510,8 @@ const JagoCardArena: React.FC = () => {
             const newCardData: Omit<CardData, 'stats'> = JSON.parse(response.text.trim());
             const newCard = { ...newCardData, stats: mapSpecsToStats(newCardData.specs) };
 
-            setDeck(prev => [...prev, newCard]);
+            setPlayerDeck(prev => [...prev, newCard]);
+            setOpponentDeck(prev => [...prev, newCard]);
             setPlayerCardHealths(prev => ({ ...prev, [newCard.id]: 100 }));
             setOpponentCardHealths(prev => ({ ...prev, [newCard.id]: 100 }));
             
@@ -497,7 +534,7 @@ const JagoCardArena: React.FC = () => {
     };
 
   const handleSelectPlayerCard = (id: string) => {
-    const newCard = deck.find(c => c.id === id);
+    const newCard = playerDeck.find(c => c.id === id);
     if (!newCard || !playerCard || newCard.id === playerCard.id || currentTurn !== 'player' || isAnimating) return;
 
     setPlayerCard(newCard);
@@ -505,28 +542,15 @@ const JagoCardArena: React.FC = () => {
     setPlayerEnergy(0);
     pushLog(`You switched to ${newCard.name}.`);
 
-    setTimeout(() => {
-        setRound(r => r+1);
-        setCurrentTurn('opponent');
-        playOpponentTurn();
-    }, 500);
+    setRound(r => r + 1);
+    setCurrentTurn('opponent');
   };
 
-  const handleSelectOpponentCard = (id: string) => {
-      const newCard = deck.find(c => c.id === id);
-      if (!newCard || newCard.id === opponentCard?.id) return;
-      
-      setOpponentCard(newCard);
-      if (playerCard) {
-          startBattle();
-      }
-  };
-
-  const generateRandomDeck = async () => {
-    initializeAudio(); // Initialize audio on first user interaction
+  const generateCardPool = async () => {
+    initializeAudio();
     setDeckLoading(true);
     setDeckError(null);
-    setDeck([]);
+    setCardPool([]);
     
     const schema = {
         type: Type.ARRAY,
@@ -548,27 +572,18 @@ const JagoCardArena: React.FC = () => {
     };
     
     const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
-    **Tugas:** Buat sebuah "deck" berisi **3 kartu** smartphone yang beragam dan menarik untuk dimainkan. Sertakan campuran dari flagship, mid-ranger, dan mungkin satu pilihan unik/niche.
+    **Tugas:** Buat sebuah "card pool" berisi **10 kartu** smartphone yang **BERBEDA SATU SAMA LAIN**, beragam, dan menarik. Sertakan campuran dari flagship, mid-ranger, dan pilihan unik.
     **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **1 Desember 2025**. Seri Samsung S25, iPhone 17, Xiaomi 17 & 15T sudah dianggap rilis.
-    **Data yang Diperlukan per HP:**
-    - \`id\`: ID unik (misal: "s25u").
-    - \`name\`: Nama resmi HP.
-    - \`specs.processorName\`: Nama chipset (e.g., "Snapdragon 8 Gen 4").
-    - \`specs.cpuScore\`: Skor AnTuTu v10 (sebagai angka).
-    - \`specs.batteryMah\`: Kapasitas baterai (sebagai angka).
-    - \`specs.ramGb\`: Ukuran RAM (sebagai angka).
-    - \`specs.refreshRate\`: Refresh rate layar (sebagai angka).
-    - \`specs.cameraScore\`: Skor kamera 1-100 (estimasi berdasarkan kualitas keseluruhan).
-    **Output:** Berikan jawaban HANYA dalam format JSON array sesuai skema.`;
+    **Data yang Diperlukan per HP:** id, name, specs (processorName, cpuScore, batteryMah, ramGb, refreshRate, cameraScore).
+    **Output:** Berikan jawaban HANYA dalam format JSON array berisi 10 objek sesuai skema.`;
 
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any } });
         const results: Omit<CardData, 'stats'>[] = JSON.parse(response.text.trim());
-        const newDeck = results.map(c => ({...c, stats: mapSpecsToStats(c.specs)}));
-        setDeck(newDeck);
-        setPlayerCard(newDeck[0]);
-        setOpponentCard(newDeck[1]);
-        startBattle();
+        const newCards = results.map(c => ({...c, stats: mapSpecsToStats(c.specs)}));
+        setCardPool(newCards);
+        setSelectedSetupCards([]);
+        setGameState('deck-setup');
     } catch (e) {
         console.error(e);
         setDeckError("Failed to generate deck. Please try again.");
@@ -577,36 +592,90 @@ const JagoCardArena: React.FC = () => {
     }
   };
 
+    const handleSetupCardSelect = (cardId: string) => {
+        setSelectedSetupCards(prev => {
+            if (prev.includes(cardId)) {
+                return prev.filter(id => id !== cardId);
+            }
+            if (prev.length < 3) {
+                return [...prev, cardId];
+            }
+            return prev;
+        });
+    };
+
+    const handleConfirmDeck = () => {
+        const newPlayerDeck = cardPool.filter(c => selectedSetupCards.includes(c.id));
+        setPlayerDeck(newPlayerDeck);
+
+        const remainingCards = cardPool.filter(c => !selectedSetupCards.includes(c.id));
+        const shuffledRemaining = remainingCards.sort(() => 0.5 - Math.random());
+        const newOpponentDeck = shuffledRemaining.slice(0, 3);
+        setOpponentDeck(newOpponentDeck);
+
+        setPlayerCard(newPlayerDeck[0]);
+        setOpponentCard(newOpponentDeck[0]);
+        
+        startGameWithDecks(newPlayerDeck, newOpponentDeck);
+        setGameState('playing');
+    };
+
   const renderGameContent = () => {
     if (deckLoading) {
-        return <div className="text-center p-10"><p className="animate-pulse">AI is creating a random deck...</p></div>;
+        return <div className="text-center p-10"><p className="animate-pulse">AI is creating a card pool for you...</p></div>;
     }
     if (deckError) {
-        return <div className="text-center p-10"><p className="text-red-400">{deckError}</p><button onClick={generateRandomDeck} className="mt-4 px-6 py-2 rounded-lg bg-indigo-600 font-semibold hover:bg-indigo-700">Try Again</button></div>;
+        return <div className="text-center p-10"><p className="text-red-400">{deckError}</p><button onClick={generateCardPool} className="mt-4 px-6 py-2 rounded-lg bg-indigo-600 font-semibold hover:bg-indigo-700">Try Again</button></div>;
     }
-    if (deck.length === 0) {
+    
+    if (gameState === 'initial') {
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
                  <div className="max-w-2xl bg-white/5 p-4 rounded-lg mb-6 border border-white/10">
                     <h3 className="font-bold text-lg mb-3">Cara Bermain</h3>
                     <div className="text-left text-sm text-gray-300 space-y-2">
-                        <p><strong>1. Mulai:</strong> Tekan "Start Battle" untuk membuat dek acak berisi 3 kartu HP.</p>
+                        <p><strong>1. Setup Deck:</strong> Pilih 3 dari 10 kartu acak untuk membentuk deck-mu.</p>
                         <p><strong>2. Giliran Pertama:</strong> Lakukan lempar koin untuk menentukan siapa yang jalan duluan.</p>
                         <p><strong>3. Aksi:</strong> Pilih antara <strong>Serang</strong> (damage), <strong>Heal</strong> (pulihkan HP, cooldown 30d), atau <strong>Skill</strong> (serangan kuat, butuh 40 energi, cooldown 60d).</p>
                         <p><strong>4. Gacha:</strong> Setiap 5 ronde, dapatkan kesempatan menarik kartu baru (maks. 2x per game).</p>
                         <p><strong>5. Kemenangan:</strong> Kalahkan semua kartu lawan untuk menjadi pemenang!</p>
                     </div>
                 </div>
-                <button onClick={generateRandomDeck} className="px-6 py-3 rounded-lg bg-indigo-600 font-semibold hover:bg-indigo-700 flex items-center gap-2">
-                    <SparklesIcon className="w-5 h-5" />
+                <button onClick={generateCardPool} className="px-6 py-3 rounded-lg bg-indigo-600 font-semibold hover:bg-indigo-700 flex items-center gap-2">
+                    
                     Start Battle
                 </button>
             </div>
         );
     }
+    
+    if (gameState === 'deck-setup') {
+        return (
+            <div className="flex flex-col items-center">
+                <h2 className="text-2xl font-bold mb-1">Deck Setup</h2>
+                <p className="text-gray-400 mb-4">Pilih 3 kartu untuk deck pertarunganmu.</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-full">
+                    {cardPool.map(card => (
+                        <SetupCard 
+                            key={card.id} 
+                            card={card} 
+                            isSelected={selectedSetupCards.includes(card.id)} 
+                            onSelect={() => handleSetupCardSelect(card.id)} 
+                        />
+                    ))}
+                </div>
+                <button 
+                    onClick={handleConfirmDeck}
+                    disabled={selectedSetupCards.length !== 3}
+                    className="mt-6 px-8 py-3 rounded-lg bg-indigo-600 font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Mulai Pertarungan ({selectedSetupCards.length}/3)
+                </button>
+            </div>
+        );
+    }
 
-    const opponentOptions = deck.filter(c => c.id !== playerCard?.id);
-
+    // --- GameState is 'playing' ---
     return (
        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6">
 
@@ -616,7 +685,7 @@ const JagoCardArena: React.FC = () => {
               {gameOver && (
                 <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="absolute inset-0 bg-black/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-2xl">
                   <h2 className="text-4xl font-bold font-orbitron text-center">{gameOver}</h2>
-                  {gameOver && <button onClick={startBattle} className="mt-4 px-6 py-2 rounded-lg bg-white/20 font-semibold hover:bg-white/30">Play Again</button>}
+                  {gameOver && <button onClick={() => setGameState('initial')} className="mt-4 px-6 py-2 rounded-lg bg-white/20 font-semibold hover:bg-white/30">Back to Main Menu</button>}
                 </motion.div>
               )}
                {isGachaTime && (
@@ -662,14 +731,12 @@ const JagoCardArena: React.FC = () => {
                 </div>
             </div>
             
-            {/* DESKTOP BATTLE LOG */}
             <div className="hidden lg:block bg-white/5 rounded-xl p-3 mt-4 w-full max-w-lg">
                 <h3 className="font-semibold text-gray-300 mb-2 text-center">Battle Log</h3>
                 <div className="text-xs text-gray-300 h-24 overflow-y-auto space-y-1 pr-2 text-center">{log.map((l, i) => <p key={i}>{l}</p>)}</div>
             </div>
         </div>
 
-        {/* --- MOBILE: BATTLE CONTROLS --- */}
         <div className="order-2 lg:hidden mt-4 space-y-4">
             <div className="bg-white/5 rounded-xl p-3">
               <h3 className="font-semibold text-gray-300 mb-2">Battle Controls</h3>
@@ -690,7 +757,6 @@ const JagoCardArena: React.FC = () => {
             </div>
         </div>
         
-        {/* --- PLAYER COLUMN --- */}
         <div className="order-3 lg:order-1 lg:col-span-3 space-y-4">
             <div className="hidden lg:block bg-white/5 rounded-xl p-3">
                <h3 className="font-semibold text-gray-300 mb-2">Battle Controls</h3>
@@ -711,25 +777,23 @@ const JagoCardArena: React.FC = () => {
             </div>
             <div className="bg-white/5 rounded-xl p-3">
               <h3 className="font-semibold text-gray-300 mb-2">Your Deck</h3>
-              <div className="flex flex-col gap-2">{deck.map(c => <button key={c.id} onClick={() => handleSelectPlayerCard(c.id)} disabled={isAnimating || currentTurn !== 'player'} className={`w-full text-left px-3 py-1.5 rounded-md text-sm font-medium disabled:opacity-50 ${c.id === playerCard?.id ? "bg-indigo-500" : "bg-white/10"}`}>{c.name}</button>)}</div>
+              <div className="flex flex-col gap-2">{playerDeck.map(c => <button key={c.id} onClick={() => handleSelectPlayerCard(c.id)} disabled={isAnimating || currentTurn !== 'player'} className={`w-full text-left px-3 py-1.5 rounded-md text-sm font-medium disabled:opacity-50 ${c.id === playerCard?.id ? "bg-indigo-500" : "bg-white/10"}`}>{c.name}</button>)}</div>
             </div>
         </div>
 
-        {/* --- OPPONENT COLUMN --- */}
         <div className="order-4 lg:order-3 lg:col-span-3 space-y-4">
            <div className="bg-white/5 rounded-xl p-3">
               <h3 className="font-semibold text-gray-300 mb-2">Opponent Deck</h3>
-              <div className="flex flex-col gap-2">{opponentOptions.map(c => 
-                <button key={c.id} onClick={() => handleSelectOpponentCard(c.id)} className={`w-full text-left px-3 py-1.5 rounded-md text-sm font-medium ${c.id === opponentCard?.id ? "bg-rose-600" : "bg-white/10"}`}>
+              <div className="flex flex-col gap-2">{opponentDeck.map(c => 
+                <div key={c.id} className={`w-full text-left px-3 py-1.5 rounded-md text-sm font-medium ${c.id === opponentCard?.id ? "bg-rose-600/50" : "bg-white/10"}`}>
                   <span className="filter blur-sm select-none">{c.name}</span>
-                </button>
+                </div>
               )}</div>
             </div>
             <div className="bg-white/5 rounded-xl p-3">
                  <div className="text-xs text-gray-400">Opponent Energy: {opponentEnergy}/100</div>
                  <div className="w-full h-2.5 bg-white/10 rounded-full mt-1"><div className="h-full bg-rose-400 rounded-full" style={{ width: `${opponentEnergy}%` }} /></div>
             </div>
-            {/* DESKTOP HOW TO PLAY */}
             <div className="hidden lg:block bg-white/5 rounded-xl p-3 text-xs text-gray-300 space-y-1">
                 <h3 className="font-semibold text-gray-200 mb-2">How to Play</h3>
                 <p><strong className="text-red-400">Attack:</strong> Deals damage.</p>
@@ -738,7 +802,6 @@ const JagoCardArena: React.FC = () => {
             </div>
         </div>
 
-        {/* --- MOBILE BATTLE LOG & HOW TO PLAY --- */}
         <div className="order-5 lg:hidden mt-4 w-full max-w-md mx-auto space-y-4">
              <div className="bg-white/5 rounded-xl p-3">
               <h3 className="font-semibold text-gray-300 mb-2 text-center">Battle Log</h3>
