@@ -133,16 +133,19 @@ const rollLuck = (): number => Math.round((Math.random() - 0.5) * 10);
 const getOpponentChoice = (state: GameState, skillCooldown: number, healCooldown: number): Action => {
     const { playerHealth, opponentHealth, opponentEnergy, playerMoveHistory } = state;
     
-    let weights = { attack: 40, heal: 30, skill: 0 };
-    
-    if (healCooldown > 0) weights.heal = 0;
+    let weights = { attack: 40, heal: 30, skill: 30 }; // Base weight for skill
 
+    // --- Weight adjustments based on game state ---
+
+    // Low health logic for healing
     if (opponentHealth < 30) { weights.heal += 50; weights.attack -= 20; } 
     else if (opponentHealth < 50) { weights.heal += 25; }
 
+    // Aggressive logic based on player health
     if (playerHealth < 30) { weights.attack += 40; weights.heal -= 15; } 
     else if (playerHealth < 50) { weights.attack += 20; }
     
+    // Counter-play logic based on player history
     if (playerMoveHistory.length > 3) {
         const attackFreq = playerMoveHistory.filter(m => m === 'attack').length / playerMoveHistory.length;
         const healFreq = playerMoveHistory.filter(m => m === 'heal').length / playerMoveHistory.length;
@@ -151,13 +154,25 @@ const getOpponentChoice = (state: GameState, skillCooldown: number, healCooldown
         if (healFreq > 0.5) { weights.attack += 20; }
     }
 
-    if (opponentEnergy >= 40 && skillCooldown === 0) {
-        weights.skill += 30;
-        if (playerHealth < 60) weights.skill += 30;
-        if (opponentHealth > 80 && playerHealth > 80) weights.skill -= 15;
+    // Adjust skill weight based on situation
+    if (playerHealth < 60) weights.skill += 30;
+    if (opponentHealth > 80 && playerHealth > 80) weights.skill -= 15;
+
+    // --- Cooldown & Resource Overrides (MUST be last) ---
+    if (healCooldown > 0) {
+        weights.heal = 0;
+    }
+    if (skillCooldown > 0 || opponentEnergy < 40) {
+        weights.skill = 0;
     }
 
     const totalWeight = Object.values(weights).reduce((sum, weight) => sum + Math.max(0, weight), 0);
+    
+    // If no weights are positive (e.g., all on cooldown), default to attack.
+    if (totalWeight === 0) {
+        return 'attack';
+    }
+    
     let random = Math.random() * totalWeight;
 
     for (const move in weights) {
@@ -166,7 +181,7 @@ const getOpponentChoice = (state: GameState, skillCooldown: number, healCooldown
         random -= weight;
     }
 
-    return 'attack';
+    return 'attack'; // Fallback
 };
 
 // --- Card Components ---
@@ -810,7 +825,7 @@ const JagoCardArena: React.FC = () => {
                 <p><strong className="text-red-400">Attack:</strong> Deals damage.</p>
                 <p><strong className="text-green-400">Heal:</strong> Recovers HP. <strong className="text-cyan-400">{opponentHealCooldown > 0 ? `(Opponent CD: ${opponentHealCooldown}s)`: ''}</strong></p>
                 <p><strong className="text-indigo-400">Skill:</strong> High damage, costs 40 Energy. <strong className="text-cyan-400">{opponentSkillCooldown > 0 ? `(Opponent CD: ${opponentSkillCooldown}s)`: ''}</strong></p>
-            </div>
+             </div>
         </div>
 
         <div className="order-5 lg:hidden mt-4 w-full max-w-md mx-auto space-y-4">

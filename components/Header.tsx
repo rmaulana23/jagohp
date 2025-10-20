@@ -4,11 +4,11 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { label: 'Beranda', key: 'home' },
+    { label: 'Home', key: 'home' },
     { label: 'Smart Review', key: 'review' },
     { label: 'Compare', key: 'battle' },
     { label: 'Phone Match', key: 'finder' },
-    { label: 'Tentang', key: 'about' }
+    { label: 'About', key: 'about' }
   ];
 
   const handleNavClick = (e: React.MouseEvent, pageKey: string) => {
