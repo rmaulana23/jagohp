@@ -90,7 +90,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     };
     const prompt = `**Core Role: Comprehensive Data Synthesizer for JAGO-HP**
 Your task is to act as an AI Gadget Reviewer and generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
-**Knowledge Cut-off & Context:** Your knowledge is updated as of **1 Desember 2025**. Devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), Xiaomi 15T series, etc. are considered **officially released** with full data.
+**Knowledge Cut-off & Context:** Your knowledge is updated as of **1 Oktober 2026**. Devices like the **Samsung S26 series (S26, S26 Ultra), iPhone 18 series, Xiaomi 16 & 16T series**, etc. are considered **officially released** with full data.
 **Data Sources (Mandatory):** You MUST synthesize data from reliable sources like **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
 **Universal Brand Knowledge:** You are an expert on all major phone brands.
 
@@ -104,7 +104,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
     -   \`specs.ram\`: Format: "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
     -   \`specs.camera\`: A short summary of main lenses. Example: "Utama: 200MP + 50MP", "50MP Wide + 12MP Ultrawide".
     -   \`specs.battery\`: Just the capacity. Example: "5000 mAh".
-5.  **Failure Conditions:** If the device is unreleased (rumored for post-1 Dec 2025), state this clearly. If not found at all, the \`phoneName\` must contain an error message.
+5.  **Failure Conditions:** If the device is unreleased (rumored for post-1 Oct 2026), state this clearly. If not found at all, the \`phoneName\` must contain an error message.
 
 **Final Output:** Strictly adhere to the JSON schema and all formatting rules.`;
     
@@ -184,13 +184,13 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
         ? `**Core Role: AI Battle Analyst for JAGO-HP**
 Your task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.
 **Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.
-**Knowledge Cut-off:** Your knowledge is updated to **1 Desember 2025**. Treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), Xiaomi 15T series, etc. as **officially released**.
+**Knowledge Cut-off:** Your knowledge is updated to **1 Oktober 2026**. Treat devices like the **Samsung S26 series (S26, S26 Ultra), iPhone 18 series, Xiaomi 16 & 16T series**, etc. as **officially released**.
 **Execution:** First, extract and synthesize the final specification data. Second, perform a holistic analysis to determine a clear winner. Third, write a brief, insightful summary of the battle.
 **Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`
         : `**Core Role: Data Extractor for JAGO-HP**
 Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.
 **Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.
-**Knowledge Cut-off:** Your knowledge is updated to **1 Desember 2025**. Treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), Xiaomi 15T series, etc. as **officially released**.
+**Knowledge Cut-off:** Your knowledge is updated to **1 Oktober 2026**. Treat devices like the **Samsung S26 series (S26, S26 Ultra), iPhone 18 series, Xiaomi 16 & 16T series**, etc. as **officially released**.
 **Strict Rule:** You MUST NOT provide any summary, analysis, or winner. Your ONLY job is to return the raw specification data for the 'phones' object.
 **Final Output:** Strictly adhere to the JSON schema.`;
     
@@ -259,7 +259,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
 
     const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia.
     **Tugas:** Berdasarkan budget **${budget}**, berikan **SATU** rekomendasi smartphone **all-rounder** terbaik. All-rounder berarti seimbang antara performa, kamera, dan baterai untuk harganya.
-    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **1 Desember 2025**. Seri Samsung S25, iPhone 17, Xiaomi 17, dan seri Xiaomi 15T sudah dianggap **resmi rilis**.
+    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **1 Oktober 2026**. Seri **Samsung S26, iPhone 18, dan seri Xiaomi 16 & 16T** sudah dianggap **resmi rilis**.
     **Output:** Berikan jawaban dalam format JSON sesuai skema yang disediakan. 'reason' harus sangat singkat (1 kalimat).`;
 
     try {
@@ -352,7 +352,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                 </div>
                 {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang membandingkan, mohon tunggu..</div>}
                 {battleError && <div className="text-center p-4 text-red-500">{battleError}</div>}
-                {battleData && <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />}
+                {battleData && <div className="md:hidden mt-4"><BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} /></div>}
             </div>
 
             {/* Quick Phone Match & RESULT */}
@@ -365,22 +365,28 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                 />
                 {quickMatchLoading && <div className="text-center p-4 small-muted animate-pulse">Mencari HP terbaik untukmu...</div>}
                 {quickMatchError && <div className="text-center p-4 text-red-500">{quickMatchError}</div>}
-                {quickMatchResult && <QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} />}
+                {quickMatchResult && <div className="md:hidden mt-4"><QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} /></div>}
             </div>
         </div>
 
         {/* RIGHT: LEADERBOARDS & PREVIEW */}
         <div className="md:col-span-5 space-y-5">
+            <div className="hidden md:block">{JagoCardArenaButton}</div>
             {latestReviewResult && (
-                <>
-                    <div className="hidden md:block">{JagoCardArenaButton}</div>
-                    {/* Desktop-only review result */}
-                    <div className="hidden md:block">
-                        <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
-                    </div>
-                </>
+                <div className="hidden md:block">
+                    <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
+                </div>
             )}
-            {!latestReviewResult && <div className="hidden md:block">{JagoCardArenaButton}</div>}
+            {battleData && (
+                 <div className="hidden md:block">
+                    <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />
+                </div>
+            )}
+            {quickMatchResult && (
+                 <div className="hidden md:block">
+                    <QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} />
+                </div>
+            )}
             <LeaderboardCard title="Top 3 Brand HP di Indonesia" data={[{name: 'Samsung', share: '29.8%'}, {name: 'Xiaomi', share: '21.5%'}, {name: 'Oppo', share: '14.5%'}]} />
             <InsightPublic />
         </div>
@@ -392,7 +398,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
 // --- Snippet Components ---
 
 const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ result, onSeeFull }) => (
-    <div className="glass p-4 mt-4 animate-fade-in space-y-4">
+    <div className="glass p-4 animate-fade-in space-y-4">
         {result.battleSummary && (
              <p className="text-sm text-slate-600 leading-relaxed border-b border-slate-200 pb-3 mb-3">
                 {result.battleSummary}

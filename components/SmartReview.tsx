@@ -144,8 +144,8 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
         Your primary task is to generate a comprehensive, data-driven review in **Bahasa Indonesia** for the gadget: '${searchQuery}'.
 
         **Context & Knowledge Cut-off (Mandatory):**
-        - **Knowledge Date:** Your knowledge is fully updated as of **1 Desember 2025**.
-        - **Device Status:** You **MUST** treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), iPhone 17 series, Xiaomi 15T series, etc., as **officially released** products. All data for them is final and available.
+        - **Knowledge Date:** Your knowledge is fully updated as of **1 Oktober 2026**.
+        - **Device Status:** You **MUST** treat devices like the **Samsung S26 series (S26, S26 Ultra), iPhone 18 series, Xiaomi 16 & 16T series**, etc., as **officially released** products. All data for them is final and available.
 
         **Data Sources (Mandatory):**
         - You **MUST** source and synthesize data from a wide range of reliable, top-tier sources, prioritizing: **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
@@ -160,7 +160,7 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
         4.  **Generate Full Review Content:** Populate the entire JSON schema using the synthesized data.
             -   **Ratings:** Provide a 1-10 score for each category based on the final, official product performance.
             -   **Summaries & Analysis:** Write all textual content based on objective, synthesized data.
-        5.  **Handling Unreleased/Rumored Devices (for releases AFTER 1 Desember 2025):**
+        5.  **Handling Unreleased/Rumored Devices (for releases AFTER 1 Oktober 2026):**
             -   This rule applies **only** to devices rumored for release **after** your current knowledge date.
             -   For such a device: set numeric ratings to \`0\`, use \`null\` for scores, and state in the \`quickReview.summary\` that the review is based on rumored specs.
         6.  **True Failure Condition (Not Found):** Only if the device cannot be found on any source, populate the \`phoneName\` field with an error message like "Maaf: Perangkat '${searchQuery}' tidak dapat ditemukan."

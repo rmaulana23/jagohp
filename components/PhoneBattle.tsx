@@ -135,8 +135,8 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
         Your primary task is to perform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.
 
         **Context & Knowledge Cut-off (Mandatory):**
-        - **Knowledge Date:** Your knowledge is fully updated as of **1 Desember 2025**.
-        - **Device Status:** You **MUST** treat devices like the Samsung S25 series (S25, S25 Ultra, S25 FE), iPhone 17 series, Xiaomi 15T series, etc., as **officially released** products. All data for them is final and available.
+        - **Knowledge Date:** Your knowledge is fully updated as of **1 Oktober 2026**.
+        - **Device Status:** You **MUST** treat devices like the **Samsung S26 series (S26, S26 Ultra), iPhone 18 series, Xiaomi 16 & 16T series**, etc., as **officially released** products. All data for them is final and available.
 
         **Data Sources (Mandatory):**
         - You **MUST** source and synthesize data from a wide range of reliable sources, prioritizing: **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
@@ -147,7 +147,7 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
         **Execution Steps & Rules (Strictly Follow):**
         1.  **Identify Gadgets:** Identify the official name and type for each device in ${phoneList}.
         2.  **Extract & Synthesize Data:** Extract all relevant specs for every device, synthesizing information from your full range of specified sources to get the most accurate, final data.
-        3.  **Handle Unannounced Devices (Post-Dec 2025):** If a user requests a device rumored for release **AFTER 1 Desember 2025**, state that its specs are based on rumors and use \`null\` for unavailable data.
+        3.  **Handle Unannounced Devices (Post-Oct 2026):** If a user requests a device rumored for release **AFTER 1 Oktober 2026**, state that its specs are based on rumors and use \`null\` for unavailable data.
         4.  **Holistic Analysis & Winner Determination:**
             -   Compare the synthesized final specs. **DO NOT** rely on a single metric.
             -   Consider overall value: performance, display, camera, battery, price.

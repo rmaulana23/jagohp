@@ -465,7 +465,7 @@ const JCC: React.FC = () => {
         };
         const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
         **Tugas:** Buat **SATU KARTU** smartphone acak yang belum ada di deck ini: ${deck.map(c => c.name).join(', ')}.
-        **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **1 Desember 2025**. Seri Samsung S25, iPhone 17, Xiaomi 17 & 15T sudah dianggap rilis.
+        **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **1 Oktober 2026**. Seri **Samsung S26, iPhone 18, dan seri Xiaomi 16 & 16T** sudah dianggap rilis.
         **Data yang Diperlukan:** id, name, specs (processorName, cpuScore, batteryMah, ramGb, refreshRate, cameraScore).
         **Output:** Berikan jawaban HANYA dalam format JSON objek tunggal sesuai skema.`;
         
@@ -549,7 +549,7 @@ const JCC: React.FC = () => {
     
     const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
     **Tugas:** Buat sebuah "deck" berisi **3 kartu** smartphone yang beragam dan menarik untuk dimainkan. Sertakan campuran dari flagship, mid-ranger, dan mungkin satu pilihan unik/niche.
-    **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **1 Desember 2025**. Seri Samsung S25, iPhone 17, Xiaomi 17 & 15T sudah dianggap rilis.
+    **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **1 Oktober 2026**. Seri **Samsung S26, iPhone 18, dan seri Xiaomi 16 & 16T** sudah dianggap rilis.
     **Data yang Diperlukan per HP:**
     - \`id\`: ID unik (misal: "s25u").
     - \`name\`: Nama resmi HP.
