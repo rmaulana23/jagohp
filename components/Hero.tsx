@@ -312,7 +312,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
               {JagoCardArenaButton}
             </div>
 
-            {/* QUICK SEARCH */}
+            {/* QUICK SEARCH & RESULT */}
             <div>
               <label className="font-semibold text-slate-800 text-lg">Quick Smart Review</label>
               <div className="mt-2 flex gap-3 items-center">
@@ -320,46 +320,53 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                 <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Review'}</button>
               </div>
               <div className="mt-2 text-sm small-muted">Ketik model atau tipe HP</div>
+              {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang mereview, mohon tunggu..</div>}
+              {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
+              {/* Mobile-only review result */}
+              {latestReviewResult && (
+                  <div className="md:hidden mt-4">
+                      <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
+                  </div>
+              )}
             </div>
-             {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang mereview, mohon tunggu..</div>}
-             {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
              
-            {/* Quick Compare */}
-            <div className="glass p-6">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-slate-800 text-lg">Quick Compare</h3>
-                    <div className="text-sm small-muted">Bandingkan 2 HP tipe berbeda</div>
+            {/* Quick Compare & RESULT */}
+            <div>
+                <div className="glass p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-semibold text-slate-800 text-lg">Quick Compare</h3>
+                        <div className="text-sm small-muted">Bandingkan 2 HP tipe berbeda</div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input id="cmpA" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 1" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
+                        <input id="cmpB" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 2" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
+                    </div>
+                    <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                        <button onClick={() => handleCompareAction('compare')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-slate-400 text-slate-600 font-semibold hover:bg-slate-100 transition-colors disabled:opacity-50">
+                            {battleModeLoading === 'compare' ? 'Membandingkan...' : 'Compare'}
+                        </button>
+                        <button onClick={() => handleCompareAction('battle')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
+                            {battleModeLoading === 'battle' ? 'Membandingkan...' : 'Battle Mode'}
+                        </button>
+                    </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input id="cmpA" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 1" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
-                    <input id="cmpB" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 2" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
-                </div>
-                <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                    <button onClick={() => handleCompareAction('compare')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-slate-400 text-slate-600 font-semibold hover:bg-slate-100 transition-colors disabled:opacity-50">
-                        {battleModeLoading === 'compare' ? 'Membandingkan...' : 'Compare'}
-                    </button>
-                    <button onClick={() => handleCompareAction('battle')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
-                        {battleModeLoading === 'battle' ? 'Membandingkan...' : 'Battle Mode'}
-                    </button>
-                </div>
+                {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang membandingkan, mohon tunggu..</div>}
+                {battleError && <div className="text-center p-4 text-red-500">{battleError}</div>}
+                {battleData && <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />}
             </div>
 
-            {/* Quick Phone Match */}
-            <QuickPhoneMatch
-                options={["1 Jutaan", "2 Jutaan", "3 Jutaan", "Diatas 4 Juta"]}
-                selectedBudget={quickMatchBudget}
-                onSelectBudget={handleQuickMatch}
-                loading={quickMatchLoading}
-            />
-
-            {/* --- DYNAMIC RESULTS AREA --- */}
-            {quickMatchLoading && <div className="text-center p-4 small-muted animate-pulse">Mencari HP terbaik untukmu...</div>}
-            {quickMatchError && <div className="text-center p-4 text-red-500">{quickMatchError}</div>}
-            {quickMatchResult && <QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} />}
-
-            {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang membandingkan, mohon tunggu..</div>}
-            {battleError && <div className="text-center p-4 text-red-500">{battleError}</div>}
-            {battleData && <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />}
+            {/* Quick Phone Match & RESULT */}
+            <div>
+                <QuickPhoneMatch
+                    options={["1 Jutaan", "2 Jutaan", "3 Jutaan", "Diatas 4 Juta"]}
+                    selectedBudget={quickMatchBudget}
+                    onSelectBudget={handleQuickMatch}
+                    loading={quickMatchLoading}
+                />
+                {quickMatchLoading && <div className="text-center p-4 small-muted animate-pulse">Mencari HP terbaik untukmu...</div>}
+                {quickMatchError && <div className="text-center p-4 text-red-500">{quickMatchError}</div>}
+                {quickMatchResult && <QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} />}
+            </div>
         </div>
 
         {/* RIGHT: LEADERBOARDS & PREVIEW */}
@@ -367,7 +374,10 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
             {latestReviewResult && (
                 <>
                     <div className="hidden md:block">{JagoCardArenaButton}</div>
-                    <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
+                    {/* Desktop-only review result */}
+                    <div className="hidden md:block">
+                        <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
+                    </div>
                 </>
             )}
             {!latestReviewResult && <div className="hidden md:block">{JagoCardArenaButton}</div>}
