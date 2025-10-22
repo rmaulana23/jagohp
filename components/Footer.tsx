@@ -19,7 +19,7 @@ const Footer: React.FC<FooterProps> = ({ setPage, page }) => {
   };
 
   return (
-    <footer className="mt-auto py-8">
+    <footer className="mt-auto py-8 hidden md:block">
       <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className={`text-sm text-center sm:text-left ${page === 'jcc' ? 'text-slate-400' : 'text-slate-500'}`}>
           © JAGO-HP 2025 All Rights Reserved.

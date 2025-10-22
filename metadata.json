@@ -1,5 +1,7 @@
 {
   "name": "JAGO-HP",
   "description": "Platform rekomendasi HP #1 dengan AI di Indonesia. Temukan HP Andalmu bersama JAGO-HP.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "geolocation"
+  ]
 }

@@ -26,7 +26,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
 
 
   return (
-    <header className="w-full fixed top-2 left-0 px-4 z-40">
+    <header className="w-full fixed top-2 left-0 px-4 z-40 hidden md:block">
       <nav className={`max-w-6xl mx-auto flex items-center justify-between py-3 rounded-2xl px-4 transition-colors duration-300 ${navClasses}`}>
         {/* Left: Logo & Title */}
         <a href="#" className="flex items-center gap-3 cursor-pointer" onClick={(e) => handleNavClick(e, 'home')}>
@@ -35,7 +35,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
           </div>
           <div>
             <div className={`text-base font-semibold text-white`}> </div>
-            <div className={`text-xs ${logoSubtextClasses}`}>#1 Platform Rekomendasi HP Berbasis AI</div>
+            <div className={`text-xs hidden lg:block ${logoSubtextClasses}`}>#1 Platform Rekomendasi HP Berbasis AI</div>
           </div>
         </a>
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, FC } from 'react';
+import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
 import { ReviewResult } from './SmartReview';
@@ -9,6 +9,8 @@ import PreviewCard from './PreviewCard';
 import InsightPublic from './InsightPublic';
 import EcommerceButtons from './EcommerceButtons';
 import SparklesIcon from './icons/SparklesIcon';
+import SignalIcon from './icons/SignalIcon';
+import BatteryIcon from './icons/BatteryIcon';
 
 interface QuickMatchResult {
   phoneName: string;
@@ -260,7 +262,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
     const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia.
     **Tugas:** Berdasarkan budget **${budget}**, berikan **SATU** rekomendasi smartphone **all-rounder** terbaik. All-rounder berarti seimbang antara performa, kamera, dan baterai untuk harganya.
     **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **1 Oktober 2026**. Seri **Samsung S26, iPhone 18, dan seri Xiaomi 16 & 16T** sudah dianggap **resmi rilis**.
-    **Output:** Berikan jawaban dalam format JSON sesuai skema yang disediakan. 'reason' harus sangat singkat (1 kalimat).`;
+    **Output:** Berikan jawaban dalam format JSON sesuai skema. 'reason' harus sangat singkat (1 kalimat).`;
 
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
@@ -284,13 +286,15 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
   const JagoCardArenaButton = (
     <button
       onClick={() => setPage('jago-card-arena')}
-      className="w-full text-left p-4 rounded-2xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-between"
+      className="w-full h-full text-left p-4 rounded-2xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col justify-center"
     >
       <div>
         <h3 className="font-bold text-lg font-orbitron">JAGO Card Arena</h3>
         <p className="text-xs text-red-200 mt-1">Masuk ke arena dan adu kartu HP-mu!</p>
       </div>
-      
+      <div className="text-right text-xs text-red-200 mt-4">
+        Play Now &rarr;
+      </div>
     </button>
   );
 
@@ -300,18 +304,17 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
         {/* LEFT: CONTENT & INTERACTION */}
         <div className="md:col-span-7 space-y-8">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold leading-tight font-orbitron text-[color:var(--accent1)]">JAGO-HP</h1>
-              <p className="mt-2 text-sm text-slate-600">Your AI Expert, Asisten Cerdas Yang Membantu Anda Memilih Smartphone Terbaik</p>
-              <div className="mt-6">
+              <div className="h-32">
+                <PhoneScreenDisplay />
+              </div>
+              <div className="mt-6 md:hidden">
+                <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
+              </div>
+              <div className="hidden md:block mt-6">
                 <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
               </div>
             </div>
-
-            {/* JAGO CARD ARENA BUTTON (MOBILE) */}
-            <div className="md:hidden">
-              {JagoCardArenaButton}
-            </div>
-
+            
             {/* QUICK SEARCH & RESULT */}
             <div>
               <label className="font-semibold text-slate-800 text-lg">Quick Smart Review</label>
@@ -367,11 +370,18 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                 {quickMatchError && <div className="text-center p-4 text-red-500">{quickMatchError}</div>}
                 {quickMatchResult && <div className="md:hidden mt-4"><QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} /></div>}
             </div>
+
+             {/* JCC Mobile */}
+            <div className="md:hidden h-32">
+              {JagoCardArenaButton}
+            </div>
         </div>
 
         {/* RIGHT: LEADERBOARDS & PREVIEW */}
         <div className="md:col-span-5 space-y-5">
-            <div className="hidden md:block">{JagoCardArenaButton}</div>
+            <div className="h-32 hidden md:block">
+                {JagoCardArenaButton}
+            </div>
             {latestReviewResult && (
                 <div className="hidden md:block">
                     <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
@@ -517,5 +527,149 @@ const LeaderboardCard: FC<{title: string, data: {name: string, share: string}[]}
     );
 };
 
+const PhoneScreenDisplay: FC = () => {
+  const [time, setTime] = useState('');
+  const [weather, setWeather] = useState<{ temp: string; icon: string } | null>(null);
+
+  const getWeatherIcon = (codeStr: string) => {
+    const code = parseInt(codeStr, 10);
+    if (code === 113) return '☀️'; // Sunny
+    if (code === 116) return '🌤️'; // Partly cloudy
+    if (code === 119) return '☁️'; // Cloudy
+    if (code === 122) return '🌥️'; // Overcast
+    if ([176, 293, 296, 299, 302, 305, 308].includes(code)) return '🌧️'; // Rain
+    if ([263, 266, 281, 284].includes(code)) return '🌦️'; // Light drizzle
+    if ([353, 356, 359].includes(code)) return '🌧️'; // Moderate rain
+    if ([200, 386, 389].includes(code)) return '⛈️'; // Thunderstorm
+    if ([143, 227, 230, 323, 326, 329, 332, 335, 338, 368, 371].includes(code)) return '🌨️'; // Snow
+    if ([248, 260].includes(code)) return '🌫️'; // Fog
+    return '🛰️'; // Default
+  };
+
+  useEffect(() => {
+    const fetchWeatherData = async (url: string) => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Weather data not available');
+        const data = await response.json();
+        const condition = data.current_condition[0];
+        setWeather({
+          temp: `${condition.temp_C}°C`,
+          icon: getWeatherIcon(condition.weatherCode),
+        });
+      } catch (error) {
+        console.error("Failed to fetch weather:", error);
+      }
+    };
+
+    const fetchWeatherForJakarta = () => fetchWeatherData('https://wttr.in/Jakarta?format=j1');
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          fetchWeatherData(`https://wttr.in/${latitude},${longitude}?format=j1`);
+        },
+        (error) => {
+          console.warn("Geolocation failed, falling back to Jakarta:", error.message);
+          fetchWeatherForJakarta();
+        }
+      );
+    } else {
+        fetchWeatherForJakarta();
+    }
+
+    const updateClock = () => {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      setTime(`${hours}:${minutes}`);
+    };
+
+    updateClock();
+    const timerId = setInterval(updateClock, 30000);
+
+    return () => clearInterval(timerId);
+  }, []);
+
+  return (
+    <>
+      <style>{`
+        @keyframes marquee {
+          from { transform: translateX(100%); }
+          to { transform: translateX(-100%); }
+        }
+        .marquee-text {
+          display: inline-block;
+          white-space: nowrap;
+          animation: marquee 15s linear infinite;
+          will-change: transform;
+        }
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+        }
+        @keyframes shimmer {
+          0% { transform: translateX(-100%) skewX(-20deg); }
+          100% { transform: translateX(200%) skewX(-20deg); }
+        }
+        .phone-screen-effect {
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+        .phone-screen-effect::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.08) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: shimmer 4s infinite linear;
+        }
+      `}</style>
+      <div className="w-full h-full text-left p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-black text-white shadow-lg flex flex-col justify-between phone-screen-effect">
+        {/* Status Bar */}
+        <div className="flex justify-between items-center text-xs text-slate-300 font-mono">
+           <div className="flex items-center gap-2">
+            <span>{time || '...'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-[10px] tracking-wider">5G</span>
+            <SignalIcon className="w-4 h-4" />
+            <BatteryIcon className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Bottom Content Area */}
+        <div className="flex justify-between items-end">
+            {/* Left Side: Title & Tagline */}
+            <div>
+                <h1 className="text-3xl font-bold font-orbitron">JAGO-HP</h1>
+                <div className="mt-1 marquee-container">
+                    <p className="text-xs text-slate-300 marquee-text">
+                        Your AI Expert, Asisten Cerdas Yang Membantu Anda Memilih Smartphone Terbaik
+                    </p>
+                </div>
+            </div>
+            
+            {/* Right Side: Weather */}
+            {weather && (
+                <div className="text-right">
+                    <span className="text-4xl">{weather.icon}</span>
+                    <p className="text-2xl font-semibold font-mono -mt-1">{weather.temp}</p>
+                </div>
+            )}
+        </div>
+      </div>
+    </>
+  );
+};
 
 export default Hero;

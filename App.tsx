@@ -13,6 +13,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import PhoneFinder from './components/PhoneFinder';
 import Saran from './components/Saran';
 import JagoCardArena from './components/JagoCardArena';
+import BottomNav from './components/BottomNav';
 
 const App: React.FC = () => {
   const [page, setPage] = useState('home');
@@ -105,11 +106,13 @@ const App: React.FC = () => {
     <div className={`min-h-screen flex flex-col ${page === 'jago-card-arena' ? 'bg-[color:var(--accent1)]' : ''}`}>
       <Header page={page} setPage={setPage} />
       
-      <main className="flex-grow pt-24">
+      <main className="flex-grow pt-6 md:pt-24 pb-20 md:pb-0">
         {mainContent()}
       </main>
 
       <Footer setPage={setPage} page={page} />
+      
+      <BottomNav page={page} setPage={setPage} />
 
       <TanyaAI 
         isOpen={isChatModalOpen} 
