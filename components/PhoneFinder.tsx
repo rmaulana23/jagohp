@@ -80,7 +80,7 @@ const PhoneFinder: React.FC = () => {
 
     const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia, memberikan **SATU rekomendasi smartphone TUNGGAL** paling TEPAT berdasarkan kuesioner.
     **Sumber Data (Wajib):** GSMArena, nanoreview.net, AnTuTu, Geekbench, DXOMark.
-    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **1 Oktober 2026**. Ini berarti data harga dan ketersediaan harus relevan. Seri **Samsung S26, iPhone 18, dan seri Xiaomi 16 & 16T** sudah dianggap **resmi rilis** dengan data final.
+    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Anda harus mengasumsikan semua perangkat yang relevan untuk rekomendasi ini sudah dirilis.
     ---
     **Input Pengguna:**
     - **Aktivitas Utama & Fitur:** ${mainActivities}

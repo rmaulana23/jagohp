@@ -12,8 +12,8 @@ import FAQ from './components/FAQ';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import PhoneFinder from './components/PhoneFinder';
 import Saran from './components/Saran';
-import JagoCardArena from './components/JagoCardArena';
 import BottomNav from './components/BottomNav';
+import Blog from './components/Blog';
 
 const App: React.FC = () => {
   const [page, setPage] = useState('home');
@@ -83,7 +83,7 @@ const App: React.FC = () => {
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
       case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} />;
       case 'finder': return <PhoneFinder />;
-      case 'jago-card-arena': return <JagoCardArena />;
+      case 'blog': return <Blog setPage={setPage} />;
       case 'leaderboard': return <Leaderboard />;
       case 'about': return <About />;
       case 'partnership': return <Partnership />;
@@ -103,10 +103,10 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col ${page === 'jago-card-arena' ? 'bg-[color:var(--accent1)]' : ''}`}>
+    <div className="min-h-screen flex flex-col">
       <Header page={page} setPage={setPage} />
       
-      <main className="flex-grow pt-6 md:pt-24 pb-20 md:pb-0">
+      <main className="flex-grow pt-6 md:pt-28 pb-20 md:pb-0">
         {mainContent()}
       </main>
 

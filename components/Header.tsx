@@ -8,6 +8,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
     { label: 'Smart Review', key: 'review' },
     { label: 'Compare', key: 'battle' },
     { label: 'Phone Match', key: 'finder' },
+    { label: 'Blog', key: 'blog' },
     { label: 'About', key: 'about' }
   ];
 
@@ -17,7 +18,6 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
       setIsMobileMenuOpen(false);
   };
 
-  const navClasses = 'bg-[color:var(--accent1)] shadow-lg';
   const logoSubtextClasses = 'text-slate-200';
   const navLinkClasses = 'text-slate-200 hover:text-white';
   const activeNavLinkClasses = 'text-white font-semibold';
@@ -26,8 +26,8 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
 
 
   return (
-    <header className="w-full fixed top-2 left-0 px-4 z-40 hidden md:block">
-      <nav className={`max-w-6xl mx-auto flex items-center justify-between py-3 rounded-2xl px-4 transition-colors duration-300 ${navClasses}`}>
+    <header className="w-full fixed top-0 left-0 bg-[color:var(--accent1)] shadow-lg z-40 hidden md:block">
+      <nav className="max-w-6xl mx-auto flex items-center justify-between py-4 px-4">
         {/* Left: Logo & Title */}
         <a href="#" className="flex items-center gap-3 cursor-pointer" onClick={(e) => handleNavClick(e, 'home')}>
           <div className="w-12 h-12 flex items-center justify-center">

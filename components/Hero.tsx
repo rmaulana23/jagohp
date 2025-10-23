@@ -92,7 +92,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     };
     const prompt = `**Core Role: Comprehensive Data Synthesizer for JAGO-HP**
 Your task is to act as an AI Gadget Reviewer and generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
-**Knowledge Cut-off & Context:** Your knowledge is updated as of **1 Oktober 2026**. Devices like the **Samsung S26 series (S26, S26 Ultra), iPhone 18 series, Xiaomi 16 & 16T series**, etc. are considered **officially released** with full data.
+**Knowledge Cut-off & Context:** Your knowledge is updated as of **23 Oktober 2025**. You must assume any phone model a user searches for has already been launched by this date.
 **Data Sources (Mandatory):** You MUST synthesize data from reliable sources like **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
 **Universal Brand Knowledge:** You are an expert on all major phone brands.
 
@@ -106,7 +106,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
     -   \`specs.ram\`: Format: "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
     -   \`specs.camera\`: A short summary of main lenses. Example: "Utama: 200MP + 50MP", "50MP Wide + 12MP Ultrawide".
     -   \`specs.battery\`: Just the capacity. Example: "5000 mAh".
-5.  **Failure Conditions:** If the device is unreleased (rumored for post-1 Oct 2026), state this clearly. If not found at all, the \`phoneName\` must contain an error message.
+5.  **Failure Conditions:** If the device cannot be found on GSMArena by 23 Oktober 2025, state this clearly. If not found at all, the \`phoneName\` must contain an error message.
 
 **Final Output:** Strictly adhere to the JSON schema and all formatting rules.`;
     
@@ -186,13 +186,13 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
         ? `**Core Role: AI Battle Analyst for JAGO-HP**
 Your task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.
 **Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.
-**Knowledge Cut-off:** Your knowledge is updated to **1 Oktober 2026**. Treat devices like the **Samsung S26 series (S26, S26 Ultra), iPhone 18 series, Xiaomi 16 & 16T series**, etc. as **officially released**.
+**Knowledge Cut-off:** Your knowledge is updated to **23 Oktober 2025**. You must assume any phone model a user searches for has already been launched by this date.
 **Execution:** First, extract and synthesize the final specification data. Second, perform a holistic analysis to determine a clear winner. Third, write a brief, insightful summary of the battle.
 **Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`
         : `**Core Role: Data Extractor for JAGO-HP**
 Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.
 **Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.
-**Knowledge Cut-off:** Your knowledge is updated to **1 Oktober 2026**. Treat devices like the **Samsung S26 series (S26, S26 Ultra), iPhone 18 series, Xiaomi 16 & 16T series**, etc. as **officially released**.
+**Knowledge Cut-off:** Your knowledge is updated to **23 Oktober 2025**. You must assume any phone model a user searches for has already been launched by this date.
 **Strict Rule:** You MUST NOT provide any summary, analysis, or winner. Your ONLY job is to return the raw specification data for the 'phones' object.
 **Final Output:** Strictly adhere to the JSON schema.`;
     
@@ -261,7 +261,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
 
     const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia.
     **Tugas:** Berdasarkan budget **${budget}**, berikan **SATU** rekomendasi smartphone **all-rounder** terbaik. All-rounder berarti seimbang antara performa, kamera, dan baterai untuk harganya.
-    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **1 Oktober 2026**. Seri **Samsung S26, iPhone 18, dan seri Xiaomi 16 & 16T** sudah dianggap **resmi rilis**.
+    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Anda harus berasumsi semua perangkat yang relevan sudah dirilis.
     **Output:** Berikan jawaban dalam format JSON sesuai skema. 'reason' harus sangat singkat (1 kalimat).`;
 
     try {
@@ -283,21 +283,6 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
     }
   };
 
-  const JagoCardArenaButton = (
-    <button
-      onClick={() => setPage('jago-card-arena')}
-      className="w-full h-full text-left p-4 rounded-2xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col justify-center"
-    >
-      <div>
-        <h3 className="font-bold text-lg font-orbitron">JAGO Card Arena</h3>
-        <p className="text-xs text-red-200 mt-1">Masuk ke arena dan adu kartu HP-mu!</p>
-      </div>
-      <div className="text-right text-xs text-red-200 mt-4">
-        Play Now &rarr;
-      </div>
-    </button>
-  );
-
   return (
     <section className="pb-10">
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
@@ -305,7 +290,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
         <div className="md:col-span-7 space-y-8">
             <div>
               <div className="h-32">
-                <PhoneScreenDisplay />
+                <PhoneScreenDisplay setPage={setPage} />
               </div>
               <div className="mt-6 md:hidden">
                 <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
@@ -370,18 +355,10 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                 {quickMatchError && <div className="text-center p-4 text-red-500">{quickMatchError}</div>}
                 {quickMatchResult && <div className="md:hidden mt-4"><QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} /></div>}
             </div>
-
-             {/* JCC Mobile */}
-            <div className="md:hidden h-32">
-              {JagoCardArenaButton}
-            </div>
         </div>
 
         {/* RIGHT: LEADERBOARDS & PREVIEW */}
         <div className="md:col-span-5 space-y-5">
-            <div className="h-32 hidden md:block">
-                {JagoCardArenaButton}
-            </div>
             {latestReviewResult && (
                 <div className="hidden md:block">
                     <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
@@ -527,9 +504,10 @@ const LeaderboardCard: FC<{title: string, data: {name: string, share: string}[]}
     );
 };
 
-const PhoneScreenDisplay: FC = () => {
+const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }) => {
   const [time, setTime] = useState('');
   const [weather, setWeather] = useState<{ temp: string; icon: string } | null>(null);
+  const blogTitle = 'Panduan Lengkap Memilih HP Gaming Terbaik di 2025';
 
   const getWeatherIcon = (codeStr: string) => {
     const code = parseInt(codeStr, 10);
@@ -580,10 +558,7 @@ const PhoneScreenDisplay: FC = () => {
     }
 
     const updateClock = () => {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      setTime(`${hours}:${minutes}`);
+      setTime(new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }));
     };
 
     updateClock();
@@ -595,19 +570,19 @@ const PhoneScreenDisplay: FC = () => {
   return (
     <>
       <style>{`
-        @keyframes marquee {
-          from { transform: translateX(100%); }
-          to { transform: translateX(-100%); }
+        @keyframes marquee-full-scan {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
         }
-        .marquee-text {
+        .marquee-content {
           display: inline-block;
-          white-space: nowrap;
-          animation: marquee 15s linear infinite;
+          animation: marquee-full-scan 15s linear infinite;
           will-change: transform;
         }
         .marquee-container {
             width: 100%;
             overflow: hidden;
+            white-space: nowrap;
         }
         @keyframes shimmer {
           0% { transform: translateX(-100%) skewX(-20deg); }
@@ -648,20 +623,23 @@ const PhoneScreenDisplay: FC = () => {
         </div>
 
         {/* Bottom Content Area */}
-        <div className="flex justify-between items-end">
+        <div className="flex justify-between items-end gap-4">
             {/* Left Side: Title & Tagline */}
-            <div>
+            <div className="flex-1 overflow-hidden">
                 <h1 className="text-3xl font-bold font-orbitron">JAGO-HP</h1>
                 <div className="mt-1 marquee-container">
-                    <p className="text-xs text-slate-300 marquee-text">
-                        Your AI Expert, Asisten Cerdas Yang Membantu Anda Memilih Smartphone Terbaik
-                    </p>
+                    <button onClick={() => setPage('blog')} className="text-left w-full cursor-pointer group">
+                        <div className="marquee-content text-xs text-slate-300 group-hover:text-white transition-colors duration-200">
+                            <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">BARU</span>
+                            <span className="align-middle">{blogTitle}</span>
+                        </div>
+                    </button>
                 </div>
             </div>
             
             {/* Right Side: Weather */}
             {weather && (
-                <div className="text-right">
+                <div className="text-right flex-shrink-0">
                     <span className="text-4xl">{weather.icon}</span>
                     <p className="text-2xl font-semibold font-mono -mt-1">{weather.temp}</p>
                 </div>

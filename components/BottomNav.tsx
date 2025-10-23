@@ -3,7 +3,7 @@ import HomeIcon from './icons/HomeIcon';
 import DocumentTextIcon from './icons/DocumentTextIcon';
 import SwitchHorizontalIcon from './icons/SwitchHorizontalIcon';
 import SparklesIcon from './icons/SparklesIcon';
-import InformationCircleIcon from './icons/InformationCircleIcon';
+import NewspaperIcon from './icons/NewspaperIcon';
 
 const BottomNav: React.FC<{ page: string; setPage: (page: string) => void }> = ({ page, setPage }) => {
   const navItems = [
@@ -11,7 +11,7 @@ const BottomNav: React.FC<{ page: string; setPage: (page: string) => void }> = (
     { label: 'Review', key: 'review', icon: DocumentTextIcon },
     { label: 'Compare', key: 'battle', icon: SwitchHorizontalIcon },
     { label: 'Match', key: 'finder', icon: SparklesIcon },
-    { label: 'About', key: 'about', icon: InformationCircleIcon },
+    { label: 'Blog', key: 'blog', icon: NewspaperIcon },
   ];
   
   const handleNavClick = (pageKey: string) => {

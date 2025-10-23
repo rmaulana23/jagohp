@@ -518,7 +518,7 @@ const JagoCardArena: React.FC = () => {
         const currentDeckNames = [...playerDeck, ...opponentDeck].map(c => c.name).join(', ');
         const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
         **Tugas:** Buat **SATU KARTU** smartphone acak yang kompetitif dan belum ada di deck ini: ${currentDeckNames}.
-        **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **1 Oktober 2026**. Seri **Samsung S26, iPhone 18, dan seri Xiaomi 16 & 16T** sudah dianggap rilis.
+        **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Semua perangkat yang relevan harus dianggap sudah dirilis.
         **Data yang Diperlukan:** id, name, specs (processorName, cpuScore, batteryMah, ramGb, refreshRate, cameraScore).
         **Aturan Penting:** \`cameraScore\` tidak boleh 100, targetkan di atas 80.
         **Output:** Berikan jawaban HANYA dalam format JSON objek tunggal sesuai skema.`;
@@ -591,7 +591,7 @@ const JagoCardArena: React.FC = () => {
     
     const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
     **Tugas:** Buat sebuah "card pool" berisi **10 kartu** smartphone yang **BERBEDA SATU SAMA LAIN**, sangat beragam, dan menarik. Pastikan ada campuran dari berbagai merek (Samsung, Xiaomi, Apple, Google, dll.) dan segmen (flagship, mid-ranger, pilihan unik).
-    **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **1 Oktober 2026**. Seri **Samsung S26, iPhone 18, dan seri Xiaomi 16 & 16T** sudah dianggap rilis.
+    **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Semua perangkat yang relevan harus dianggap sudah dirilis.
     **Data yang Diperlukan per HP:**
     - \`id\`: ID unik (misal: "s25u").
     - \`name\`: Nama resmi HP.

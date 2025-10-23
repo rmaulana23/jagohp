@@ -66,6 +66,10 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
     const [error, setError] = useState<string | null>(null);
     const [review, setReview] = useState<ReviewResult | null>(initialResult);
 
+    const [generatedImageUrls, setGeneratedImageUrls] = useState<string[] | null>(null);
+    const [imageLoading, setImageLoading] = useState(false);
+    const [imageError, setImageError] = useState<string | null>(null);
+
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
 
     const schema = {
@@ -115,6 +119,51 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
             }
         },
     };
+
+    const generateProductImage = async (phoneName: string) => {
+        if (!phoneName) return;
+        setImageLoading(true);
+        setGeneratedImageUrls(null);
+        setImageError(null);
+
+        const prompt = `**Primary Objective: Ultra-Realistic Product Photography.**
+**Subject:** The smartphone model '${phoneName}'.
+**CRITICAL RULE: Accuracy is the #1 priority.** The generated image MUST perfectly match the official design, color, and camera layout of the '${phoneName}'. Do NOT generate any other phone model. Failure to match the model is a failure of the task.
+
+**Image Set (3 variations):**
+1.  **Front View:** Clean, studio-lit, photorealistic shot of the phone's front.
+2.  **Angled View:** Photorealistic shot from a 45-degree angle, highlighting the side profile.
+3.  **Camera Detail:** A close-up, macro shot of the rear camera module.
+
+**Style:**
+-   Background: Minimalist white studio.
+-   Lighting: Professional, soft studio lighting.
+-   Quality: 8K, photorealistic, high-detail.`;
+
+        try {
+          const response = await ai.models.generateImages({
+            model: 'imagen-4.0-generate-001',
+            prompt: prompt,
+            config: {
+              numberOfImages: 3,
+              outputMimeType: 'image/jpeg',
+              aspectRatio: '4:3',
+            },
+          });
+
+          if (response.generatedImages && response.generatedImages.length > 0) {
+            const urls = response.generatedImages.map(img => `data:image/jpeg;base64,${img.image.imageBytes}`);
+            setGeneratedImageUrls(urls);
+          } else {
+            throw new Error("No image was generated.");
+          }
+        } catch (e) {
+          console.error(e);
+          setImageError("Gagal membuat gambar produk.");
+        } finally {
+          setImageLoading(false);
+        }
+      };
     
     const performSearch = async (searchQuery: string) => {
         if (!searchQuery) {
@@ -124,6 +173,8 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
         setLoading(true);
         setError(null);
         setReview(null);
+        setGeneratedImageUrls(null);
+        setImageError(null);
 
         const cacheKey = searchQuery.trim().toLowerCase();
 
@@ -131,7 +182,9 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
             try {
                 const { data } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', cacheKey).single();
                 if (data && data.review_data) {
-                    setReview(data.review_data as ReviewResult);
+                    const cachedReview = data.review_data as ReviewResult;
+                    setReview(cachedReview);
+                    generateProductImage(cachedReview.phoneName);
                     setLoading(false);
                     return;
                 }
@@ -144,8 +197,8 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
         Your primary task is to generate a comprehensive, data-driven review in **Bahasa Indonesia** for the gadget: '${searchQuery}'.
 
         **Context & Knowledge Cut-off (Mandatory):**
-        - **Knowledge Date:** Your knowledge is fully updated as of **1 Oktober 2026**.
-        - **Device Status:** You **MUST** treat devices like the **Samsung S26 series (S26, S26 Ultra), iPhone 18 series, Xiaomi 16 & 16T series**, etc., as **officially released** products. All data for them is final and available.
+        - **Knowledge Date:** Your knowledge is fully updated as of **23 Oktober 2025**.
+        - **Device Status:** You must assume any phone model a user searches for has already been launched by this date. Your primary data source for launch status and specs should be GSMArena.
 
         **Data Sources (Mandatory):**
         - You **MUST** source and synthesize data from a wide range of reliable, top-tier sources, prioritizing: **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
@@ -154,16 +207,13 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
         You are an expert on all devices (smartphones, tablets, feature phones) from all major brands (Samsung, Apple, Xiaomi, Google, etc.). You **MUST** retrieve full, official data for any existing device from these brands.
 
         **Execution Steps & Rules (Strictly Follow):**
-        1.  **Identify Gadget:** Identify the official name of '${searchQuery}', correcting typos. Assume it's a released product.
+        1.  **Identify Gadget:** Identify the official name of '${searchQuery}', correcting typos.
         2.  **Extract & Synthesize Data:** Extract all relevant specifications for the gadget, synthesizing information from your full range of specified sources to get the most accurate, final data.
         3.  **Handle Missing Data:** If data is genuinely unavailable after checking all sources, use \`null\` for numbers or "N/A" for strings. **DO NOT FAIL** the request for empty fields.
         4.  **Generate Full Review Content:** Populate the entire JSON schema using the synthesized data.
             -   **Ratings:** Provide a 1-10 score for each category based on the final, official product performance.
             -   **Summaries & Analysis:** Write all textual content based on objective, synthesized data.
-        5.  **Handling Unreleased/Rumored Devices (for releases AFTER 1 Oktober 2026):**
-            -   This rule applies **only** to devices rumored for release **after** your current knowledge date.
-            -   For such a device: set numeric ratings to \`0\`, use \`null\` for scores, and state in the \`quickReview.summary\` that the review is based on rumored specs.
-        6.  **True Failure Condition (Not Found):** Only if the device cannot be found on any source, populate the \`phoneName\` field with an error message like "Maaf: Perangkat '${searchQuery}' tidak dapat ditemukan."
+        5.  **Failure Condition (Not Found):** Only if the device cannot be found on GSMArena by 23 Oktober 2025, populate the \`phoneName\` field with an error message like "Maaf: Perangkat '${searchQuery}' tidak dapat ditemukan."
 
         **Final Output:**
         - Ensure the JSON strictly adheres to the schema.
@@ -179,6 +229,7 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
                 setReview(null);
             } else {
                 setReview(parsedResult);
+                generateProductImage(parsedResult.phoneName);
                 if (supabase) {
                     try {
                         await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: parsedResult });
@@ -198,6 +249,9 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
     useEffect(() => {
         if(initialQuery && !initialResult) {
             performSearch(initialQuery);
+        }
+        if (initialResult) {
+            generateProductImage(initialResult.phoneName);
         }
     }, [initialQuery, initialResult]);
 
@@ -247,7 +301,18 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
                 <div aria-live="polite">
                     {loading && !review && <ReviewSkeleton />}
                     {error && <div className="text-center text-red-500 border border-red-500/30 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
-                    {review && <ReviewResultDisplay review={review} onReset={() => { setReview(null); setQuery(''); }} />}
+                    {review && <ReviewResultDisplay 
+                                review={review} 
+                                onReset={() => { 
+                                    setReview(null); 
+                                    setQuery(''); 
+                                    setGeneratedImageUrls(null);
+                                    setImageError(null);
+                                }} 
+                                generatedImageUrls={generatedImageUrls}
+                                imageLoading={imageLoading}
+                                imageError={imageError}
+                               />}
                 </div>
             </div>
         </section>
@@ -256,6 +321,11 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
 
 const ReviewSkeleton: FC = () => (
     <div className="glass p-5 md:p-6 text-left space-y-6 animate-pulse">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="w-full aspect-[4/3] bg-slate-200 rounded-lg"></div>
+            <div className="w-full aspect-[4/3] bg-slate-200 rounded-lg"></div>
+            <div className="w-full aspect-[4/3] bg-slate-200 rounded-lg"></div>
+        </div>
         <div className="h-7 bg-slate-200 rounded-md w-3/4 mx-auto mb-4"></div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5 border-y border-slate-200 py-5">
             {[...Array(6)].map((_, i) => (
@@ -270,7 +340,13 @@ const ReviewSkeleton: FC = () => (
     </div>
 );
 
-const ReviewResultDisplay: FC<{ review: ReviewResult; onReset: () => void }> = ({ review, onReset }) => {
+const ReviewResultDisplay: FC<{ 
+    review: ReviewResult; 
+    onReset: () => void;
+    generatedImageUrls: string[] | null;
+    imageLoading: boolean;
+    imageError: string | null;
+}> = ({ review, onReset, generatedImageUrls, imageLoading, imageError }) => {
     const [activeTab, setActiveTab] = useState('ringkasan');
     const tabs = [{ id: 'ringkasan', label: 'Ringkasan' }, { id: 'performa', label: 'Performa' }, { id: 'foto-video', label: 'Kamera' }];
     const shareText = `Cek review AI untuk ${review.phoneName} di JAGO-HP!\n\nRingkasan: ${review.quickReview.summary}`;
@@ -278,6 +354,30 @@ const ReviewResultDisplay: FC<{ review: ReviewResult; onReset: () => void }> = (
 
     return (
         <div className="glass p-4 md:p-6 text-left animate-fade-in">
+            <div className="mb-6">
+                {imageLoading && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {[...Array(3)].map((_, i) => (
+                             <div key={i} className="w-full aspect-[4/3] bg-slate-200 rounded-lg animate-pulse flex items-center justify-center p-2">
+                                <p className="text-slate-400 text-xs text-center">AI membuat foto produk...</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                {imageError && <div className="text-center text-red-500 p-4 bg-red-500/10 rounded-lg max-w-sm mx-auto">{imageError}</div>}
+                {generatedImageUrls && generatedImageUrls.length > 0 && (
+                    <>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            {generatedImageUrls.map((url, index) => (
+                               <img key={index} src={url} alt={`AI generated image of ${review.phoneName} - view ${index + 1}`} className="w-full h-auto rounded-lg shadow-lg object-cover aspect-[4/3]" />
+                            ))}
+                        </div>
+                        <p className="text-xs text-slate-400 text-center mt-2">
+                            Gambar dibuat oleh AI, maklumi jika ada kesalahan gambar.
+                        </p>
+                    </>
+                )}
+            </div>
             <h2 className="text-xl md:text-2xl font-bold text-center mb-1 text-slate-900">{review.phoneName}</h2>
             <p className="text-center text-sm small-muted mb-4">{review.specs.rilis ? `Rilis: ${review.specs.rilis}` : ''}</p>
             {review.ratings && <RatingsDisplay ratings={review.ratings} />}
