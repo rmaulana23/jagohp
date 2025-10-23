@@ -172,20 +172,13 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
     const [showPreview, setShowPreview] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const isTyping = useRef(false);
 
     useEffect(() => {
-        if (post) {
-            setFormData(post);
-            if (contentRef.current) {
-                contentRef.current.innerHTML = post.content || '';
-            }
-        } else {
-            setFormData(initialFormState);
-             if (contentRef.current) {
-                contentRef.current.innerHTML = '';
-            }
+        const initialContent = post ? post.content : '';
+        if (contentRef.current && contentRef.current.innerHTML !== initialContent) {
+            contentRef.current.innerHTML = initialContent || '';
         }
+        setFormData(post ? { ...post } : initialFormState);
     }, [post]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -198,27 +191,33 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
         }
     };
     
-    // Sync state only on blur to prevent cursor jumps
-    const handleContentBlur = () => {
-        if (contentRef.current) {
-            if (formData.content !== contentRef.current.innerHTML) {
-                setFormData(prev => ({ ...prev, content: contentRef.current!.innerHTML }));
-            }
-        }
-        isTyping.current = false;
-    };
-    
-    // Helper to update content state after commands
-    const updateContentState = () => {
+    const handleContentChange = () => {
         if (contentRef.current) {
             setFormData(prev => ({ ...prev, content: contentRef.current!.innerHTML }));
         }
     };
 
-    const applyFormat = (command: string, value: string | null = null) => {
+    const applyCommand = (command: string, value: string | null = null) => {
         document.execCommand(command, false, value);
         contentRef.current?.focus();
-        setTimeout(updateContentState, 0); // Update state after execCommand
+        handleContentChange();
+    };
+    
+    const applyFormatBlock = (tag: string) => {
+        applyCommand('formatBlock', `<${tag}>`);
+    }
+
+    const applyFontSize = (size: string) => {
+        if (!size) return;
+        const uniqueId = `font-size-${Date.now()}`;
+        document.execCommand('insertHTML', false, `<span id="${uniqueId}">${window.getSelection()?.toString()}</span>`);
+        const newSpan = document.getElementById(uniqueId);
+        if (newSpan) {
+            newSpan.style.fontSize = `${size}px`;
+            newSpan.removeAttribute('id');
+        }
+        contentRef.current?.focus();
+        handleContentChange();
     };
 
     const handleImageToolbarClick = () => {
@@ -270,17 +269,14 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
         }
 
         const { id, created_at, ...updateData } = formData;
-        const finalContent = contentRef.current?.innerHTML || updateData.content;
-        const finalUpdateData = { ...updateData, content: finalContent };
-
 
         try {
             if (isEditing && post?.id) {
-                const { error: dbError } = await supabase.from('blog_posts').update(finalUpdateData).eq('id', post.id);
+                const { error: dbError } = await supabase.from('blog_posts').update(updateData).eq('id', post.id);
                 if (dbError) throw dbError;
                 setSuccess('Postingan berhasil diperbarui!');
             } else {
-                 const newPostData = { ...finalUpdateData, published_at: new Date().toISOString() };
+                 const newPostData = { ...updateData, published_at: new Date().toISOString() };
                 const { error: dbError } = await supabase.from('blog_posts').insert([newPostData]);
                 if (dbError) throw dbError;
                 setSuccess('Postingan berhasil dipublikasikan!');
@@ -305,6 +301,8 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
         { cmd: 'justifyRight', icon: AlignRightIcon, title: 'Align Right' },
         { cmd: 'justifyFull', icon: AlignJustifyIcon, title: 'Align Justify' }
     ];
+    
+    const fontSizes = [12, 14, 16, 18, 20, 24, 28, 32, 48, 64];
 
     return (
         <div>
@@ -321,28 +319,39 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                 <div>
                     <label htmlFor="content" className="block text-sm font-medium text-slate-700">Isi Konten Lengkap</label>
                     <div className="mt-1 border border-slate-300 rounded-md">
-                        <div className="md:sticky md:top-24 z-10 flex items-center flex-wrap gap-1 p-2 bg-slate-100 border-b border-slate-300 rounded-t-md">
+                        <div className="sticky top-0 md:top-[100px] z-10 flex items-center flex-wrap gap-1 p-2 bg-slate-100 border-b border-slate-300 rounded-t-md">
                              <div className="relative flex items-center" title="Format Teks">
-                                <FontSizeIcon className="w-5 h-5 absolute left-2 pointer-events-none text-slate-600"/>
                                 <select
-                                    onChange={(e) => applyFormat('formatBlock', e.target.value)}
-                                    className="p-1.5 pl-8 text-slate-600 hover:bg-slate-200 rounded bg-transparent appearance-none text-xs font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-400"
+                                    onChange={(e) => applyFormatBlock(e.target.value)}
+                                    className="p-1.5 text-slate-600 hover:bg-slate-200 rounded bg-transparent appearance-none text-xs font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-400"
                                 >
                                     <option value="p">Paragraf</option>
                                     <option value="h2">Judul 2</option>
                                     <option value="h3">Judul 3</option>
                                 </select>
                             </div>
+                             <div className="relative flex items-center" title="Ukuran Font">
+                                <FontSizeIcon className="w-5 h-5 absolute left-2 pointer-events-none text-slate-600"/>
+                                <select
+                                    onChange={(e) => applyFontSize(e.target.value)}
+                                    className="p-1.5 pl-8 text-slate-600 hover:bg-slate-200 rounded bg-transparent appearance-none text-xs font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-400"
+                                >
+                                    <option value="">Ukuran</option>
+                                    {fontSizes.map(size => (
+                                        <option key={size} value={String(size)}>{size}px</option>
+                                    ))}
+                                </select>
+                            </div>
                             {toolbarButtons.map(btn => {
                                 const Icon = btn.icon;
                                 return (
-                                <button key={btn.cmd} type="button" onClick={() => applyFormat(btn.cmd)} title={btn.title} className="p-1.5 text-slate-600 hover:bg-slate-200 rounded">
+                                <button key={btn.cmd} type="button" onClick={() => applyCommand(btn.cmd)} title={btn.title} className="p-1.5 text-slate-600 hover:bg-slate-200 rounded">
                                     <Icon className="w-5 h-5" />
                                 </button>
                             )})}
                              <label className="relative p-1.5 text-slate-600 hover:bg-slate-200 rounded cursor-pointer" title="Ubah Warna Teks">
                                 <TextColorIcon className="w-5 h-5"/>
-                                <input type="color" onInput={(e) => applyFormat('foreColor', (e.target as HTMLInputElement).value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"/>
+                                <input type="color" onInput={(e) => applyCommand('foreColor', (e.target as HTMLInputElement).value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"/>
                             </label>
                             <button type="button" onClick={handleImageToolbarClick} title="Sisipkan Gambar" className="p-1.5 text-slate-600 hover:bg-slate-200 rounded">
                                 <ImageIcon className="w-5 h-5" />
@@ -352,9 +361,8 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                         <div
                             ref={contentRef}
                             id="content"
+                            onInput={handleContentChange}
                             contentEditable={true}
-                            onFocus={() => isTyping.current = true}
-                            onBlur={handleContentBlur}
                             className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none"
                         ></div>
                     </div>
@@ -365,7 +373,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                          <button type="button" onClick={onBack} className="px-5 py-2 rounded-lg bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors">
                             Kembali
                         </button>
-                        <button type="button" onClick={() => { handleContentBlur(); setShowPreview(true); }} className="px-5 py-2 rounded-lg bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors flex items-center gap-2">
+                        <button type="button" onClick={() => setShowPreview(true)} className="px-5 py-2 rounded-lg bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors flex items-center gap-2">
                             <EyeIcon className="w-5 h-5" /> Preview
                         </button>
                     </div>
