@@ -12,6 +12,7 @@ import TextColorIcon from './icons/TextColorIcon';
 import ListOrderedIcon from './icons/ListOrderedIcon';
 import ListUnorderedIcon from './icons/ListUnorderedIcon';
 import ImageIcon from './icons/ImageIcon';
+import FontSizeIcon from './icons/FontSizeIcon';
 
 // Define the type for a blog post
 interface BlogPost {
@@ -171,22 +172,21 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
     const [showPreview, setShowPreview] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const isTyping = useRef(false);
 
     useEffect(() => {
-        const editor = contentRef.current;
-        if (editor) {
-            const currentContent = post?.content || '';
-            if (editor.innerHTML !== currentContent) {
-                editor.innerHTML = currentContent;
-            }
-        }
         if (post) {
             setFormData(post);
+            if (contentRef.current) {
+                contentRef.current.innerHTML = post.content || '';
+            }
         } else {
             setFormData(initialFormState);
+             if (contentRef.current) {
+                contentRef.current.innerHTML = '';
+            }
         }
     }, [post]);
-
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -198,7 +198,18 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
         }
     };
     
-    const handleContentChange = () => {
+    // Sync state only on blur to prevent cursor jumps
+    const handleContentBlur = () => {
+        if (contentRef.current) {
+            if (formData.content !== contentRef.current.innerHTML) {
+                setFormData(prev => ({ ...prev, content: contentRef.current!.innerHTML }));
+            }
+        }
+        isTyping.current = false;
+    };
+    
+    // Helper to update content state after commands
+    const updateContentState = () => {
         if (contentRef.current) {
             setFormData(prev => ({ ...prev, content: contentRef.current!.innerHTML }));
         }
@@ -207,7 +218,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
     const applyFormat = (command: string, value: string | null = null) => {
         document.execCommand(command, false, value);
         contentRef.current?.focus();
-        handleContentChange();
+        setTimeout(updateContentState, 0); // Update state after execCommand
     };
 
     const handleImageToolbarClick = () => {
@@ -235,7 +246,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
             const imageUrl = data.publicUrl;
             
             contentRef.current?.focus();
-            const imageHtml = `<img src="${imageUrl}" style="max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 1em auto; cursor: nwse-resize;" contenteditable="true" />`;
+            const imageHtml = `<img src="${imageUrl}" style="max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 1em auto;"/>`;
             document.execCommand('insertHTML', false, imageHtml);
             
         } catch (err: any) {
@@ -259,7 +270,6 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
         }
 
         const { id, created_at, ...updateData } = formData;
-        // Make sure content from the ref is the latest
         const finalContent = contentRef.current?.innerHTML || updateData.content;
         const finalUpdateData = { ...updateData, content: finalContent };
 
@@ -311,7 +321,18 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                 <div>
                     <label htmlFor="content" className="block text-sm font-medium text-slate-700">Isi Konten Lengkap</label>
                     <div className="mt-1 border border-slate-300 rounded-md">
-                        <div className="sticky top-0 z-10 flex items-center flex-wrap gap-1 p-2 bg-slate-100 border-b border-slate-300 rounded-t-md">
+                        <div className="md:sticky md:top-24 z-10 flex items-center flex-wrap gap-1 p-2 bg-slate-100 border-b border-slate-300 rounded-t-md">
+                             <div className="relative flex items-center" title="Format Teks">
+                                <FontSizeIcon className="w-5 h-5 absolute left-2 pointer-events-none text-slate-600"/>
+                                <select
+                                    onChange={(e) => applyFormat('formatBlock', e.target.value)}
+                                    className="p-1.5 pl-8 text-slate-600 hover:bg-slate-200 rounded bg-transparent appearance-none text-xs font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-400"
+                                >
+                                    <option value="p">Paragraf</option>
+                                    <option value="h2">Judul 2</option>
+                                    <option value="h3">Judul 3</option>
+                                </select>
+                            </div>
                             {toolbarButtons.map(btn => {
                                 const Icon = btn.icon;
                                 return (
@@ -332,8 +353,8 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                             ref={contentRef}
                             id="content"
                             contentEditable={true}
-                            onInput={handleContentChange}
-                            onBlur={handleContentChange} // Capture content when editor loses focus too
+                            onFocus={() => isTyping.current = true}
+                            onBlur={handleContentBlur}
                             className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none"
                         ></div>
                     </div>
@@ -344,7 +365,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                          <button type="button" onClick={onBack} className="px-5 py-2 rounded-lg bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors">
                             Kembali
                         </button>
-                        <button type="button" onClick={() => setShowPreview(true)} className="px-5 py-2 rounded-lg bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors flex items-center gap-2">
+                        <button type="button" onClick={() => { handleContentBlur(); setShowPreview(true); }} className="px-5 py-2 rounded-lg bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors flex items-center gap-2">
                             <EyeIcon className="w-5 h-5" /> Preview
                         </button>
                     </div>
@@ -356,7 +377,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                 {success && <p className="text-sm text-green-600 text-center">{success}</p>}
             </form>
 
-            {showPreview && <PreviewModal post={{...formData, content: contentRef.current?.innerHTML || formData.content}} onClose={() => setShowPreview(false)} />}
+            {showPreview && <PreviewModal post={{...formData}} onClose={() => setShowPreview(false)} />}
         </div>
     );
 };
