@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
 
-const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ page, setPage }) => {
+interface HeaderProps {
+    page: string;
+    setPage: (page: string) => void;
+    onLogoClick: () => void;
+    isAdminAuthenticated: boolean;
+    onAdminLogout: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuthenticated, onAdminLogout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const navItems = [
+  const baseNavItems = [
     { label: 'Home', key: 'home' },
     { label: 'Smart Review', key: 'review' },
     { label: 'Compare', key: 'battle' },
@@ -11,6 +19,13 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
     { label: 'Blog', key: 'blog' },
     { label: 'About', key: 'about' }
   ];
+
+  const navItems = isAdminAuthenticated 
+    ? [
+        { label: 'Blog', key: 'blog' },
+        { label: 'Dashboard', key: 'admin' }
+      ]
+    : baseNavItems;
 
   const handleNavClick = (e: React.MouseEvent, pageKey: string) => {
       e.preventDefault();
@@ -29,7 +44,7 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
     <header className="w-full fixed top-0 left-0 bg-[color:var(--accent1)] shadow-lg z-40 hidden md:block">
       <nav className="max-w-6xl mx-auto flex items-center justify-between py-4 px-4">
         {/* Left: Logo & Title */}
-        <a href="#" className="flex items-center gap-3 cursor-pointer" onClick={(e) => handleNavClick(e, 'home')}>
+        <a href="#" className="flex items-center gap-3 cursor-pointer" onClick={(e) => { e.preventDefault(); onLogoClick(); }}>
           <div className="w-12 h-12 flex items-center justify-center">
             <img src="https://raw.githubusercontent.com/rmaulana23/jagohp/main/JAGO-HP.png" alt="JAGO-HP Logo" className="h-full w-full object-contain" />
           </div>
@@ -39,46 +54,55 @@ const Header: React.FC<{ page: string; setPage: (page: string) => void }> = ({ p
           </div>
         </a>
 
-        {/* Center: Navigation (Desktop) */}
+        {/* Center: Navigation */}
         <ul className="hidden md:flex items-center gap-6 text-sm">
-          {navItems.map(item => {
+        {navItems.map(item => {
             const isActive = page === item.key;
             return (
-              <li key={item.key}>
+            <li key={item.key}>
                 <a
-                  href="#"
-                  onClick={(e) => handleNavClick(e, item.key)}
-                  className={`transition-colors duration-200 ${isActive ? activeNavLinkClasses : navLinkClasses}`}
+                href="#"
+                onClick={(e) => handleNavClick(e, item.key)}
+                className={`transition-colors duration-200 ${isActive ? activeNavLinkClasses : navLinkClasses}`}
                 >
-                  {item.label}
+                {item.label}
                 </a>
-              </li>
+            </li>
             )
-          })}
+        })}
         </ul>
 
-        {/* Right: CTA Button (Desktop) & Hamburger (Mobile) */}
+        {/* Right: CTA Button & Admin Logout */}
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setPage('leaderboard')} 
-            className={`hidden md:inline-block px-3 py-1.5 rounded-md text-sm border transition-colors ${leaderboardBtnClasses}`}
-          >
-            Top Leaderboard
-          </button>
-          
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`p-2 ${hamburgerClasses}`}
-              aria-label="Toggle menu"
+        {isAdminAuthenticated ? (
+            <button 
+                onClick={onAdminLogout}
+                className={`px-4 py-2 rounded-md text-sm border transition-colors ${leaderboardBtnClasses}`}
             >
-              {isMobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-              )}
+                Keluar
             </button>
-          </div>
+        ) : (
+            <button 
+                onClick={() => setPage('leaderboard')} 
+                className={`hidden md:inline-block px-3 py-1.5 rounded-md text-sm border transition-colors ${leaderboardBtnClasses}`}
+            >
+                Top Leaderboard
+            </button>
+        )}
+        
+        <div className="md:hidden">
+            <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className={`p-2 ${hamburgerClasses}`}
+            aria-label="Toggle menu"
+            >
+            {isMobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            )}
+            </button>
+        </div>
         </div>
       </nav>
 

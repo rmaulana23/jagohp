@@ -509,53 +509,43 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
   const [weather, setWeather] = useState<{ temp: string; icon: string } | null>(null);
   const blogTitle = 'Panduan Lengkap Memilih HP Gaming Terbaik di 2025';
 
-  const getWeatherIcon = (codeStr: string) => {
-    const code = parseInt(codeStr, 10);
-    if (code === 113) return '☀️'; // Sunny
-    if (code === 116) return '🌤️'; // Partly cloudy
-    if (code === 119) return '☁️'; // Cloudy
-    if (code === 122) return '🌥️'; // Overcast
-    if ([176, 293, 296, 299, 302, 305, 308].includes(code)) return '🌧️'; // Rain
-    if ([263, 266, 281, 284].includes(code)) return '🌦️'; // Light drizzle
-    if ([353, 356, 359].includes(code)) return '🌧️'; // Moderate rain
-    if ([200, 386, 389].includes(code)) return '⛈️'; // Thunderstorm
-    if ([143, 227, 230, 323, 326, 329, 332, 335, 338, 368, 371].includes(code)) return '🌨️'; // Snow
-    if ([248, 260].includes(code)) return '🌫️'; // Fog
+  const getWeatherIcon = (code: number) => {
+    if (code === 0) return '☀️'; // Clear sky
+    if ([1, 2].includes(code)) return '🌤️'; // Mainly clear, partly cloudy
+    if (code === 3) return '☁️'; // Overcast
+    if ([45, 48].includes(code)) return '🌫️'; // Fog
+    if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return '🌧️'; // Drizzle and Rain
+    if ([56, 57, 66, 67].includes(code)) return '🥶'; // Freezing Drizzle & Rain
+    if ([71, 73, 75, 77, 85, 86].includes(code)) return '🌨️'; // Snow
+    if ([95, 96, 99].includes(code)) return '⛈️'; // Thunderstorm
     return '🛰️'; // Default
   };
 
   useEffect(() => {
-    const fetchWeatherData = async (url: string) => {
+    const fetchWeather = async () => {
       try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Weather data not available');
+        // Hardcoded for Jakarta for reliability, removing geolocation dependency
+        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-6.21&longitude=106.85&current_weather=true');
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`Weather API request failed with status ${response.status}: ${errorBody}`);
+        }
         const data = await response.json();
-        const condition = data.current_condition[0];
-        setWeather({
-          temp: `${condition.temp_C}°C`,
-          icon: getWeatherIcon(condition.weatherCode),
-        });
+        if (data && data.current_weather) {
+          const { temperature, weathercode } = data.current_weather;
+          setWeather({
+            temp: `${Math.round(temperature)}°C`,
+            icon: getWeatherIcon(weathercode),
+          });
+        } else {
+            throw new Error('Invalid weather data format');
+        }
       } catch (error) {
-        console.error("Failed to fetch weather:", error);
+        console.error("Failed to fetch weather:", error instanceof Error ? error.message : String(error));
       }
     };
-
-    const fetchWeatherForJakarta = () => fetchWeatherData('https://wttr.in/Jakarta?format=j1');
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          fetchWeatherData(`https://wttr.in/${latitude},${longitude}?format=j1`);
-        },
-        (error) => {
-          console.warn("Geolocation failed, falling back to Jakarta:", error.message);
-          fetchWeatherForJakarta();
-        }
-      );
-    } else {
-        fetchWeatherForJakarta();
-    }
+    
+    fetchWeather();
 
     const updateClock = () => {
       setTime(new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }));
@@ -570,19 +560,24 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
   return (
     <>
       <style>{`
-        @keyframes marquee-full-scan {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
-        }
-        .marquee-content {
-          display: inline-block;
-          animation: marquee-full-scan 15s linear infinite;
-          will-change: transform;
+        @keyframes marquee-seamless {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
         .marquee-container {
-            width: 100%;
-            overflow: hidden;
-            white-space: nowrap;
+          width: 100%;
+          overflow: hidden;
+        }
+        .marquee-wrapper {
+          display: flex;
+          width: 200%;
+          animation: marquee-seamless 15s linear infinite;
+          will-change: transform;
+        }
+        .marquee-content {
+          width: 50%;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
         @keyframes shimmer {
           0% { transform: translateX(-100%) skewX(-20deg); }
@@ -627,11 +622,17 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
             {/* Left Side: Title & Tagline */}
             <div className="flex-1 overflow-hidden">
                 <h1 className="text-3xl font-bold font-orbitron">JAGO-HP</h1>
-                <div className="mt-1 marquee-container">
+                 <div className="mt-1 marquee-container">
                     <button onClick={() => setPage('blog')} className="text-left w-full cursor-pointer group">
-                        <div className="marquee-content text-xs text-slate-300 group-hover:text-white transition-colors duration-200">
-                            <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">BARU</span>
-                            <span className="align-middle">{blogTitle}</span>
+                        <div className="marquee-wrapper">
+                            <div className="marquee-content text-xs text-slate-300 group-hover:text-white transition-colors duration-200">
+                                <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">BARU</span>
+                                <span className="align-middle">{blogTitle}</span>
+                            </div>
+                            <div className="marquee-content text-xs text-slate-300 group-hover:text-white transition-colors duration-200" aria-hidden="true">
+                                <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">BARU</span>
+                                <span className="align-middle">{blogTitle}</span>
+                            </div>
                         </div>
                     </button>
                 </div>

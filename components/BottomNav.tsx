@@ -23,7 +23,7 @@ const BottomNav: React.FC<{ page: string; setPage: (page: string) => void }> = (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-900 z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.2)]">
       <div className="max-w-md mx-auto h-full grid grid-cols-5 items-center">
         {navItems.map(item => {
-          const isActive = page === item.key;
+          const isActive = page === item.key || (item.key === 'blog' && page === 'blog-post');
           const Icon = item.icon;
           return (
             <button

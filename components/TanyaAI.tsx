@@ -13,6 +13,7 @@ interface Message {
 interface TanyaAIProps {
     isOpen: boolean;
     onClose: () => void;
+    openAdminLogin: () => void;
 }
 
 const quickQuestions = [
@@ -21,7 +22,7 @@ const quickQuestions = [
     'HP daily driver yang oke tahun 2025'
 ];
 
-const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose }) => {
+const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, openAdminLogin }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -119,7 +120,13 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose }) => {
     
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        sendMessage(input);
+        const trimmedInput = input.trim();
+        if (trimmedInput === '#admindash') {
+            openAdminLogin();
+            setInput('');
+            return;
+        }
+        sendMessage(trimmedInput);
         setInput('');
     };
     

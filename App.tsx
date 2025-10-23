@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import PhoneBattle, { BattleResult } from './components/PhoneBattle';
@@ -14,6 +14,9 @@ import PhoneFinder from './components/PhoneFinder';
 import Saran from './components/Saran';
 import BottomNav from './components/BottomNav';
 import Blog from './components/Blog';
+import AdminLoginModal from './components/AdminLoginModal';
+import AdminDashboard from './components/AdminDashboard';
+import BlogPost from './components/BlogPost';
 
 const App: React.FC = () => {
   const [page, setPage] = useState('home');
@@ -24,6 +27,13 @@ const App: React.FC = () => {
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
   const [latestReviewResult, setLatestReviewResult] = useState<ReviewResult | null>(null);
   const [reviewQuery, setReviewQuery] = useState('');
+
+  // Admin state
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+
+  // Blog post state
+  const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
   useEffect(() => {
     try {
@@ -50,9 +60,37 @@ const App: React.FC = () => {
     }
   };
 
+  const handleLogoClick = () => {
+    if (isAdminAuthenticated) {
+        setPage('admin');
+    } else {
+        setPage('home');
+    }
+  };
+  
+  const openAdminLogin = () => {
+    setIsChatModalOpen(false);
+    setShowAdminLogin(true);
+  };
+
+  const handleAdminLogin = (code: string) => {
+      if (code === '221212') {
+          setIsAdminAuthenticated(true);
+          setShowAdminLogin(false);
+          setPage('admin');
+      } else {
+          alert('Kode akses salah!');
+      }
+  };
+  
+  const handleAdminLogout = () => {
+    setIsAdminAuthenticated(false);
+    setPage('home');
+  };
+
   const navigateToFullReview = (result: ReviewResult) => {
     setReviewResult(result);
-    setReviewQuery(''); // Clear query when navigating with full data
+    setReviewQuery('');
     setPage('review');
   };
 
@@ -62,9 +100,14 @@ const App: React.FC = () => {
   };
 
   const navigateToReviewWithQuery = (phoneName: string) => {
-    setReviewResult(null); // Clear full result data
-    setReviewQuery(phoneName); // Set the query string
+    setReviewResult(null);
+    setReviewQuery(phoneName);
     setPage('review');
+  };
+
+  const navigateToBlogPost = (post: any) => {
+    setSelectedPost(post);
+    setPage('blog-post');
   };
   
   const openChat = () => setIsChatModalOpen(true);
@@ -83,13 +126,15 @@ const App: React.FC = () => {
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
       case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} />;
       case 'finder': return <PhoneFinder />;
-      case 'blog': return <Blog setPage={setPage} />;
+      case 'blog': return <Blog setPage={setPage} navigateToBlogPost={navigateToBlogPost} />;
+      case 'blog-post': return <BlogPost post={selectedPost} setPage={setPage} />;
       case 'leaderboard': return <Leaderboard />;
       case 'about': return <About />;
       case 'partnership': return <Partnership />;
       case 'faq': return <FAQ />;
       case 'privacy': return <PrivacyPolicy />;
       case 'saran': return <Saran />;
+      case 'admin': return isAdminAuthenticated ? <AdminDashboard setPage={setPage} onAdminLogout={handleAdminLogout} /> : <Hero setPage={setPage} openChat={openChat} navigateToFullReview={navigateToFullReview} navigateToFullBattle={navigateToFullBattle} latestReviewResult={latestReviewResult} setLatestReviewResult={handleSetLatestReviewResult} navigateToReviewWithQuery={navigateToReviewWithQuery} />;
       default: return <Hero 
                         setPage={setPage} 
                         openChat={openChat} 
@@ -104,7 +149,13 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header page={page} setPage={setPage} />
+      <Header 
+        page={page} 
+        setPage={setPage} 
+        onLogoClick={handleLogoClick}
+        isAdminAuthenticated={isAdminAuthenticated}
+        onAdminLogout={handleAdminLogout}
+      />
       
       <main className="flex-grow pt-6 md:pt-28 pb-20 md:pb-0">
         {mainContent()}
@@ -117,7 +168,15 @@ const App: React.FC = () => {
       <TanyaAI 
         isOpen={isChatModalOpen} 
         onClose={() => setIsChatModalOpen(false)} 
+        openAdminLogin={openAdminLogin}
       />
+
+      {showAdminLogin && (
+        <AdminLoginModal 
+            onClose={() => setShowAdminLogin(false)}
+            onSubmit={handleAdminLogin}
+        />
+      )}
     </div>
   );
 };

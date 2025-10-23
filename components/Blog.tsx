@@ -1,19 +1,59 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../utils/supabaseClient';
 
-const dummyPosts = [
-  {
-    slug: 'panduan-lengkap-memilih-hp-gaming-terbaik-2025',
-    title: 'Panduan Lengkap Memilih HP Gaming Terbaik di 2025',
-    category: 'Tips & Trik',
-    excerpt: 'Bingung pilih HP gaming? Jangan khawatir! Di artikel ini, kita akan bahas tuntas cara memilih HP gaming terbaik yang sesuai dengan budget dan kebutuhanmu, dari chipset, layar, sampai sistem pendingin.',
-    author: 'Tim JAGO-HP',
-    date: '15 Oktober 2025',
-    imageUrl: 'https://images.unsplash.com/photo-1604203618331-48905a06a6a9?q=80&w=1932&auto=format&fit=crop',
-  },
-  // Can add more posts here in the future
-];
+// Define the type for a blog post
+interface BlogPost {
+  id: number;
+  slug: string;
+  title: string;
+  category: string;
+  excerpt: string;
+  author: string;
+  published_at: string;
+  image_url: string;
+  content: string;
+}
 
-const Blog: React.FC<{ setPage: (page: string) => void }> = ({ setPage }) => {
+interface BlogProps {
+    setPage: (page: string) => void;
+    navigateToBlogPost: (post: BlogPost) => void;
+}
+
+const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      if (!supabase) {
+        setError("Koneksi database tidak tersedia.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error: dbError } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .order('published_at', { ascending: false });
+
+        if (dbError) {
+          throw dbError;
+        }
+        
+        setPosts(data || []);
+      } catch (err: any) {
+        console.error('Error fetching blog posts:', err);
+        setError('Gagal memuat postingan blog. Coba lagi nanti.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
   return (
     <section id="blog" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
       <div className="container mx-auto max-w-5xl animate-fade-in">
@@ -26,39 +66,45 @@ const Blog: React.FC<{ setPage: (page: string) => void }> = ({ setPage }) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {dummyPosts.map((post) => (
-            <div key={post.slug} className="glass flex flex-col overflow-hidden group">
-              <div className="relative">
-                <img src={post.imageUrl} alt={post.title} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
-                <div className="absolute top-3 left-3 bg-[color:var(--accent1)] text-white text-xs font-semibold px-2 py-1 rounded-md">{post.category}</div>
-              </div>
-              <div className="p-5 flex flex-col flex-grow">
-                <h2 className="text-lg font-bold text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">
-                  {post.title}
-                </h2>
-                <p className="text-sm text-slate-500 mt-2 flex-grow">
-                  {post.excerpt}
-                </p>
-                <div className="mt-4 pt-4 border-t border-slate-200 text-xs text-slate-400 flex justify-between items-center">
-                  <span>Oleh {post.author}</span>
-                  <span>{post.date}</span>
+        {loading && <div className="text-center text-slate-500">Memuat artikel...</div>}
+        {error && <div className="text-center text-red-500">{error}</div>}
+
+        {!loading && !error && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {posts.map((post) => (
+                <div key={post.id} className="glass flex flex-col overflow-hidden group">
+                <div className="relative">
+                    <img src={post.image_url} alt={post.title} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <div className="absolute top-3 left-3 bg-[color:var(--accent1)] text-white text-xs font-semibold px-2 py-1 rounded-md">{post.category}</div>
                 </div>
-                 <button 
-                    onClick={() => alert('Fitur detail artikel akan segera hadir!')}
-                    className="mt-4 w-full px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors"
-                >
-                    Baca Selengkapnya
-                </button>
-              </div>
+                <div className="p-5 flex flex-col flex-grow">
+                    <h2 className="text-lg font-bold text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">
+                    {post.title}
+                    </h2>
+                    <p className="text-sm text-slate-500 mt-2 flex-grow">
+                    {post.excerpt}
+                    </p>
+                    <div className="mt-4 pt-4 border-t border-slate-200 text-xs text-slate-400 flex justify-between items-center">
+                    <span>Oleh {post.author}</span>
+                    <span>{new Date(post.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    </div>
+                    <button 
+                        onClick={() => navigateToBlogPost(post)}
+                        className="mt-4 w-full px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors"
+                    >
+                        Baca Selengkapnya
+                    </button>
+                </div>
+                </div>
+            ))}
+            {posts.length === 0 && (
+                 <div className="md:col-span-2 lg:col-span-3 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-center p-10 h-64">
+                    <h3 className="font-semibold text-slate-600">Belum Ada Postingan</h3>
+                    <p className="text-sm text-slate-400 mt-1">Sepertinya belum ada artikel yang dipublikasikan. Cek lagi nanti!</p>
+                </div>
+            )}
             </div>
-          ))}
-          {/* A placeholder for coming soon posts */}
-           <div className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-center p-5">
-                <h3 className="font-semibold text-slate-600">Artikel Baru Segera Hadir</h3>
-                <p className="text-sm text-slate-400 mt-1">Kami sedang menyiapkan konten-konten menarik lainnya untuk Anda.</p>
-            </div>
-        </div>
+        )}
       </div>
     </section>
   );
