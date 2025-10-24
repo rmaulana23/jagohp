@@ -24,9 +24,21 @@ interface BlogPost {
   content: string;
   author: string;
   image_url: string;
-  published_at?: string;
+  published_at: string; // Changed to be required for form state
   created_at?: string;
 }
+
+interface Comment {
+    id: number;
+    content: string;
+    author_name: string;
+    created_at: string;
+    blog_posts: {
+        title: string;
+        slug: string;
+    } | null;
+}
+
 
 const AdminDashboard: React.FC<{ setPage: (page: string) => void; onAdminLogout: () => void; }> = ({ setPage, onAdminLogout }) => {
     const [view, setView] = useState<'overview' | 'editor'>('overview');
@@ -100,6 +112,7 @@ const AdminDashboard: React.FC<{ setPage: (page: string) => void; onAdminLogout:
                         onEditPost={handleEditPost}
                         onDeletePost={handleDeletePost}
                         onAdminLogout={onAdminLogout}
+                        setPage={setPage}
                     />
                 ) : (
                     <PostEditor
@@ -117,55 +130,152 @@ const AdminDashboard: React.FC<{ setPage: (page: string) => void; onAdminLogout:
 const Overview: React.FC<{
     posts: BlogPost[], loading: boolean, error: string | null,
     onNewPost: () => void, onEditPost: (post: BlogPost) => void,
-    onDeletePost: (id: number) => void, onAdminLogout: () => void
-}> = ({ posts, loading, error, onNewPost, onEditPost, onDeletePost, onAdminLogout }) => (
-    <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-            <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron text-left">
-                    Admin Dashboard
-                </h1>
-                <p className="text-base text-slate-500 mt-2 text-left">Manajemen Konten Blog</p>
+    onDeletePost: (id: number) => void, onAdminLogout: () => void,
+    setPage: (page: string) => void
+}> = ({ posts, loading, error, onNewPost, onEditPost, onDeletePost, onAdminLogout, setPage }) => {
+    const [activeTab, setActiveTab] = useState<'posts' | 'comments'>('posts');
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [loadingComments, setLoadingComments] = useState(false);
+    const [errorComments, setErrorComments] = useState<string | null>(null);
+
+    const fetchComments = async () => {
+        if (!supabase) return;
+        setLoadingComments(true);
+        setErrorComments(null);
+        try {
+            const { data, error } = await supabase
+                .from('comments')
+                .select('*, blog_posts(title, slug)')
+                .order('created_at', { ascending: false })
+                .limit(20);
+            if (error) throw error;
+            setComments(data || []);
+        } catch (err: any) {
+            setErrorComments('Gagal memuat komentar.');
+            console.error(err);
+        } finally {
+            setLoadingComments(false);
+        }
+    };
+    
+    useEffect(() => {
+        if (activeTab === 'comments') {
+            fetchComments();
+        }
+    }, [activeTab]);
+
+    const handleDeleteComment = async (commentId: number) => {
+        if (!supabase) return;
+        if (window.confirm('Yakin ingin menghapus komentar ini?')) {
+            try {
+                const { error } = await supabase.from('comments').delete().eq('id', commentId);
+                if (error) throw error;
+                fetchComments(); // Refresh
+            } catch (err) {
+                alert('Gagal menghapus komentar.');
+            }
+        }
+    };
+    
+    return (
+        <div className="max-w-4xl mx-auto">
+            <div className="flex justify-between items-center mb-8">
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron text-left">
+                        Admin Dashboard
+                    </h1>
+                    <p className="text-base text-slate-500 mt-2 text-left">Manajemen Konten Blog</p>
+                </div>
+            </div>
+            <div className="flex justify-end mb-4">
+                <button onClick={onNewPost} className="px-5 py-2 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity">
+                    Buat Postingan Baru
+                </button>
+            </div>
+
+            <div className="border-b border-slate-300 mb-4 flex">
+                 <button onClick={() => setActiveTab('posts')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'posts' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>
+                    Postingan ({posts.length})
+                </button>
+                <button onClick={() => setActiveTab('comments')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'comments' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>
+                    Komentar Terbaru
+                </button>
+            </div>
+
+            <div className="glass p-6 md:p-8">
+                {activeTab === 'posts' && (
+                    <>
+                        {loading && <p>Memuat postingan...</p>}
+                        {error && <p className="text-red-500">{error}</p>}
+                        {!loading && !error && (
+                            <div className="space-y-3">
+                                {posts.length > 0 ? posts.map(post => (
+                                    <div key={post.id} className="flex justify-between items-center p-3 bg-slate-100 rounded-lg">
+                                        <div>
+                                            <h3 className="font-semibold text-slate-800">{post.title}</h3>
+                                            <p className="text-xs text-slate-500">
+                                                {new Date(post.published_at!).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                            </p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => onEditPost(post)} className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">Edit</button>
+                                            <button onClick={() => onDeletePost(post.id!)} className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-md hover:bg-red-200">Hapus</button>
+                                        </div>
+                                    </div>
+                                )) : <p className="text-slate-500 text-center">Belum ada postingan.</p>}
+                            </div>
+                        )}
+                    </>
+                )}
+                {activeTab === 'comments' && (
+                    <>
+                        {loadingComments && <p>Memuat komentar...</p>}
+                        {errorComments && <p className="text-red-500">{errorComments}</p>}
+                        {!loadingComments && !errorComments && (
+                            <div className="space-y-4">
+                                {comments.length > 0 ? comments.map(comment => (
+                                    <div key={comment.id} className="p-3 bg-slate-100 rounded-lg">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <p className="text-sm text-slate-600">"{comment.content}"</p>
+                                                <p className="text-xs text-slate-500 mt-2">
+                                                    <strong>{comment.author_name}</strong> &bull; {new Date(comment.created_at).toLocaleString('id-ID')}
+                                                </p>
+                                                 <p className="text-xs text-slate-500 mt-1">
+                                                    Di artikel: <a href={`#blog/${comment.blog_posts?.slug}`} onClick={(e) => { e.preventDefault(); setPage(`blog/${comment.blog_posts?.slug}`)}} className="text-blue-600 hover:underline">{comment.blog_posts?.title}</a>
+                                                </p>
+                                            </div>
+                                            <button onClick={() => handleDeleteComment(comment.id)} className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-md hover:bg-red-200 flex-shrink-0 ml-2">Hapus</button>
+                                        </div>
+                                    </div>
+                                )) : <p className="text-slate-500 text-center">Belum ada komentar.</p>}
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
         </div>
-        <div className="flex justify-end mb-4">
-            <button onClick={onNewPost} className="px-5 py-2 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity">
-                Buat Postingan Baru
-            </button>
-        </div>
-        <div className="glass p-6 md:p-8">
-            {loading && <p>Memuat postingan...</p>}
-            {error && <p className="text-red-500">{error}</p>}
-            {!loading && !error && (
-                <div className="space-y-3">
-                    {posts.length > 0 ? posts.map(post => (
-                        <div key={post.id} className="flex justify-between items-center p-3 bg-slate-100 rounded-lg">
-                            <div>
-                                <h3 className="font-semibold text-slate-800">{post.title}</h3>
-                                <p className="text-xs text-slate-500">
-                                    {new Date(post.published_at!).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
-                                </p>
-                            </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => onEditPost(post)} className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">Edit</button>
-                                <button onClick={() => onDeletePost(post.id!)} className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-md hover:bg-red-200">Hapus</button>
-                            </div>
-                        </div>
-                    )) : <p className="text-slate-500 text-center">Belum ada postingan.</p>}
-                </div>
-            )}
-        </div>
-    </div>
-);
+    );
+}
 
 // --- Post Editor Component ---
 const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSuccess: () => void }> = ({ post, onBack, onSuccess }) => {
     const isEditing = post !== null;
-    const initialFormState: Omit<BlogPost, 'id' | 'created_at' | 'published_at'> = {
-        title: '', slug: '', category: 'Tips & Trik', excerpt: '',
-        content: '', author: 'Tim JAGO-HP', image_url: ''
+    const getInitialFormState = (): BlogPost => {
+        const today = new Date().toISOString().split('T')[0];
+        if (post) {
+            return {
+                ...post,
+                published_at: post.published_at ? new Date(post.published_at).toISOString().split('T')[0] : today,
+            };
+        }
+        return {
+            title: '', slug: '', category: 'Tips & Trik', excerpt: '',
+            content: '', author: 'Tim JAGO-HP', image_url: '', published_at: today,
+        };
     };
-    const [formData, setFormData] = useState(initialFormState);
+
+    const [formData, setFormData] = useState<BlogPost>(getInitialFormState());
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -174,11 +284,11 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        const initialContent = post ? post.content : '';
-        if (contentRef.current && contentRef.current.innerHTML !== initialContent) {
-            contentRef.current.innerHTML = initialContent || '';
+        const initialState = getInitialFormState();
+        setFormData(initialState);
+        if (contentRef.current) {
+            contentRef.current.innerHTML = initialState.content || '';
         }
-        setFormData(post ? { ...post } : initialFormState);
     }, [post]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -268,16 +378,15 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
             return;
         }
 
-        const { id, created_at, ...updateData } = formData;
+        const { id, created_at, ...dataToSave } = formData;
 
         try {
             if (isEditing && post?.id) {
-                const { error: dbError } = await supabase.from('blog_posts').update(updateData).eq('id', post.id);
+                const { error: dbError } = await supabase.from('blog_posts').update(dataToSave).eq('id', post.id);
                 if (dbError) throw dbError;
                 setSuccess('Postingan berhasil diperbarui!');
             } else {
-                 const newPostData = { ...updateData, published_at: new Date().toISOString() };
-                const { error: dbError } = await supabase.from('blog_posts').insert([newPostData]);
+                const { error: dbError } = await supabase.from('blog_posts').insert([dataToSave]);
                 if (dbError) throw dbError;
                 setSuccess('Postingan berhasil dipublikasikan!');
             }
@@ -332,6 +441,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                         <div><label htmlFor="title" className="block text-sm font-medium text-slate-700">Judul Artikel</label><input type="text" name="title" id="title" value={formData.title} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required /></div>
                         <div><label htmlFor="slug" className="block text-sm font-medium text-slate-700">Slug URL (otomatis)</label><input type="text" name="slug" id="slug" value={formData.slug} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" readOnly /></div>
                         <div><label htmlFor="category" className="block text-sm font-medium text-slate-700">Kategori</label><select name="category" id="category" value={formData.category} onChange={handleChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md border bg-white text-slate-800"><option>Tips & Trik</option><option>Review</option><option>Berita</option></select></div>
+                        <div><label htmlFor="published_at" className="block text-sm font-medium text-slate-700">Tanggal Publikasi</label><input type="date" name="published_at" id="published_at" value={formData.published_at || ''} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required /></div>
                         <div><label htmlFor="image_url" className="block text-sm font-medium text-slate-700">URL Gambar Utama</label><input type="url" name="image_url" id="image_url" value={formData.image_url} onChange={handleChange} placeholder="https://images.unsplash.com/..." className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required /></div>
                         <div><label htmlFor="excerpt" className="block text-sm font-medium text-slate-700">Ringkasan (Excerpt)</label><textarea name="excerpt" id="excerpt" value={formData.excerpt} onChange={handleChange} rows={3} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required></textarea></div>
 
@@ -412,7 +522,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
 
 
 // --- Preview Component (replaces modal) ---
-const PostPreview: React.FC<{ post: Omit<BlogPost, 'id' | 'created_at' | 'published_at'> }> = ({ post }) => (
+const PostPreview: React.FC<{ post: Omit<BlogPost, 'id' | 'created_at'> }> = ({ post }) => (
     <>
         <div className="p-6 md:p-8">
             <article>
@@ -422,7 +532,7 @@ const PostPreview: React.FC<{ post: Omit<BlogPost, 'id' | 'created_at' | 'publis
                 </h1>
                 <div className="mt-4 text-xs text-slate-400 flex items-center gap-4">
                     <span>Oleh <strong>{post.author}</strong></span>
-                    <span>{new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    <span>{new Date(post.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 </div>
                 
                 {post.image_url && <img src={post.image_url} alt={post.title} className="w-full h-auto max-h-80 object-cover rounded-lg my-6" />}

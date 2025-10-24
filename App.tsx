@@ -147,7 +147,7 @@ const App: React.FC = () => {
       case 'finder': return <PhoneFinder />;
       case 'blog': 
         if (param) {
-          return <BlogPost post={selectedPost} slug={param} setPage={navigate} setSelectedPost={setSelectedPost} />;
+          return <BlogPost post={selectedPost} slug={param} setPage={navigate} setSelectedPost={setSelectedPost} isAdminAuthenticated={isAdminAuthenticated} />;
         }
         return <Blog setPage={navigate} navigateToBlogPost={navigateToBlogPost} />;
       case 'leaderboard': return <Leaderboard />;

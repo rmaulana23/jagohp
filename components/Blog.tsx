@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabaseClient';
+import EyeIcon from './icons/EyeIcon';
 
 // Define the type for a blog post
 interface BlogPost {
@@ -12,6 +13,7 @@ interface BlogPost {
   published_at: string;
   image_url: string;
   content: string;
+  view_count: number;
 }
 
 interface BlogProps {
@@ -81,10 +83,15 @@ const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
                     <h2 className="text-xl font-bold text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">
                     {post.title}
                     </h2>
-                     <div className="mt-2 text-xs text-slate-400 flex items-center">
+                     <div className="mt-2 text-xs text-slate-400 flex items-center flex-wrap gap-x-4 gap-y-1">
                         <span>Oleh {post.author}</span>
-                        <span className="mx-2">•</span>
+                        <span className="hidden sm:inline">•</span>
                         <span>{new Date(post.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                         <span className="hidden sm:inline">•</span>
+                        <div className="flex items-center gap-1.5 text-slate-500">
+                            <EyeIcon className="w-4 h-4"/>
+                            <span>{post.view_count ? post.view_count.toLocaleString('id-ID') : '0'} x dilihat</span>
+                        </div>
                     </div>
                     <p className="text-sm text-slate-500 mt-3 flex-grow">
                     {post.excerpt}

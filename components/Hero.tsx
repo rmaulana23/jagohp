@@ -508,6 +508,7 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
   const [time, setTime] = useState('');
   const [weather, setWeather] = useState<{ temp: string; icon: string } | null>(null);
   const blogTitle = 'Panduan Lengkap Memilih HP Gaming Terbaik di 2025';
+  const truncatedBlogTitle = blogTitle.split(' ').slice(0, 4).join(' ') + ' ...';
 
   const getWeatherIcon = (code: number) => {
     if (code === 0) return '☀️'; // Clear sky
@@ -571,13 +572,22 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
         .marquee-wrapper {
           display: flex;
           width: 200%;
-          animation: marquee-seamless 15s linear infinite;
+          /* Slower default animation for mobile */
+          animation: marquee-seamless 25s linear infinite;
           will-change: transform;
         }
         .marquee-content {
           width: 50%;
           white-space: nowrap;
           flex-shrink: 0;
+          /* Add padding to create a gap between repetitions */
+          padding-right: 3rem; 
+        }
+        /* Speed up animation slightly on larger screens */
+        @media (min-width: 768px) {
+            .marquee-wrapper {
+                animation-duration: 20s;
+            }
         }
         @keyframes shimmer {
           0% { transform: translateX(-100%) skewX(-20deg); }
@@ -625,13 +635,15 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
                  <div className="mt-1 marquee-container">
                     <button onClick={() => setPage('blog')} className="text-left w-full cursor-pointer group">
                         <div className="marquee-wrapper">
-                            <div className="marquee-content text-xs text-slate-300 group-hover:text-white transition-colors duration-200">
+                            <div className="marquee-content text-[11px] md:text-xs text-slate-300 group-hover:text-white transition-colors duration-200">
                                 <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">BARU</span>
-                                <span className="align-middle">{blogTitle}</span>
+                                <span className="md:hidden align-middle">{truncatedBlogTitle}</span>
+                                <span className="hidden md:inline align-middle">{blogTitle}</span>
                             </div>
-                            <div className="marquee-content text-xs text-slate-300 group-hover:text-white transition-colors duration-200" aria-hidden="true">
+                            <div className="marquee-content text-[11px] md:text-xs text-slate-300 group-hover:text-white transition-colors duration-200" aria-hidden="true">
                                 <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">BARU</span>
-                                <span className="align-middle">{blogTitle}</span>
+                                <span className="md:hidden align-middle">{truncatedBlogTitle}</span>
+                                <span className="hidden md:inline align-middle">{blogTitle}</span>
                             </div>
                         </div>
                     </button>
