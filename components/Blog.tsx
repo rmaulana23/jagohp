@@ -7,13 +7,13 @@ interface BlogPost {
   id: number;
   slug: string;
   title: string;
-  category: string;
   excerpt: string;
   author: string;
   published_at: string;
   image_url: string;
   content: string;
   view_count: number;
+  blog_categories: { name: string }[];
 }
 
 interface BlogProps {
@@ -37,14 +37,14 @@ const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
       try {
         const { data, error: dbError } = await supabase
           .from('blog_posts')
-          .select('*')
+          .select('*, blog_categories(name)')
           .order('published_at', { ascending: false });
 
         if (dbError) {
           throw dbError;
         }
         
-        setPosts(data || []);
+        setPosts((data as any) || []);
       } catch (err: any) {
         console.error('Error fetching blog posts:', err);
         setError('Gagal memuat postingan blog. Coba lagi nanti.');
@@ -77,7 +77,11 @@ const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
                 <div key={post.id} className="glass flex flex-col md:flex-row overflow-hidden group transition-shadow duration-300 hover:shadow-xl">
                 <div className="relative md:w-2/5">
                     <img src={post.image_url} alt={post.title} className="w-full h-56 md:h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    <div className="absolute top-3 left-3 bg-[color:var(--accent1)] text-white text-xs font-semibold px-2 py-1 rounded-md">{post.category}</div>
+                    <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+                        {post.blog_categories.map(cat => (
+                             <span key={cat.name} className="bg-[color:var(--accent1)] text-white text-xs font-semibold px-2 py-1 rounded-md">{cat.name}</span>
+                        ))}
+                    </div>
                 </div>
                 <div className="p-6 flex flex-col flex-grow md:w-3/5">
                     <h2 className="text-xl font-bold text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">

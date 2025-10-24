@@ -19,7 +19,6 @@ interface BlogPost {
   id?: number;
   slug: string;
   title: string;
-  category: string;
   excerpt: string;
   content: string;
   author: string;
@@ -374,6 +373,7 @@ const Overview: React.FC<{
 const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSuccess: () => void }> = ({ post, onBack, onSuccess }) => {
     const isEditing = post !== null;
     const [categories, setCategories] = useState<Category[]>([]);
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
 
     const getInitialFormState = (p: BlogPost | null): BlogPost => {
         const today = new Date().toISOString().split('T')[0];
@@ -384,7 +384,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
             };
         }
         return {
-            title: '', slug: '', category: '', excerpt: '',
+            title: '', slug: '', excerpt: '',
             content: '', author: 'Tim JAGO-HP', image_url: '', published_at: today,
         };
     };
@@ -397,7 +397,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
     const contentRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Fetch categories on mount
+    // Fetch all categories on mount
     useEffect(() => {
         const fetchCategories = async () => {
             if (!supabase) return;
@@ -412,28 +412,41 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
         fetchCategories();
     }, []);
 
+    // Fetch categories for the post being edited
+    useEffect(() => {
+        if (isEditing && post?.id && supabase) {
+            const fetchPostCategories = async () => {
+                const { data } = await supabase
+                    .from('blog_post_categories')
+                    .select('category_id')
+                    .eq('post_id', post.id);
+                
+                if (data) {
+                    setSelectedCategoryIds(data.map(item => item.category_id));
+                }
+            };
+            fetchPostCategories();
+        } else {
+            setSelectedCategoryIds([]); // Reset for new post
+        }
+    }, [post, isEditing]);
+
     // Effect to reset form state ONLY when the post being edited changes.
     useEffect(() => {
         const initialState = getInitialFormState(post);
         setFormData(initialState);
-        
-        // Manually set the innerHTML of the contentEditable div.
-        // This is the key to preventing React from re-rendering it and losing cursor position.
-        // We also check if the content is different to avoid unnecessary DOM manipulation.
         if (contentRef.current && contentRef.current.innerHTML !== (initialState.content || '')) {
             contentRef.current.innerHTML = initialState.content || '';
         }
     }, [post]);
 
-    // Effect to set the default category for NEW posts once categories are loaded.
-    useEffect(() => {
-        if (!isEditing && categories.length > 0 && formData.category === '') {
-            setFormData(prev => ({
-                ...prev,
-                category: categories[0].name
-            }));
-        }
-    }, [isEditing, categories, formData.category]);
+    const handleCategoryChange = (categoryId: number) => {
+        setSelectedCategoryIds(prev =>
+            prev.includes(categoryId)
+                ? prev.filter(id => id !== categoryId)
+                : [...prev, categoryId]
+        );
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -445,11 +458,9 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
         }
     };
     
-    // Syncs DOM changes from the contentEditable div back to React state.
     const handleContentChange = () => {
         if (contentRef.current) {
             const newContent = contentRef.current.innerHTML;
-            // Use a functional update and check for changes to prevent redundant re-renders
             setFormData(prev => {
                 if (prev.content !== newContent) {
                     return { ...prev, content: newContent };
@@ -469,7 +480,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
     
     const applyFontSize = (size: string) => {
         if (size) {
-            document.execCommand("fontSize", false, "7"); // Use a placeholder size
+            document.execCommand("fontSize", false, "7");
             const fontElements = contentRef.current?.getElementsByTagName("font");
             if (fontElements) {
                 for (let i = 0; i < fontElements.length; i++) {
@@ -489,15 +500,9 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
         const file = e.target.files[0];
         const fileName = `${Date.now()}-${file.name}`;
         try {
-            const { data, error } = await supabase.storage
-                .from('blog-images')
-                .upload(fileName, file);
+            const { error } = await supabase.storage.from('blog-images').upload(fileName, file);
             if (error) throw error;
-            
-            const { data: publicUrlData } = supabase.storage
-                .from('blog-images')
-                .getPublicUrl(fileName);
-            
+            const { data: publicUrlData } = supabase.storage.from('blog-images').getPublicUrl(fileName);
             if (publicUrlData) {
                 document.execCommand('insertImage', false, publicUrlData.publicUrl);
                 handleContentChange();
@@ -519,23 +524,51 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
             setLoading(false);
             return;
         }
+        
+        if (selectedCategoryIds.length === 0) {
+            setError("Pilih setidaknya satu kategori.");
+            setLoading(false);
+            return;
+        }
 
         const { id, created_at, ...dataToSave } = formData;
+        let postId = post?.id;
 
         try {
-            if (isEditing && post?.id) {
-                const { error: dbError } = await supabase.from('blog_posts').update(dataToSave).eq('id', post.id);
-                if (dbError) throw dbError;
-                setSuccess('Postingan berhasil diperbarui!');
+            // Step 1: Upsert the main post data
+            if (isEditing && postId) {
+                // Update existing post
+                const { error: postError } = await supabase.from('blog_posts').update(dataToSave).eq('id', postId);
+                if (postError) throw postError;
             } else {
-                const { error: dbError } = await supabase.from('blog_posts').insert([dataToSave]);
-                if (dbError) throw dbError;
-                setSuccess('Postingan berhasil dipublikasikan!');
+                // Insert new post and get its ID
+                const { data: newPostData, error: postError } = await supabase.from('blog_posts').insert([dataToSave]).select('id').single();
+                if (postError) throw postError;
+                if (!newPostData) throw new Error("Gagal membuat postingan baru.");
+                postId = newPostData.id;
             }
+
+            if (!postId) throw new Error("Gagal mendapatkan ID postingan.");
+
+            // Step 2: Delete existing category relations for this post
+            const { error: deleteError } = await supabase.from('blog_post_categories').delete().eq('post_id', postId);
+            if (deleteError) throw deleteError;
+
+            // Step 3: Insert new category relations
+            if (selectedCategoryIds.length > 0) {
+                const relations = selectedCategoryIds.map(catId => ({ post_id: postId, category_id: catId }));
+                const { error: insertError } = await supabase.from('blog_post_categories').insert(relations);
+                if (insertError) throw insertError;
+            }
+
+            setSuccess(isEditing ? 'Postingan berhasil diperbarui!' : 'Postingan berhasil dipublikasikan!');
             setTimeout(() => onSuccess(), 1500);
+
         } catch (err: any) {
             console.error('Error saving post:', err);
-            setError(`Gagal menyimpan: ${err.message}`);
+            // More robust error message handling to avoid "[object Object]"
+            const errorMessage = err.message || (typeof err === 'object' ? JSON.stringify(err) : String(err));
+            setError(`Gagal menyimpan: ${errorMessage}`);
         } finally {
             setLoading(false);
         }
@@ -568,10 +601,16 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                     <form onSubmit={handleSubmit} className="glass p-6 md:p-8 space-y-4">
                         <div><label htmlFor="title" className="block text-sm font-medium text-slate-700">Judul Artikel</label><input type="text" name="title" id="title" value={formData.title} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required /></div>
                         <div><label htmlFor="slug" className="block text-sm font-medium text-slate-700">Slug URL (otomatis)</label><input type="text" name="slug" id="slug" value={formData.slug} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" readOnly /></div>
-                        <div><label htmlFor="category" className="block text-sm font-medium text-slate-700">Kategori</label>
-                            <select name="category" id="category" value={formData.category} onChange={handleChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md border bg-white text-slate-800">
-                                {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
-                            </select>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700">Kategori (pilih satu atau lebih)</label>
+                            <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-slate-50 border border-slate-200 rounded-md">
+                                {categories.map(cat => (
+                                    <label key={cat.id} className="flex items-center gap-2 cursor-pointer text-sm">
+                                        <input type="checkbox" checked={selectedCategoryIds.includes(cat.id)} onChange={() => handleCategoryChange(cat.id)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"/>
+                                        {cat.name}
+                                    </label>
+                                ))}
+                            </div>
                         </div>
                         <div><label htmlFor="published_at" className="block text-sm font-medium text-slate-700">Tanggal Publikasi</label><input type="date" name="published_at" id="published_at" value={formData.published_at || ''} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required /></div>
                         <div><label htmlFor="image_url" className="block text-sm font-medium text-slate-700">URL Gambar Utama</label><input type="url" name="image_url" id="image_url" value={formData.image_url} onChange={handleChange} placeholder="https://..." className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required /></div>
@@ -588,14 +627,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                                     <button type="button" onClick={handleImageToolbarClick} title="Sisipkan Gambar" className="p-1.5 text-slate-600 hover:bg-slate-200 rounded"><ImageIcon className="w-5 h-5" /></button>
                                     <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
                                 </div>
-                                <div 
-                                    ref={contentRef} 
-                                    id="content" 
-                                    onInput={handleContentChange} 
-                                    contentEditable={true} 
-                                    className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none"
-                                >
-                                </div>
+                                <div ref={contentRef} id="content" onInput={handleContentChange} contentEditable={true} className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none" dangerouslySetInnerHTML={{ __html: formData.content || '' }}></div>
                             </div>
                         </div>
 
@@ -608,7 +640,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                 </div>
 
                 <div className={`${!showPreview ? 'hidden' : 'block'} lg:block`}>
-                    <div className="lg:sticky lg:top-[100px]"><div className="glass h-[calc(100vh-10rem)] overflow-y-auto"><PostPreview post={{...formData}} /></div></div>
+                    <div className="lg:sticky lg:top-[100px]"><div className="glass h-[calc(100vh-10rem)] overflow-y-auto"><PostPreview post={{...formData, categories: categories.filter(c => selectedCategoryIds.includes(c.id))}} /></div></div>
                 </div>
             </div>
         </div>
@@ -616,11 +648,15 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
 };
 
 // --- Preview Component ---
-const PostPreview: React.FC<{ post: Omit<BlogPost, 'id' | 'created_at'> }> = ({ post }) => (
+const PostPreview: React.FC<{ post: BlogPost & { categories: Category[] } }> = ({ post }) => (
     <>
         <div className="p-6 md:p-8">
             <article>
-                <p className="text-sm font-bold text-[color:var(--accent1)]">{post.category}</p>
+                <div className="flex flex-wrap gap-2">
+                    {post.categories.map(cat => (
+                        <span key={cat.id} className="text-sm font-bold text-[color:var(--accent1)]">{cat.name}</span>
+                    ))}
+                </div>
                 <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">{post.title || "Judul Artikel Anda"}</h1>
                 <div className="mt-4 text-xs text-slate-400 flex items-center gap-4"><span>Oleh <strong>{post.author}</strong></span><span>{new Date(post.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
                 {post.image_url && <img src={post.image_url} alt={post.title} className="w-full h-auto max-h-80 object-cover rounded-lg my-6" />}

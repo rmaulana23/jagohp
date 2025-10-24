@@ -311,7 +311,7 @@ const ReviewResultDisplay: FC<{
             <ShareButtons shareText={shareText} shareUrl={shareUrl} />
 
             <div className="mt-6 text-center text-xs text-slate-500 bg-slate-100 p-3 rounded-lg border border-slate-200">
-                <strong>Disclaimer:</strong> Setiap hasil review yang dibuat AI tidak sepenuhnya benar, pastikan anda juga mengecek ke website resmi.
+                <strong>Disclaimer:</strong> Review dibuat seakurat mungkin, namun pastikan juga Anda juga mengecek ke website resmi.
             </div>
 
             <div className="mt-6 text-center">

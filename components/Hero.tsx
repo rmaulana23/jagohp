@@ -29,11 +29,11 @@ interface BlogPost {
   id: number;
   slug: string;
   title: string;
-  category: string;
   excerpt: string;
   author: string;
   published_at: string;
   image_url: string;
+  blog_categories: { name: string }[];
 }
 
 
@@ -74,12 +74,12 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
       try {
         const { data, error } = await supabase
           .from('blog_posts')
-          .select('*')
+          .select('*, blog_categories(name)')
           .order('published_at', { ascending: false })
           .limit(3);
         if (error) throw error;
         if (data) {
-          setRecentPosts(data);
+          setRecentPosts(data as any);
         }
       } catch (err) {
         console.error("Failed to fetch recent posts:", err);
@@ -331,34 +331,32 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                   navigateToBlogPost={navigateToBlogPost}
                 />
               </div>
-               {/* BLOG CARD for Mobile */}
-              <div className="md:hidden mt-6">
-                {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} setPage={setPage} navigateToBlogPost={navigateToBlogPost} />}
-              </div>
-              <div className="mt-6 md:hidden">
-                <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
-              </div>
-              <div className="hidden md:block mt-6">
+              <div className="mt-6">
                 <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
               </div>
             </div>
-            
-            {/* QUICK SEARCH & RESULT */}
-            <div>
-              <label className="font-semibold text-slate-800 text-lg">Quick Smart Review</label>
-              <div className="mt-2 flex gap-3 items-center">
-                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung S25 Ultra..." />
-                <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Review'}</button>
-              </div>
-              <div className="mt-2 text-sm small-muted">Ketik model atau tipe HP</div>
-              {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang mereview, mohon tunggu..</div>}
-              {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
-              {/* Mobile-only review result */}
-              {latestReviewResult && (
-                  <div className="md:hidden mt-4">
-                      <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
-                  </div>
-              )}
+
+            {/* QUICK SMART REVIEW (includes mobile Blog Card) */}
+            <div className="space-y-4 md:space-y-0">
+                <div className="md:hidden">
+                    {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} setPage={setPage} navigateToBlogPost={navigateToBlogPost} />}
+                </div>
+
+                <div>
+                    <label className="font-semibold text-slate-800 text-lg md:hidden">Quick Smart Review</label>
+                    <div className="mt-2 flex gap-3 items-center">
+                        <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung S25 Ultra..." />
+                        <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Review'}</button>
+                    </div>
+                    <div className="mt-2 text-sm small-muted md:hidden">Ketik model atau tipe HP</div>
+                    {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang mereview, mohon tunggu..</div>}
+                    {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
+                    {latestReviewResult && (
+                        <div className="mt-4 md:hidden">
+                            <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
+                        </div>
+                    )}
+                </div>
             </div>
              
             {/* Quick Compare & RESULT */}
@@ -401,15 +399,16 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
         </div>
 
         {/* RIGHT: LEADERBOARDS & PREVIEW */}
-        <div className="md:col-span-5 space-y-5">
-            <div className="hidden md:block">
-              {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} setPage={setPage} navigateToBlogPost={navigateToBlogPost} />}
-            </div>
-             {latestReviewResult && (
+        <div className="md:col-span-5 space-y-5 hidden md:block">
+            {latestReviewResult && (
                 <div className="hidden md:block">
                     <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
                 </div>
             )}
+            <div className="hidden md:block">
+              {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} setPage={setPage} navigateToBlogPost={navigateToBlogPost} />}
+            </div>
+           
             {battleData && (
                  <div className="hidden md:block">
                     <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />
@@ -434,10 +433,18 @@ const LatestBlogCard: FC<{ post: BlogPost; setPage: (page: string) => void; navi
         <div className="flex-grow">
             <div className="relative">
                 <img src={post.image_url} alt={post.title} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" />
-                <div className="absolute top-3 left-3">
-                     <div className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
-                        {post.category}
-                    </div>
+                <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+                    {post.blog_categories && post.blog_categories.length > 0 ? (
+                        post.blog_categories.map(cat => (
+                            <div key={cat.name} className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                                {cat.name}
+                            </div>
+                        ))
+                    ) : (
+                        <div className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                            Umum
+                        </div>
+                    )}
                 </div>
             </div>
             <div className="p-4">

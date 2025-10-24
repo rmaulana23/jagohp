@@ -5,13 +5,13 @@ interface BlogPostData {
   id: number;
   slug: string;
   title: string;
-  category: string;
   excerpt: string;
   author: string;
   published_at: string;
   image_url: string;
   content: string;
   view_count: number;
+  blog_categories: { name: string }[];
 }
 
 interface Comment {
@@ -297,15 +297,15 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPos
 
                     const { data, error: dbError } = await supabase
                         .from('blog_posts')
-                        .select('*')
+                        .select('*, blog_categories(name)')
                         .eq('slug', slug)
                         .single();
 
                     if (dbError) throw dbError;
 
                     if (data) {
-                        setInternalPost(data);
-                        setSelectedPost(data);
+                        setInternalPost(data as any);
+                        setSelectedPost(data as any);
                     } else {
                         setError('Postingan tidak ditemukan.');
                     }
@@ -360,7 +360,11 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPos
                         >
                             &larr; Kembali ke Blog
                         </button>
-                        <p className="text-sm font-bold text-[color:var(--accent1)]">{postToRender.category}</p>
+                        <div className="flex flex-wrap gap-2">
+                           {postToRender.blog_categories.map(cat => (
+                               <span key={cat.name} className="text-sm font-bold text-[color:var(--accent1)]">{cat.name}</span>
+                           ))}
+                        </div>
                         <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">
                             {postToRender.title}
                         </h1>
