@@ -70,35 +70,38 @@ const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
         {error && <div className="text-center text-red-500">{error}</div>}
 
         {!loading && !error && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="space-y-8">
             {posts.map((post) => (
-                <div key={post.id} className="glass flex flex-col overflow-hidden group">
-                <div className="relative">
-                    <img src={post.image_url} alt={post.title} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
+                <div key={post.id} className="glass flex flex-col md:flex-row overflow-hidden group transition-shadow duration-300 hover:shadow-xl">
+                <div className="relative md:w-2/5">
+                    <img src={post.image_url} alt={post.title} className="w-full h-56 md:h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     <div className="absolute top-3 left-3 bg-[color:var(--accent1)] text-white text-xs font-semibold px-2 py-1 rounded-md">{post.category}</div>
                 </div>
-                <div className="p-5 flex flex-col flex-grow">
-                    <h2 className="text-lg font-bold text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">
+                <div className="p-6 flex flex-col flex-grow md:w-3/5">
+                    <h2 className="text-xl font-bold text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">
                     {post.title}
                     </h2>
-                    <p className="text-sm text-slate-500 mt-2 flex-grow">
+                     <div className="mt-2 text-xs text-slate-400 flex items-center">
+                        <span>Oleh {post.author}</span>
+                        <span className="mx-2">•</span>
+                        <span>{new Date(post.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    </div>
+                    <p className="text-sm text-slate-500 mt-3 flex-grow">
                     {post.excerpt}
                     </p>
-                    <div className="mt-4 pt-4 border-t border-slate-200 text-xs text-slate-400 flex justify-between items-center">
-                    <span>Oleh {post.author}</span>
-                    <span>{new Date(post.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    <div className="mt-4 pt-4">
+                        <button 
+                            onClick={() => navigateToBlogPost(post)}
+                            className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors"
+                        >
+                            Baca Selengkapnya
+                        </button>
                     </div>
-                    <button 
-                        onClick={() => navigateToBlogPost(post)}
-                        className="mt-4 w-full px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors"
-                    >
-                        Baca Selengkapnya
-                    </button>
                 </div>
                 </div>
             ))}
             {posts.length === 0 && (
-                 <div className="md:col-span-2 lg:col-span-3 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-center p-10 h-64">
+                 <div className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-center p-10 h-64">
                     <h3 className="font-semibold text-slate-600">Belum Ada Postingan</h3>
                     <p className="text-sm text-slate-400 mt-1">Sepertinya belum ada artikel yang dipublikasikan. Cek lagi nanti!</p>
                 </div>

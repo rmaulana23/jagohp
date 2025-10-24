@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../utils/supabaseClient';
 
-interface BlogPost {
+interface BlogPostData {
   id: number;
   slug: string;
   title: string;
@@ -13,15 +14,77 @@ interface BlogPost {
 }
 
 interface BlogPostProps {
-    post: BlogPost | null;
+    post: BlogPostData | null;
+    slug?: string;
     setPage: (page: string) => void;
+    setSelectedPost: (post: BlogPostData | null) => void;
 }
 
-const BlogPost: React.FC<BlogPostProps> = ({ post, setPage }) => {
-    if (!post) {
+const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPost }) => {
+    const [internalPost, setInternalPost] = useState<BlogPostData | null>(post);
+    const [loading, setLoading] = useState(!post && !!slug);
+    const [error, setError] = useState<string | null>(null);
+
+     useEffect(() => {
+        return () => {
+            setSelectedPost(null);
+        }
+    }, [setSelectedPost]);
+
+    useEffect(() => {
+        if (!post && slug) {
+            const fetchPost = async () => {
+                if (!supabase) {
+                    setError("Koneksi database tidak tersedia.");
+                    setLoading(false);
+                    return;
+                }
+                setLoading(true);
+                setError(null);
+                try {
+                    const { data, error: dbError } = await supabase
+                        .from('blog_posts')
+                        .select('*')
+                        .eq('slug', slug)
+                        .single();
+
+                    if (dbError) throw dbError;
+
+                    if (data) {
+                        setInternalPost(data);
+                        setSelectedPost(data);
+                    } else {
+                        setError('Postingan tidak ditemukan.');
+                    }
+                } catch (err: any) {
+                    setError('Gagal memuat postingan.');
+                    console.error(err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchPost();
+        } else if (post) {
+            setInternalPost(post);
+            setLoading(false);
+            setError(null);
+        }
+    }, [post, slug, setSelectedPost]);
+
+    if (loading) {
+        return (
+            <div className="flex-grow flex flex-col items-center justify-center p-8">
+                <p className="text-slate-500 animate-pulse">Memuat postingan...</p>
+            </div>
+        );
+    }
+    
+    const postToRender = internalPost;
+
+    if (!postToRender || error) {
         return (
             <div className="flex-grow flex flex-col items-center justify-center text-center p-8">
-                <h2 className="text-2xl font-bold text-slate-800">Postingan Tidak Ditemukan</h2>
+                <h2 className="text-2xl font-bold text-slate-800">{error || 'Postingan Tidak Ditemukan'}</h2>
                 <p className="text-slate-500 mt-2">Sepertinya ada yang salah. Silakan kembali ke halaman blog.</p>
                 <button 
                     onClick={() => setPage('blog')}
@@ -44,21 +107,21 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, setPage }) => {
                         >
                             &larr; Kembali ke Blog
                         </button>
-                        <p className="text-sm font-bold text-[color:var(--accent1)]">{post.category}</p>
+                        <p className="text-sm font-bold text-[color:var(--accent1)]">{postToRender.category}</p>
                         <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">
-                            {post.title}
+                            {postToRender.title}
                         </h1>
                         <div className="mt-4 text-xs text-slate-400 flex items-center gap-4">
-                            <span>Oleh <strong>{post.author}</strong></span>
-                            <span>{new Date(post.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                            <span>Oleh <strong>{postToRender.author}</strong></span>
+                            <span>{new Date(postToRender.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                         </div>
                     </div>
                     
-                    <img src={post.image_url} alt={post.title} className="w-full h-64 md:h-80 object-cover rounded-lg my-6" />
+                    <img src={postToRender.image_url} alt={postToRender.title} className="w-full h-64 md:h-80 object-cover rounded-lg my-6" />
 
                     <div 
                         className="prose max-w-none text-slate-600 leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: post.content }}
+                        dangerouslySetInnerHTML={{ __html: postToRender.content }}
                     >
                     </div>
 

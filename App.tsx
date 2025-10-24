@@ -19,7 +19,7 @@ import AdminDashboard from './components/AdminDashboard';
 import BlogPost from './components/BlogPost';
 
 const App: React.FC = () => {
-  const [page, setPage] = useState('home');
+  const [path, setPath] = useState(window.location.hash.substring(1) || 'home');
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
 
   // State to hold full results for detail pages
@@ -34,6 +34,21 @@ const App: React.FC = () => {
 
   // Blog post state
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
+
+  useEffect(() => {
+    const onHashChange = () => {
+        setPath(window.location.hash.substring(1) || 'home');
+        window.scrollTo(0, 0);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    // Set initial path
+    onHashChange();
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+  
+  const navigate = (newPath: string) => {
+    window.location.hash = newPath;
+  };
 
   useEffect(() => {
     try {
@@ -62,9 +77,9 @@ const App: React.FC = () => {
 
   const handleLogoClick = () => {
     if (isAdminAuthenticated) {
-        setPage('admin');
+        navigate('admin');
     } else {
-        setPage('home');
+        navigate('home');
     }
   };
   
@@ -77,7 +92,7 @@ const App: React.FC = () => {
       if (code === '221212') {
           setIsAdminAuthenticated(true);
           setShowAdminLogin(false);
-          setPage('admin');
+          navigate('admin');
       } else {
           alert('Kode akses salah!');
       }
@@ -85,37 +100,41 @@ const App: React.FC = () => {
   
   const handleAdminLogout = () => {
     setIsAdminAuthenticated(false);
-    setPage('home');
+    navigate('home');
   };
 
   const navigateToFullReview = (result: ReviewResult) => {
     setReviewResult(result);
     setReviewQuery('');
-    setPage('review');
+    navigate('review');
   };
 
   const navigateToFullBattle = (result: BattleResult) => {
     setBattleResult(result);
-    setPage('battle');
+    navigate('battle');
   };
 
   const navigateToReviewWithQuery = (phoneName: string) => {
     setReviewResult(null);
     setReviewQuery(phoneName);
-    setPage('review');
+    navigate('review');
   };
 
   const navigateToBlogPost = (post: any) => {
     setSelectedPost(post);
-    setPage('blog-post');
+    navigate(`blog/${post.slug}`);
   };
   
   const openChat = () => setIsChatModalOpen(true);
 
   const mainContent = () => {
+    const pathParts = path.split('/');
+    const page = pathParts[0] || 'home';
+    const param = pathParts[1];
+
     switch (page) {
       case 'home': return <Hero 
-                            setPage={setPage} 
+                            setPage={navigate} 
                             openChat={openChat} 
                             navigateToFullReview={navigateToFullReview} 
                             navigateToFullBattle={navigateToFullBattle} 
@@ -126,32 +145,34 @@ const App: React.FC = () => {
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
       case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} />;
       case 'finder': return <PhoneFinder />;
-      case 'blog': return <Blog setPage={setPage} navigateToBlogPost={navigateToBlogPost} />;
-      case 'blog-post': return <BlogPost post={selectedPost} setPage={setPage} />;
+      case 'blog': 
+        if (param) {
+          return <BlogPost post={selectedPost} slug={param} setPage={navigate} setSelectedPost={setSelectedPost} />;
+        }
+        return <Blog setPage={navigate} navigateToBlogPost={navigateToBlogPost} />;
       case 'leaderboard': return <Leaderboard />;
       case 'about': return <About />;
       case 'partnership': return <Partnership />;
       case 'faq': return <FAQ />;
       case 'privacy': return <PrivacyPolicy />;
       case 'saran': return <Saran />;
-      case 'admin': return isAdminAuthenticated ? <AdminDashboard setPage={setPage} onAdminLogout={handleAdminLogout} /> : <Hero setPage={setPage} openChat={openChat} navigateToFullReview={navigateToFullReview} navigateToFullBattle={navigateToFullBattle} latestReviewResult={latestReviewResult} setLatestReviewResult={handleSetLatestReviewResult} navigateToReviewWithQuery={navigateToReviewWithQuery} />;
-      default: return <Hero 
-                        setPage={setPage} 
-                        openChat={openChat} 
-                        navigateToFullReview={navigateToFullReview} 
-                        navigateToFullBattle={navigateToFullBattle} 
-                        latestReviewResult={latestReviewResult}
-                        setLatestReviewResult={handleSetLatestReviewResult}
-                        navigateToReviewWithQuery={navigateToReviewWithQuery}
-                       />;
+      case 'admin': 
+        if (isAdminAuthenticated) {
+            return <AdminDashboard setPage={navigate} onAdminLogout={handleAdminLogout} />;
+        }
+        navigate('home');
+        return null;
+      default: 
+        navigate('home');
+        return null;
     }
   }
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header 
-        page={page} 
-        setPage={setPage} 
+        page={path} 
+        setPage={navigate} 
         onLogoClick={handleLogoClick}
         isAdminAuthenticated={isAdminAuthenticated}
         onAdminLogout={handleAdminLogout}
@@ -161,9 +182,9 @@ const App: React.FC = () => {
         {mainContent()}
       </main>
 
-      <Footer setPage={setPage} page={page} />
+      <Footer setPage={navigate} page={path} />
       
-      <BottomNav page={page} setPage={setPage} />
+      <BottomNav page={path} setPage={navigate} />
 
       <TanyaAI 
         isOpen={isChatModalOpen} 

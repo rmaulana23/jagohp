@@ -38,6 +38,8 @@ const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuth
   const activeNavLinkClasses = 'text-white font-semibold';
   const leaderboardBtnClasses = 'border-white text-white hover:bg-white/20';
   const hamburgerClasses = 'text-slate-200 hover:text-white';
+  
+  const currentRootPage = page.split('/')[0] || 'home';
 
 
   return (
@@ -57,11 +59,11 @@ const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuth
         {/* Center: Navigation */}
         <ul className="hidden md:flex items-center gap-6 text-sm">
         {navItems.map(item => {
-            const isActive = page === item.key;
+            const isActive = currentRootPage === item.key;
             return (
             <li key={item.key}>
                 <a
-                href="#"
+                href={`#${item.key}`}
                 onClick={(e) => handleNavClick(e, item.key)}
                 className={`transition-colors duration-200 ${isActive ? activeNavLinkClasses : navLinkClasses}`}
                 >
@@ -111,11 +113,11 @@ const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuth
         <div className="md:hidden mt-3 glass p-4 animate-fade-in-down">
           <ul className="flex flex-col gap-3">
             {navItems.map(item => {
-              const isActive = page === item.key;
+              const isActive = currentRootPage === item.key;
               return (
                 <li key={item.key}>
                   <a
-                    href="#"
+                    href={`#${item.key}`}
                     onClick={(e) => handleNavClick(e, item.key)}
                     className={`block text-center py-2 rounded-lg ${isActive ? 'bg-[color:var(--accent1)]/10 text-[color:var(--accent1)] font-semibold' : 'hover:bg-slate-100'}`}
                   >

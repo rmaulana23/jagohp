@@ -90,7 +90,7 @@ const AdminDashboard: React.FC<{ setPage: (page: string) => void; onAdminLogout:
 
     return (
         <section id="admin-dashboard" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
-            <div className="container mx-auto max-w-4xl">
+            <div className="container mx-auto max-w-7xl">
                 {view === 'overview' ? (
                     <Overview
                         posts={posts}
@@ -119,7 +119,7 @@ const Overview: React.FC<{
     onNewPost: () => void, onEditPost: (post: BlogPost) => void,
     onDeletePost: (id: number) => void, onAdminLogout: () => void
 }> = ({ posts, loading, error, onNewPost, onEditPost, onDeletePost, onAdminLogout }) => (
-    <div>
+    <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
             <div>
                 <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron text-left">
@@ -306,132 +306,133 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
 
     return (
         <div>
-            <h1 className="text-3xl font-bold text-slate-900 font-orbitron text-left mb-4">
-                {isEditing ? 'Edit Postingan' : 'Buat Postingan Baru'}
-            </h1>
-            <form onSubmit={handleSubmit} className="glass p-6 md:p-8 space-y-4">
-                 <div><label htmlFor="title" className="block text-sm font-medium text-slate-700">Judul Artikel</label><input type="text" name="title" id="title" value={formData.title} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required /></div>
-                 <div><label htmlFor="slug" className="block text-sm font-medium text-slate-700">Slug URL (otomatis)</label><input type="text" name="slug" id="slug" value={formData.slug} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" readOnly /></div>
-                 <div><label htmlFor="category" className="block text-sm font-medium text-slate-700">Kategori</label><select name="category" id="category" value={formData.category} onChange={handleChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md border bg-white text-slate-800"><option>Tips & Trik</option><option>Review</option><option>Berita</option></select></div>
-                 <div><label htmlFor="image_url" className="block text-sm font-medium text-slate-700">URL Gambar Utama</label><input type="url" name="image_url" id="image_url" value={formData.image_url} onChange={handleChange} placeholder="https://images.unsplash.com/..." className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required /></div>
-                 <div><label htmlFor="excerpt" className="block text-sm font-medium text-slate-700">Ringkasan (Excerpt)</label><textarea name="excerpt" id="excerpt" value={formData.excerpt} onChange={handleChange} rows={3} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required></textarea></div>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold text-slate-900 font-orbitron text-left">
+                    {isEditing ? 'Edit Postingan' : 'Buat Postingan Baru'}
+                </h1>
+                <button type="button" onClick={onBack} className="px-5 py-2 rounded-lg bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors">
+                    Kembali
+                </button>
+            </div>
 
-                <div>
-                    <label htmlFor="content" className="block text-sm font-medium text-slate-700">Isi Konten Lengkap</label>
-                    <div className="mt-1 border border-slate-300 rounded-md">
-                        <div className="sticky top-0 md:top-[100px] z-10 flex items-center flex-wrap gap-1 p-2 bg-slate-100 border-b border-slate-300 rounded-t-md">
-                             <div className="relative flex items-center" title="Format Teks">
-                                <select
-                                    onChange={(e) => applyFormatBlock(e.target.value)}
-                                    className="p-1.5 text-slate-600 hover:bg-slate-200 rounded bg-transparent appearance-none text-xs font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-400"
-                                >
-                                    <option value="p">Paragraf</option>
-                                    <option value="h2">Judul 2</option>
-                                    <option value="h3">Judul 3</option>
-                                </select>
+            {/* Mobile View Toggle */}
+            <div className="lg:hidden flex border-b border-slate-300 mb-4">
+                <button type="button" onClick={() => setShowPreview(false)} className={`flex-1 py-2 text-sm font-semibold transition-colors ${!showPreview ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>
+                    Editor
+                </button>
+                <button type="button" onClick={() => setShowPreview(true)} className={`flex-1 py-2 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${showPreview ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>
+                    <EyeIcon className="w-5 h-5" /> Preview
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left Column: Editor */}
+                <div className={`${showPreview ? 'hidden' : 'block'} lg:block`}>
+                    <form onSubmit={handleSubmit} className="glass p-6 md:p-8 space-y-4">
+                        <div><label htmlFor="title" className="block text-sm font-medium text-slate-700">Judul Artikel</label><input type="text" name="title" id="title" value={formData.title} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required /></div>
+                        <div><label htmlFor="slug" className="block text-sm font-medium text-slate-700">Slug URL (otomatis)</label><input type="text" name="slug" id="slug" value={formData.slug} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" readOnly /></div>
+                        <div><label htmlFor="category" className="block text-sm font-medium text-slate-700">Kategori</label><select name="category" id="category" value={formData.category} onChange={handleChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md border bg-white text-slate-800"><option>Tips & Trik</option><option>Review</option><option>Berita</option></select></div>
+                        <div><label htmlFor="image_url" className="block text-sm font-medium text-slate-700">URL Gambar Utama</label><input type="url" name="image_url" id="image_url" value={formData.image_url} onChange={handleChange} placeholder="https://images.unsplash.com/..." className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required /></div>
+                        <div><label htmlFor="excerpt" className="block text-sm font-medium text-slate-700">Ringkasan (Excerpt)</label><textarea name="excerpt" id="excerpt" value={formData.excerpt} onChange={handleChange} rows={3} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required></textarea></div>
+
+                        <div>
+                            <label htmlFor="content" className="block text-sm font-medium text-slate-700">Isi Konten Lengkap</label>
+                            <div className="mt-1 border border-slate-300 rounded-md">
+                                <div className="sticky top-[72px] md:top-[100px] z-10 flex items-center flex-wrap gap-1 p-2 bg-slate-100 border-b border-slate-300 rounded-t-md">
+                                    <div className="relative flex items-center" title="Format Teks">
+                                        <select
+                                            onChange={(e) => applyFormatBlock(e.target.value)}
+                                            className="p-1.5 text-slate-600 hover:bg-slate-200 rounded bg-transparent appearance-none text-xs font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-400"
+                                        >
+                                            <option value="p">Paragraf</option>
+                                            <option value="h2">Judul 2</option>
+                                            <option value="h3">Judul 3</option>
+                                        </select>
+                                    </div>
+                                    <div className="relative flex items-center" title="Ukuran Font">
+                                        <FontSizeIcon className="w-5 h-5 absolute left-2 pointer-events-none text-slate-600"/>
+                                        <select
+                                            onChange={(e) => applyFontSize(e.target.value)}
+                                            className="p-1.5 pl-8 text-slate-600 hover:bg-slate-200 rounded bg-transparent appearance-none text-xs font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-400"
+                                        >
+                                            <option value="">Ukuran</option>
+                                            {fontSizes.map(size => (
+                                                <option key={size} value={String(size)}>{size}px</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {toolbarButtons.map(btn => {
+                                        const Icon = btn.icon;
+                                        return (
+                                        <button key={btn.cmd} type="button" onClick={() => applyCommand(btn.cmd)} title={btn.title} className="p-1.5 text-slate-600 hover:bg-slate-200 rounded">
+                                            <Icon className="w-5 h-5" />
+                                        </button>
+                                    )})}
+                                    <label className="relative p-1.5 text-slate-600 hover:bg-slate-200 rounded cursor-pointer" title="Ubah Warna Teks">
+                                        <TextColorIcon className="w-5 h-5"/>
+                                        <input type="color" onInput={(e) => applyCommand('foreColor', (e.target as HTMLInputElement).value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"/>
+                                    </label>
+                                    <button type="button" onClick={handleImageToolbarClick} title="Sisipkan Gambar" className="p-1.5 text-slate-600 hover:bg-slate-200 rounded">
+                                        <ImageIcon className="w-5 h-5" />
+                                    </button>
+                                    <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
+                                </div>
+                                <div
+                                    ref={contentRef}
+                                    id="content"
+                                    onInput={handleContentChange}
+                                    contentEditable={true}
+                                    className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none"
+                                ></div>
                             </div>
-                             <div className="relative flex items-center" title="Ukuran Font">
-                                <FontSizeIcon className="w-5 h-5 absolute left-2 pointer-events-none text-slate-600"/>
-                                <select
-                                    onChange={(e) => applyFontSize(e.target.value)}
-                                    className="p-1.5 pl-8 text-slate-600 hover:bg-slate-200 rounded bg-transparent appearance-none text-xs font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-slate-400"
-                                >
-                                    <option value="">Ukuran</option>
-                                    {fontSizes.map(size => (
-                                        <option key={size} value={String(size)}>{size}px</option>
-                                    ))}
-                                </select>
-                            </div>
-                            {toolbarButtons.map(btn => {
-                                const Icon = btn.icon;
-                                return (
-                                <button key={btn.cmd} type="button" onClick={() => applyCommand(btn.cmd)} title={btn.title} className="p-1.5 text-slate-600 hover:bg-slate-200 rounded">
-                                    <Icon className="w-5 h-5" />
-                                </button>
-                            )})}
-                             <label className="relative p-1.5 text-slate-600 hover:bg-slate-200 rounded cursor-pointer" title="Ubah Warna Teks">
-                                <TextColorIcon className="w-5 h-5"/>
-                                <input type="color" onInput={(e) => applyCommand('foreColor', (e.target as HTMLInputElement).value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"/>
-                            </label>
-                            <button type="button" onClick={handleImageToolbarClick} title="Sisipkan Gambar" className="p-1.5 text-slate-600 hover:bg-slate-200 rounded">
-                                <ImageIcon className="w-5 h-5" />
-                            </button>
-                            <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
                         </div>
-                        <div
-                            ref={contentRef}
-                            id="content"
-                            onInput={handleContentChange}
-                            contentEditable={true}
-                            className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none"
-                        ></div>
-                    </div>
+
+                        <div className="flex justify-end pt-4">
+                            <button type="submit" disabled={loading} className="px-5 py-2 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
+                                {loading ? 'Menyimpan...' : (isEditing ? 'Perbarui Postingan' : 'Publikasikan')}
+                            </button>
+                        </div>
+                        {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+                        {success && <p className="text-sm text-green-600 text-center">{success}</p>}
+                    </form>
                 </div>
 
-                <div className="flex items-center justify-between pt-4">
-                    <div className="flex items-center gap-2">
-                         <button type="button" onClick={onBack} className="px-5 py-2 rounded-lg bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors">
-                            Kembali
-                        </button>
-                        <button type="button" onClick={() => setShowPreview(true)} className="px-5 py-2 rounded-lg bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors flex items-center gap-2">
-                            <EyeIcon className="w-5 h-5" /> Preview
-                        </button>
+                {/* Right Column: Preview */}
+                <div className={`${!showPreview ? 'hidden' : 'block'} lg:block`}>
+                    <div className="lg:sticky lg:top-[100px]">
+                        <div className="glass h-[calc(100vh-10rem)] overflow-y-auto">
+                            <PostPreview post={{...formData}} />
+                        </div>
                     </div>
-                    <button type="submit" disabled={loading} className="px-5 py-2 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
-                        {loading ? 'Menyimpan...' : (isEditing ? 'Perbarui Postingan' : 'Publikasikan')}
-                    </button>
                 </div>
-                {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-                {success && <p className="text-sm text-green-600 text-center">{success}</p>}
-            </form>
-
-            {showPreview && <PreviewModal post={{...formData}} onClose={() => setShowPreview(false)} />}
+            </div>
         </div>
     );
 };
 
-// --- Preview Modal Component ---
-const PreviewModal: React.FC<{ post: Omit<BlogPost, 'id'>, onClose: () => void }> = ({ post, onClose }) => (
-    <>
-        <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 opacity-100"
-            onClick={onClose}
-        ></div>
-        <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            onClick={onClose}
-        >
-            <div 
-                className="w-full max-w-3xl h-[85vh] flex flex-col glass shadow-2xl transition-all duration-300 ease-out scale-100"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between p-4 border-b border-slate-200 flex-shrink-0">
-                    <h2 className="text-base font-semibold text-slate-800">Pratinjau Artikel</h2>
-                    <button onClick={onClose} className="text-slate-500 hover:text-slate-800 transition-colors" aria-label="Tutup">
-                        X
-                    </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                     <article>
-                        <p className="text-sm font-bold text-[color:var(--accent1)]">{post.category}</p>
-                        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">
-                            {post.title}
-                        </h1>
-                        <div className="mt-4 text-xs text-slate-400 flex items-center gap-4">
-                            <span>Oleh <strong>{post.author}</strong></span>
-                            <span>{new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                        </div>
-                        
-                        {post.image_url && <img src={post.image_url} alt={post.title} className="w-full h-64 md:h-80 object-cover rounded-lg my-6" />}
 
-                        <div 
-                            className="prose max-w-none text-slate-600 leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: post.content }}
-                        >
-                        </div>
-                    </article>
+// --- Preview Component (replaces modal) ---
+const PostPreview: React.FC<{ post: Omit<BlogPost, 'id' | 'created_at' | 'published_at'> }> = ({ post }) => (
+    <>
+        <div className="p-6 md:p-8">
+            <article>
+                <p className="text-sm font-bold text-[color:var(--accent1)]">{post.category}</p>
+                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">
+                    {post.title || "Judul Artikel Anda"}
+                </h1>
+                <div className="mt-4 text-xs text-slate-400 flex items-center gap-4">
+                    <span>Oleh <strong>{post.author}</strong></span>
+                    <span>{new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 </div>
-            </div>
+                
+                {post.image_url && <img src={post.image_url} alt={post.title} className="w-full h-auto max-h-80 object-cover rounded-lg my-6" />}
+
+                <div 
+                    className="prose max-w-none text-slate-600 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: post.content || "<p>Konten artikel akan muncul di sini...</p>" }}
+                >
+                </div>
+            </article>
         </div>
          <style>{`
             .prose p, .prose div, .prose li { margin-bottom: 1em; }

@@ -16,14 +16,15 @@ const BottomNav: React.FC<{ page: string; setPage: (page: string) => void }> = (
   
   const handleNavClick = (pageKey: string) => {
       setPage(pageKey);
-      window.scrollTo(0, 0);
   };
+
+  const currentRootPage = page.split('/')[0] || 'home';
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-900 z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.2)]">
       <div className="max-w-md mx-auto h-full grid grid-cols-5 items-center">
         {navItems.map(item => {
-          const isActive = page === item.key || (item.key === 'blog' && page === 'blog-post');
+          const isActive = currentRootPage === item.key;
           const Icon = item.icon;
           return (
             <button

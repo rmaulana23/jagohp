@@ -15,7 +15,6 @@ const Footer: React.FC<FooterProps> = ({ setPage, page }) => {
   const handleNavClick = (e: React.MouseEvent, pageKey: string) => {
     e.preventDefault();
     setPage(pageKey);
-    window.scrollTo(0, 0); // Scroll to top on page change
   };
 
   return (
@@ -28,7 +27,7 @@ const Footer: React.FC<FooterProps> = ({ setPage, page }) => {
           {footerLinks.map(link => (
             <a
               key={link.key}
-              href="#"
+              href={`#${link.key}`}
               onClick={(e) => handleNavClick(e, link.key)}
               className={`text-sm ${page === 'jcc' ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-800'} transition-colors`}
             >
