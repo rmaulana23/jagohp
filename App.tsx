@@ -88,13 +88,14 @@ const App: React.FC = () => {
     setShowAdminLogin(true);
   };
 
-  const handleAdminLogin = (code: string) => {
-      if (code === '221212') {
+  const handleAdminLogin = (code: string): boolean => {
+      if (code === 'adminjago1') {
           setIsAdminAuthenticated(true);
           setShowAdminLogin(false);
           navigate('admin');
+          return true;
       } else {
-          alert('Kode akses salah!');
+          return false;
       }
   };
   

@@ -11,6 +11,7 @@ import EcommerceButtons from './EcommerceButtons';
 import SparklesIcon from './icons/SparklesIcon';
 import SignalIcon from './icons/SignalIcon';
 import BatteryIcon from './icons/BatteryIcon';
+import InstagramIcon from './icons/InstagramIcon';
 
 interface QuickMatchResult {
   phoneName: string;
@@ -619,6 +620,12 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
         <div className="flex justify-between items-center text-xs text-slate-300 font-mono">
            <div className="flex items-center gap-2">
             <span>{time || '...'}</span>
+            {weather && (
+                <div className="flex items-center gap-1">
+                    <span>{weather.icon}</span>
+                    <span className="text-[11px]">{weather.temp}</span>
+                </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <span className="font-semibold text-[10px] tracking-wider">5G</span>
@@ -627,10 +634,10 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
           </div>
         </div>
 
-        {/* Bottom Content Area */}
-        <div className="flex justify-between items-end gap-4">
+        {/* Main Content Area */}
+        <div className="flex-grow flex items-end justify-between gap-4">
             {/* Left Side: Title & Tagline */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden self-end">
                 <h1 className="text-3xl font-bold font-orbitron">JAGO-HP</h1>
                  <div className="mt-1 marquee-container">
                     <button onClick={() => setPage('blog')} className="text-left w-full cursor-pointer group">
@@ -650,13 +657,22 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
                 </div>
             </div>
             
-            {/* Right Side: Weather */}
-            {weather && (
-                <div className="text-right flex-shrink-0">
-                    <span className="text-4xl">{weather.icon}</span>
-                    <p className="text-2xl font-semibold font-mono -mt-1">{weather.temp}</p>
-                </div>
-            )}
+            {/* Right Side: Instagram Icon */}
+            <div className="flex-shrink-0 self-end">
+                <a 
+                    href="https://www.instagram.com/jagohp" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="group"
+                    title="@jagohp on Instagram"
+                >
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-300 via-red-500 to-purple-600 p-0.5 group-hover:scale-105 transition-transform">
+                        <div className="bg-slate-800 w-full h-full rounded-[6px] flex items-center justify-center">
+                            <InstagramIcon className="w-5 h-5 text-white"/>
+                        </div>
+                    </div>
+                </a>
+            </div>
         </div>
       </div>
     </>

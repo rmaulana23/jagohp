@@ -137,6 +137,31 @@ const Overview: React.FC<{
     const [comments, setComments] = useState<Comment[]>([]);
     const [loadingComments, setLoadingComments] = useState(false);
     const [errorComments, setErrorComments] = useState<string | null>(null);
+    const [hasNewComments, setHasNewComments] = useState(false);
+
+    useEffect(() => {
+        const checkNewComments = async () => {
+            if (!supabase) return;
+            const lastViewed = localStorage.getItem('lastCommentViewTimestamp');
+            if (!lastViewed) {
+                const { data: anyComment } = await supabase.from('comments').select('id').limit(1).single();
+                if (anyComment) setHasNewComments(true);
+                return;
+            }
+
+            const { data: latestComment } = await supabase
+                .from('comments')
+                .select('created_at')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+            
+            if (latestComment && new Date(latestComment.created_at).getTime() > parseInt(lastViewed, 10)) {
+                setHasNewComments(true);
+            }
+        };
+        checkNewComments();
+    }, []);
 
     const fetchComments = async () => {
         if (!supabase) return;
@@ -177,6 +202,14 @@ const Overview: React.FC<{
         }
     };
     
+    const handleCommentsTabClick = () => {
+        setActiveTab('comments');
+        if (hasNewComments) {
+            localStorage.setItem('lastCommentViewTimestamp', String(Date.now()));
+            setHasNewComments(false);
+        }
+    };
+    
     return (
         <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-8">
@@ -197,8 +230,11 @@ const Overview: React.FC<{
                  <button onClick={() => setActiveTab('posts')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'posts' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>
                     Postingan ({posts.length})
                 </button>
-                <button onClick={() => setActiveTab('comments')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'comments' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>
+                <button onClick={handleCommentsTabClick} className={`relative px-4 py-2 text-sm font-semibold ${activeTab === 'comments' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>
                     Komentar Terbaru
+                    {hasNewComments && (
+                        <span className="absolute top-1.5 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-50"></span>
+                    )}
                 </button>
             </div>
 

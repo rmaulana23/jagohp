@@ -3,24 +3,48 @@ import XMarkIcon from './icons/XMarkIcon';
 
 interface AdminLoginModalProps {
     onClose: () => void;
-    onSubmit: (code: string) => void;
+    onSubmit: (code: string) => boolean;
 }
 
 const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ onClose, onSubmit }) => {
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
+    const [isShaking, setIsShaking] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (code.trim() === '') {
             setError('Kode tidak boleh kosong.');
+            triggerShake();
             return;
         }
-        onSubmit(code);
+        
+        const success = onSubmit(code);
+        if (!success) {
+            setError('Kode akses salah!');
+            triggerShake();
+            setCode(''); // Clear input on failure
+        }
+    };
+    
+    const triggerShake = () => {
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 500);
     };
 
     return (
         <>
+            <style>{`
+                @keyframes shake {
+                    10%, 90% { transform: translate3d(-1px, 0, 0); }
+                    20%, 80% { transform: translate3d(2px, 0, 0); }
+                    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+                    40%, 60% { transform: translate3d(4px, 0, 0); }
+                }
+                .animate-shake {
+                    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+                }
+            `}</style>
             <div 
                 className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 opacity-100"
                 onClick={onClose}
@@ -31,7 +55,7 @@ const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ onClose, onSubmit }) 
                 aria-modal="true"
                 role="dialog"
             >
-                <div className="w-full max-w-sm flex flex-col glass shadow-2xl transition-transform duration-300 ease-out scale-100">
+                <div className={`w-full max-w-sm flex flex-col glass shadow-2xl transition-transform duration-300 ease-out scale-100 ${isShaking ? 'animate-shake' : ''}`}>
                      <div className="flex items-center justify-between p-4 border-b border-slate-200 flex-shrink-0">
                         <h2 className="text-base font-semibold text-slate-800">Akses Admin</h2>
                         <button onClick={onClose} className="text-slate-500 hover:text-slate-800 transition-colors" aria-label="Tutup">
@@ -47,11 +71,11 @@ const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ onClose, onSubmit }) 
                                 id="admin-code"
                                 value={code}
                                 onChange={(e) => { setCode(e.target.value); setError(''); }}
-                                className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                className={`mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-1 sm:text-sm ${error ? 'border-red-500 ring-red-500' : 'border-slate-300 focus:ring-indigo-500 focus:border-indigo-500'}`}
                                 autoFocus
                             />
                         </div>
-                        {error && <p className="text-xs text-red-600">{error}</p>}
+                        {error && <p className="text-xs text-red-600 text-center">{error}</p>}
                         <div>
                             <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[color:var(--accent1)] hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 Masuk
