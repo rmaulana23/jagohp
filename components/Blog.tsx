@@ -61,7 +61,7 @@ const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
       <div className="container mx-auto max-w-5xl animate-fade-in">
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">
-            JAGO-HP Blog
+            Blog
           </h1>
           <p className="text-base text-slate-500 leading-relaxed max-w-3xl mx-auto mt-3">
             Wawasan, tips, dan review mendalam seputar dunia smartphone.
