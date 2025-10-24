@@ -339,7 +339,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
             {/* QUICK SMART REVIEW (includes mobile Blog Card) */}
             <div className="space-y-4 md:space-y-0">
                 <div className="md:hidden">
-                    {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} setPage={setPage} navigateToBlogPost={navigateToBlogPost} />}
+                    {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} navigateToBlogPost={navigateToBlogPost} />}
                 </div>
 
                 <div>
@@ -406,7 +406,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                 </div>
             )}
             <div className="hidden md:block">
-              {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} setPage={setPage} navigateToBlogPost={navigateToBlogPost} />}
+              {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} navigateToBlogPost={navigateToBlogPost} />}
             </div>
            
             {battleData && (
@@ -428,7 +428,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
 
 // --- Snippet Components ---
 
-const LatestBlogCard: FC<{ post: BlogPost; setPage: (page: string) => void; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, setPage, navigateToBlogPost }) => (
+const LatestBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, navigateToBlogPost }) => (
     <div className="w-full text-left glass overflow-hidden animate-fade-in group transition-shadow duration-300 hover:shadow-xl flex flex-col">
         <div className="flex-grow">
             <div className="relative">
@@ -452,20 +452,13 @@ const LatestBlogCard: FC<{ post: BlogPost; setPage: (page: string) => void; navi
                 <p className="text-sm text-slate-500 mt-2 line-clamp-2">{post.excerpt}</p>
             </div>
         </div>
-        <div className="p-4 pt-0 flex items-center gap-3">
+        <div className="p-4 pt-0">
             <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); navigateToBlogPost(post); }}
                 className="inline-block px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md"
             >
                 Baca Selengkapnya
-            </button>
-             <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setPage('blog'); }}
-                className="text-sm text-slate-500 font-semibold hover:text-[color:var(--accent1)] transition-colors"
-            >
-                Halaman Blog
             </button>
         </div>
     </div>
