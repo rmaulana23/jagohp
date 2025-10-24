@@ -153,8 +153,8 @@ const Overview: React.FC<{
             if (!supabase) return;
             const lastViewed = localStorage.getItem('lastCommentViewTimestamp');
             if (!lastViewed) {
-                const { data: anyComment } = await supabase.from('comments').select('id', { count: 'exact', head: true });
-                if (anyComment) setHasNewComments(true);
+                const { count } = await supabase.from('comments').select('id', { count: 'exact', head: true });
+                if (count && count > 0) setHasNewComments(true);
                 return;
             }
 
@@ -375,12 +375,12 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
     const isEditing = post !== null;
     const [categories, setCategories] = useState<Category[]>([]);
 
-    const getInitialFormState = (): BlogPost => {
+    const getInitialFormState = (p: BlogPost | null): BlogPost => {
         const today = new Date().toISOString().split('T')[0];
-        if (post) {
+        if (p) {
             return {
-                ...post,
-                published_at: post.published_at ? new Date(post.published_at).toISOString().split('T')[0] : today,
+                ...p,
+                published_at: p.published_at ? new Date(p.published_at).toISOString().split('T')[0] : today,
             };
         }
         return {
@@ -389,7 +389,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
         };
     };
 
-    const [formData, setFormData] = useState<BlogPost>(getInitialFormState());
+    const [formData, setFormData] = useState<BlogPost>(() => getInitialFormState(post));
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -397,36 +397,43 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
     const contentRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Fetch categories on mount
     useEffect(() => {
         const fetchCategories = async () => {
             if (!supabase) return;
             try {
                 const { data, error } = await supabase.from('blog_categories').select('id, name').order('name', { ascending: true });
                 if (error) throw error;
-                if (data) {
-                    setCategories(data);
-                    // Set default category for new posts if not already set
-                    if (!post && data.length > 0) {
-                        setFormData(prev => ({...prev, category: data[0].name}));
-                    }
-                }
+                if (data) setCategories(data);
             } catch (err) {
                 console.error("Failed to fetch categories for editor", err);
             }
         };
         fetchCategories();
-    }, [post]);
+    }, []);
 
+    // Effect to reset form state ONLY when the post being edited changes.
     useEffect(() => {
-        const initialState = getInitialFormState();
-        if (categories.length > 0 && !initialState.category) {
-            initialState.category = categories[0].name;
-        }
+        const initialState = getInitialFormState(post);
         setFormData(initialState);
-        if (contentRef.current) {
+        
+        // Manually set the innerHTML of the contentEditable div.
+        // This is the key to preventing React from re-rendering it and losing cursor position.
+        // We also check if the content is different to avoid unnecessary DOM manipulation.
+        if (contentRef.current && contentRef.current.innerHTML !== (initialState.content || '')) {
             contentRef.current.innerHTML = initialState.content || '';
         }
-    }, [post, categories]);
+    }, [post]);
+
+    // Effect to set the default category for NEW posts once categories are loaded.
+    useEffect(() => {
+        if (!isEditing && categories.length > 0 && formData.category === '') {
+            setFormData(prev => ({
+                ...prev,
+                category: categories[0].name
+            }));
+        }
+    }, [isEditing, categories, formData.category]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -438,9 +445,17 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
         }
     };
     
+    // Syncs DOM changes from the contentEditable div back to React state.
     const handleContentChange = () => {
         if (contentRef.current) {
-            setFormData(prev => ({ ...prev, content: contentRef.current!.innerHTML }));
+            const newContent = contentRef.current.innerHTML;
+            // Use a functional update and check for changes to prevent redundant re-renders
+            setFormData(prev => {
+                if (prev.content !== newContent) {
+                    return { ...prev, content: newContent };
+                }
+                return prev;
+            });
         }
     };
 
@@ -454,20 +469,17 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
     
     const applyFontSize = (size: string) => {
         if (size) {
-            const span = document.createElement('span');
-            span.style.fontSize = `${size}px`;
-            const selection = window.getSelection();
-            if (selection && selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                if (range.collapsed) {
-                    // How to handle this? Maybe wrap the cursor position.
-                    // For now, let's require text selection
-                    return;
+            document.execCommand("fontSize", false, "7"); // Use a placeholder size
+            const fontElements = contentRef.current?.getElementsByTagName("font");
+            if (fontElements) {
+                for (let i = 0; i < fontElements.length; i++) {
+                    if (fontElements[i].size === "7") {
+                        fontElements[i].removeAttribute("size");
+                        fontElements[i].style.fontSize = size + "px";
+                    }
                 }
-                span.appendChild(range.extractContents());
-                range.insertNode(span);
-                handleContentChange();
             }
+            handleContentChange();
         }
     };
     const handleImageToolbarClick = () => fileInputRef.current?.click();
@@ -576,7 +588,14 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                                     <button type="button" onClick={handleImageToolbarClick} title="Sisipkan Gambar" className="p-1.5 text-slate-600 hover:bg-slate-200 rounded"><ImageIcon className="w-5 h-5" /></button>
                                     <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
                                 </div>
-                                <div ref={contentRef} id="content" onInput={handleContentChange} contentEditable={true} dangerouslySetInnerHTML={{ __html: formData.content }} className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none"></div>
+                                <div 
+                                    ref={contentRef} 
+                                    id="content" 
+                                    onInput={handleContentChange} 
+                                    contentEditable={true} 
+                                    className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none"
+                                >
+                                </div>
                             </div>
                         </div>
 

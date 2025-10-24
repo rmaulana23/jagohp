@@ -64,29 +64,28 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
   const [quickMatchError, setQuickMatchError] = useState<string | null>(null);
   const [quickMatchResult, setQuickMatchResult] = useState<QuickMatchResult | null>(null);
 
-  const [latestPost, setLatestPost] = useState<BlogPost | null>(null);
+  const [recentPosts, setRecentPosts] = useState<BlogPost[]>([]);
 
   const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
   
   useEffect(() => {
-    const fetchLatestPost = async () => {
+    const fetchRecentPosts = async () => {
       if (!supabase) return;
       try {
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*')
           .order('published_at', { ascending: false })
-          .limit(1)
-          .single();
+          .limit(3);
         if (error) throw error;
         if (data) {
-          setLatestPost(data);
+          setRecentPosts(data);
         }
       } catch (err) {
-        console.error("Failed to fetch latest post:", err);
+        console.error("Failed to fetch recent posts:", err);
       }
     };
-    fetchLatestPost();
+    fetchRecentPosts();
   }, []);
 
   const handleReviewSearch = async () => {
@@ -327,7 +326,14 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
         <div className="md:col-span-7 space-y-8">
             <div>
               <div className="h-32">
-                <PhoneScreenDisplay setPage={setPage} />
+                <PhoneScreenDisplay 
+                  latestPost={recentPosts[0] || null}
+                  navigateToBlogPost={navigateToBlogPost}
+                />
+              </div>
+               {/* BLOG CARD for Mobile */}
+              <div className="md:hidden mt-6">
+                {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} setPage={setPage} navigateToBlogPost={navigateToBlogPost} />}
               </div>
               <div className="mt-6 md:hidden">
                 <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
@@ -411,7 +417,9 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                     <QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} />
                 </div>
             )}
-            {latestPost && <LatestBlogCard post={latestPost} onNavigateToBlog={() => setPage('blog')} onNavigateToPost={() => navigateToBlogPost(latestPost)} />}
+            <div className="hidden md:block">
+              {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} setPage={setPage} navigateToBlogPost={navigateToBlogPost} />}
+            </div>
             <InsightPublic />
         </div>
       </div>
@@ -421,25 +429,30 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
 
 // --- Snippet Components ---
 
-const LatestBlogCard: FC<{ post: BlogPost; onNavigateToPost: () => void; onNavigateToBlog: () => void }> = ({ post, onNavigateToPost, onNavigateToBlog }) => (
-  <div className="glass p-4 animate-fade-in cursor-pointer group" onClick={onNavigateToBlog}>
-    <h3 className="inline-block bg-rose-600 text-white text-sm font-semibold px-3 py-1 rounded-md mb-3">Blog Terbaru</h3>
-    <div className="relative mb-3">
-      <img src={post.image_url} alt={post.title} className="w-full h-40 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300" />
-      <div className="absolute top-2 left-2 bg-[color:var(--accent1)] text-white text-xs font-semibold px-2 py-1 rounded-md">{post.category}</div>
-    </div>
-    <h4 className="font-bold text-slate-800 text-base leading-tight group-hover:text-[color:var(--accent1)] transition-colors">{post.title}</h4>
-    <p className="text-sm text-slate-500 mt-2 leading-relaxed line-clamp-2">{post.excerpt}</p>
-    <button 
-        onClick={(e) => {
-            e.stopPropagation();
-            onNavigateToPost();
-        }}
-        className="w-full mt-3 px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors"
-    >
-      Baca Selengkapnya
+const LatestBlogCard: FC<{ post: BlogPost; setPage: (page: string) => void; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, setPage, navigateToBlogPost }) => (
+    <button type="button" onClick={() => navigateToBlogPost(post)} className="w-full text-left glass overflow-hidden animate-fade-in group transition-shadow duration-300 hover:shadow-xl flex flex-col">
+        <div className="flex-grow">
+            <div className="relative">
+                <img src={post.image_url} alt={post.title} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" />
+                <div className="absolute top-3 left-3">
+                     <button onClick={(e) => { e.stopPropagation(); setPage('blog'); }} className="inline-block bg-rose-600 text-white text-sm font-semibold px-3 py-1 rounded-md hover:bg-rose-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-rose-500">
+                        Blog Terbaru
+                    </button>
+                </div>
+            </div>
+            <div className="p-4">
+                <h4 className="font-bold text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">{post.title}</h4>
+                <p className="text-sm text-slate-500 mt-2 line-clamp-2">{post.excerpt}</p>
+            </div>
+        </div>
+        <div className="p-4 pt-0">
+            <div
+                className="w-full sm:w-auto inline-block px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold group-hover:bg-[color:var(--accent2)]/20 transition-colors"
+            >
+                Baca Selengkapnya
+            </div>
+        </div>
     </button>
-  </div>
 );
 
 
@@ -531,43 +544,9 @@ const QuickMatchResultCard: FC<{ result: QuickMatchResult; onSeeFull: () => void
 
 const SpecItem: FC<{ label: string; value: any }> = ({ label, value }) => value ? (<div className="flex justify-between gap-2"><dt className="font-normal text-slate-500 truncate">{label}</dt><dd className="font-medium text-slate-700 text-right truncate">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</dd></div>) : null;
 
-const LeaderboardCard: FC<{title: string, data: {name: string, share: string}[]}> = ({title, data}) => {
-    const barColors = [
-        'bg-[color:var(--accent1)]', // #1
-        'bg-[color:var(--accent1)]', // #2
-        'bg-slate-400' // #3
-    ];
-    return (
-        <div className="glass p-4 border-t-4 border-[color:var(--accent2)]">
-            <h3 className="font-semibold text-slate-800 mb-4 text-base">{title}</h3>
-            <div className="space-y-4">
-                {data.map((item, index) => (
-                    <div key={item.name}>
-                        <div className="flex justify-between items-center text-sm mb-1">
-                            <span className="font-semibold text-slate-700">#{index + 1} {item.name}</span>
-                            <span className="small-muted font-medium">{item.share}</span>
-                        </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2">
-                            <div
-                                className={`h-2 rounded-full ${barColors[index] || 'bg-slate-400'}`}
-                                style={{ width: item.share, transition: 'width 0.5s ease-in-out' }}
-                            ></div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-            <p className="text-xs text-slate-400 mt-4 text-center">
-                Sumber: Top Brand Index
-            </p>
-        </div>
-    );
-};
-
-const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }) => {
+const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: (post: BlogPost) => void; }> = ({ latestPost, navigateToBlogPost }) => {
   const [time, setTime] = useState('');
   const [weather, setWeather] = useState<{ temp: string; icon: string } | null>(null);
-  const blogTitle = 'Panduan Lengkap Memilih HP Gaming Terbaik di 2025';
-  const truncatedBlogTitle = blogTitle.split(' ').slice(0, 4).join(' ') + ' ...';
 
   const getWeatherIcon = (code: number) => {
     if (code === 0) return '☀️'; // Clear sky
@@ -584,7 +563,6 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        // Hardcoded for Jakarta for reliability, removing geolocation dependency
         const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-6.21&longitude=106.85&current_weather=true');
         if (!response.ok) {
           const errorBody = await response.text();
@@ -617,6 +595,10 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
     return () => clearInterval(timerId);
   }, []);
 
+  const blogTitle = latestPost ? latestPost.title : 'Selamat Datang di JAGO-HP';
+  const truncatedTitle = latestPost ? latestPost.title.split(' ').slice(0, 4).join(' ') + (latestPost.title.split(' ').length > 4 ? '...' : '') : 'Selamat Datang di JAGO-HP';
+  const isClickable = !!latestPost;
+
   return (
     <>
       <style>{`
@@ -631,18 +613,15 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
         .marquee-wrapper {
           display: flex;
           width: 200%;
-          /* Slower default animation for mobile */
-          animation: marquee-seamless 25s linear infinite;
+          animation: marquee-seamless 15s linear infinite;
           will-change: transform;
         }
         .marquee-content {
           width: 50%;
           white-space: nowrap;
           flex-shrink: 0;
-          /* Add padding to create a gap between repetitions */
           padding-right: 3rem; 
         }
-        /* Speed up animation slightly on larger screens */
         @media (min-width: 768px) {
             .marquee-wrapper {
                 animation-duration: 20s;
@@ -698,18 +677,24 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
             {/* Left Side: Title & Tagline */}
             <div className="flex-1 overflow-hidden self-end">
                 <h1 className="text-3xl font-bold font-orbitron">JAGO-HP</h1>
+                 
+                 {/* Unified Running Text for All Screens */}
                  <div className="mt-1 marquee-container">
-                    <button onClick={() => setPage('blog')} className="text-left w-full cursor-pointer group">
+                    <button 
+                      onClick={() => isClickable && navigateToBlogPost(latestPost!)} 
+                      className={`text-left w-full ${isClickable ? 'cursor-pointer group' : 'cursor-default'}`}
+                      disabled={!isClickable}
+                    >
                         <div className="marquee-wrapper">
                             <div className="marquee-content text-[11px] md:text-xs text-slate-300 group-hover:text-white transition-colors duration-200">
-                                <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">BARU</span>
-                                <span className="md:hidden align-middle">{truncatedBlogTitle}</span>
-                                <span className="hidden md:inline align-middle">{blogTitle}</span>
+                                {latestPost && <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">BARU</span>}
+                                <span className="align-middle md:hidden">{truncatedTitle}</span>
+                                <span className="align-middle hidden md:inline">{blogTitle}</span>
                             </div>
                             <div className="marquee-content text-[11px] md:text-xs text-slate-300 group-hover:text-white transition-colors duration-200" aria-hidden="true">
-                                <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">BARU</span>
-                                <span className="md:hidden align-middle">{truncatedBlogTitle}</span>
-                                <span className="hidden md:inline align-middle">{blogTitle}</span>
+                                {latestPost && <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">BARU</span>}
+                                <span className="align-middle md:hidden">{truncatedTitle}</span>
+                                <span className="align-middle hidden md:inline">{blogTitle}</span>
                             </div>
                         </div>
                     </button>
