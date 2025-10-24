@@ -118,7 +118,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
             phoneName: { type: Type.STRING },
             ratings: { type: Type.OBJECT, properties: { gaming: { type: Type.NUMBER }, kamera: { type: Type.NUMBER }, baterai: { type: Type.NUMBER }, layarDesain: { type: Type.NUMBER }, performa: { type: Type.NUMBER }, storageRam: { type: Type.NUMBER }}},
             quickReview: { type: Type.OBJECT, properties: { summary: { type: Type.STRING }, pros: { type: Type.ARRAY, items: { type: Type.STRING } }, cons: { type: Type.ARRAY, items: { type: Type.STRING } } } },
-            specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
+            specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
             targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
             accessoryAvailability: { type: Type.STRING },
             marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } } },
@@ -402,7 +402,10 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
 
         {/* RIGHT: LEADERBOARDS & PREVIEW */}
         <div className="md:col-span-5 space-y-5">
-            {latestReviewResult && (
+            <div className="hidden md:block">
+              {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} setPage={setPage} navigateToBlogPost={navigateToBlogPost} />}
+            </div>
+             {latestReviewResult && (
                 <div className="hidden md:block">
                     <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
                 </div>
@@ -417,9 +420,6 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                     <QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} />
                 </div>
             )}
-            <div className="hidden md:block">
-              {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} setPage={setPage} navigateToBlogPost={navigateToBlogPost} />}
-            </div>
             <InsightPublic />
         </div>
       </div>
@@ -435,7 +435,7 @@ const LatestBlogCard: FC<{ post: BlogPost; setPage: (page: string) => void; navi
             <div className="relative">
                 <img src={post.image_url} alt={post.title} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" />
                 <div className="absolute top-3 left-3">
-                     <div className="inline-block bg-[color:var(--accent1)] text-white text-xs font-semibold px-2 py-1 rounded-md">
+                     <div className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
                         {post.category}
                     </div>
                 </div>

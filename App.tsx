@@ -120,6 +120,10 @@ const App: React.FC = () => {
     setReviewQuery(phoneName);
     navigate('review');
   };
+  
+  const clearGlobalReviewResult = () => {
+    setReviewResult(null);
+  };
 
   const navigateToBlogPost = (post: any) => {
     setSelectedPost(post);
@@ -145,7 +149,7 @@ const App: React.FC = () => {
                             navigateToBlogPost={navigateToBlogPost}
                            />;
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
-      case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} />;
+      case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} clearGlobalResult={clearGlobalReviewResult} />;
       case 'finder': return <PhoneFinder />;
       case 'blog': 
         if (param) {

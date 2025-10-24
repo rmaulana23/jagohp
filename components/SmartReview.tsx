@@ -25,6 +25,7 @@ export interface ReviewResult {
   };
   specs: {
     rilis?: string;
+    brand?: string;
     processor: string;
     ram: string;
     camera: string;
@@ -60,7 +61,13 @@ export interface ReviewResult {
   };
 }
 
-const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResult | null }> = ({ initialQuery = '', initialResult = null }) => {
+interface SmartReviewProps {
+    initialQuery?: string;
+    initialResult?: ReviewResult | null;
+    clearGlobalResult: () => void;
+}
+
+const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialResult = null, clearGlobalResult }) => {
     const [query, setQuery] = useState(initialQuery);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -88,7 +95,7 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
             },
             specs: {
                 type: Type.OBJECT, properties: {
-                    rilis: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }
+                    rilis: { type: Type.STRING }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }
                 }
             },
             targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
@@ -250,6 +257,7 @@ const SmartReview: React.FC<{ initialQuery?: string, initialResult?: ReviewResul
                                 onReset={() => { 
                                     setReview(null); 
                                     setQuery(''); 
+                                    clearGlobalResult();
                                 }} 
                                />}
                 </div>
@@ -301,6 +309,11 @@ const ReviewResultDisplay: FC<{
             </div>
             <EcommerceButtons phoneName={review.phoneName} />
             <ShareButtons shareText={shareText} shareUrl={shareUrl} />
+
+            <div className="mt-6 text-center text-xs text-slate-500 bg-slate-100 p-3 rounded-lg border border-slate-200">
+                <strong>Disclaimer:</strong> Setiap hasil review yang dibuat AI tidak sepenuhnya benar, pastikan anda juga mengecek ke website resmi.
+            </div>
+
             <div className="mt-6 text-center">
                 <button
                     onClick={onReset}
