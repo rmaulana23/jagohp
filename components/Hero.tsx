@@ -412,7 +412,6 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                 </div>
             )}
             {latestPost && <LatestBlogCard post={latestPost} onNavigateToBlog={() => setPage('blog')} onNavigateToPost={() => navigateToBlogPost(latestPost)} />}
-            <LeaderboardCard title="Top 3 Brand HP di Indonesia" data={[{name: 'Samsung', share: '29.8%'}, {name: 'Xiaomi', share: '21.5%'}, {name: 'Oppo', share: '14.5%'}]} />
             <InsightPublic />
         </div>
       </div>

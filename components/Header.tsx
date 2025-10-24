@@ -89,7 +89,7 @@ const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuth
                 onClick={() => setPage('leaderboard')} 
                 className={`hidden md:inline-block px-3 py-1.5 rounded-md text-sm border transition-colors ${leaderboardBtnClasses}`}
             >
-                Top Leaderboard
+                Top Brand
             </button>
         )}
         
@@ -132,7 +132,7 @@ const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuth
                     onClick={() => { setPage('leaderboard'); setIsMobileMenuOpen(false); }}
                     className="w-full px-3 py-2 rounded-md text-sm border border-[color:var(--accent1)] bg-[color:var(--accent1)]/10 text-[color:var(--accent1)]"
                 >
-                    Top Leaderboard
+                    Top Brand
                 </button>
             </li>
           </ul>
