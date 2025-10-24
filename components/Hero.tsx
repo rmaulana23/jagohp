@@ -430,14 +430,14 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
 // --- Snippet Components ---
 
 const LatestBlogCard: FC<{ post: BlogPost; setPage: (page: string) => void; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, setPage, navigateToBlogPost }) => (
-    <button type="button" onClick={() => navigateToBlogPost(post)} className="w-full text-left glass overflow-hidden animate-fade-in group transition-shadow duration-300 hover:shadow-xl flex flex-col">
+    <div className="w-full text-left glass overflow-hidden animate-fade-in group transition-shadow duration-300 hover:shadow-xl flex flex-col">
         <div className="flex-grow">
             <div className="relative">
                 <img src={post.image_url} alt={post.title} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" />
                 <div className="absolute top-3 left-3">
-                     <button onClick={(e) => { e.stopPropagation(); setPage('blog'); }} className="inline-block bg-rose-600 text-white text-sm font-semibold px-3 py-1 rounded-md hover:bg-rose-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-rose-500">
-                        Blog Terbaru
-                    </button>
+                     <div className="inline-block bg-[color:var(--accent1)] text-white text-xs font-semibold px-2 py-1 rounded-md">
+                        {post.category}
+                    </div>
                 </div>
             </div>
             <div className="p-4">
@@ -445,14 +445,23 @@ const LatestBlogCard: FC<{ post: BlogPost; setPage: (page: string) => void; navi
                 <p className="text-sm text-slate-500 mt-2 line-clamp-2">{post.excerpt}</p>
             </div>
         </div>
-        <div className="p-4 pt-0">
-            <div
-                className="w-full sm:w-auto inline-block px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold group-hover:bg-[color:var(--accent2)]/20 transition-colors"
+        <div className="p-4 pt-0 flex items-center gap-3">
+            <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); navigateToBlogPost(post); }}
+                className="inline-block px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md"
             >
                 Baca Selengkapnya
-            </div>
+            </button>
+             <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setPage('blog'); }}
+                className="text-sm text-slate-500 font-semibold hover:text-[color:var(--accent1)] transition-colors"
+            >
+                Halaman Blog
+            </button>
         </div>
-    </button>
+    </div>
 );
 
 
