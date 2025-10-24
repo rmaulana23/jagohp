@@ -627,7 +627,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                                     <button type="button" onClick={handleImageToolbarClick} title="Sisipkan Gambar" className="p-1.5 text-slate-600 hover:bg-slate-200 rounded"><ImageIcon className="w-5 h-5" /></button>
                                     <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
                                 </div>
-                                <div ref={contentRef} id="content" onInput={handleContentChange} contentEditable={true} className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none" dangerouslySetInnerHTML={{ __html: formData.content || '' }}></div>
+                                <div ref={contentRef} id="content" onInput={handleContentChange} contentEditable={true} className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none"></div>
                             </div>
                         </div>
 
