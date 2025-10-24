@@ -25,6 +25,18 @@ interface QuickMatchResult {
   estimatedPrice: string;
 }
 
+interface BlogPost {
+  id: number;
+  slug: string;
+  title: string;
+  category: string;
+  excerpt: string;
+  author: string;
+  published_at: string;
+  image_url: string;
+}
+
+
 interface HeroProps {
   setPage: (page: string) => void;
   openChat: () => void;
@@ -33,9 +45,10 @@ interface HeroProps {
   latestReviewResult: ReviewResult | null;
   setLatestReviewResult: (result: ReviewResult | null) => void;
   navigateToReviewWithQuery: (phoneName: string) => void;
+  navigateToBlogPost: (post: BlogPost) => void;
 }
 
-const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, latestReviewResult, setLatestReviewResult, navigateToReviewWithQuery }) => {
+const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, latestReviewResult, setLatestReviewResult, navigateToReviewWithQuery, navigateToBlogPost }) => {
   const [reviewQuery, setReviewQuery] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
@@ -51,7 +64,30 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
   const [quickMatchError, setQuickMatchError] = useState<string | null>(null);
   const [quickMatchResult, setQuickMatchResult] = useState<QuickMatchResult | null>(null);
 
+  const [latestPost, setLatestPost] = useState<BlogPost | null>(null);
+
   const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
+  
+  useEffect(() => {
+    const fetchLatestPost = async () => {
+      if (!supabase) return;
+      try {
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .order('published_at', { ascending: false })
+          .limit(1)
+          .single();
+        if (error) throw error;
+        if (data) {
+          setLatestPost(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch latest post:", err);
+      }
+    };
+    fetchLatestPost();
+  }, []);
 
   const handleReviewSearch = async () => {
     if (!reviewQuery.trim()) return;
@@ -375,6 +411,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                     <QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} />
                 </div>
             )}
+            {latestPost && <LatestBlogCard post={latestPost} onNavigateToBlog={() => setPage('blog')} onNavigateToPost={() => navigateToBlogPost(latestPost)} />}
             <LeaderboardCard title="Top 3 Brand HP di Indonesia" data={[{name: 'Samsung', share: '29.8%'}, {name: 'Xiaomi', share: '21.5%'}, {name: 'Oppo', share: '14.5%'}]} />
             <InsightPublic />
         </div>
@@ -384,6 +421,28 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
 };
 
 // --- Snippet Components ---
+
+const LatestBlogCard: FC<{ post: BlogPost; onNavigateToPost: () => void; onNavigateToBlog: () => void }> = ({ post, onNavigateToPost, onNavigateToBlog }) => (
+  <div className="glass p-4 animate-fade-in cursor-pointer group" onClick={onNavigateToBlog}>
+    <h3 className="inline-block bg-rose-600 text-white text-sm font-semibold px-3 py-1 rounded-md mb-3">Blog Terbaru</h3>
+    <div className="relative mb-3">
+      <img src={post.image_url} alt={post.title} className="w-full h-40 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300" />
+      <div className="absolute top-2 left-2 bg-[color:var(--accent1)] text-white text-xs font-semibold px-2 py-1 rounded-md">{post.category}</div>
+    </div>
+    <h4 className="font-bold text-slate-800 text-base leading-tight group-hover:text-[color:var(--accent1)] transition-colors">{post.title}</h4>
+    <p className="text-sm text-slate-500 mt-2 leading-relaxed line-clamp-2">{post.excerpt}</p>
+    <button 
+        onClick={(e) => {
+            e.stopPropagation();
+            onNavigateToPost();
+        }}
+        className="w-full mt-3 px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors"
+    >
+      Baca Selengkapnya
+    </button>
+  </div>
+);
+
 
 const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ result, onSeeFull }) => (
     <div className="glass p-4 animate-fade-in space-y-4">
@@ -628,6 +687,7 @@ const PhoneScreenDisplay: FC<{ setPage: (page: string) => void }> = ({ setPage }
             )}
           </div>
           <div className="flex items-center gap-2">
+            <span className="text-[10px]">JAGO-Satelit</span>
             <span className="font-semibold text-[10px] tracking-wider">5G</span>
             <SignalIcon className="w-4 h-4" />
             <BatteryIcon className="w-5 h-5" />

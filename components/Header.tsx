@@ -16,15 +16,16 @@ const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuth
     { label: 'Smart Review', key: 'review' },
     { label: 'Compare', key: 'battle' },
     { label: 'Phone Match', key: 'finder' },
-    { label: 'Blog', key: 'blog' },
     { label: 'About', key: 'about' }
   ];
 
+  const adminNavItems = [
+    { label: 'Dashboard', key: 'admin' },
+    { label: 'Blog', key: 'blog' },
+  ];
+
   const navItems = isAdminAuthenticated 
-    ? [
-        { label: 'Blog', key: 'blog' },
-        { label: 'Dashboard', key: 'admin' }
-      ]
+    ? adminNavItems
     : baseNavItems;
 
   const handleNavClick = (e: React.MouseEvent, pageKey: string) => {

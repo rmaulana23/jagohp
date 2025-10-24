@@ -142,6 +142,7 @@ const App: React.FC = () => {
                             latestReviewResult={latestReviewResult}
                             setLatestReviewResult={handleSetLatestReviewResult}
                             navigateToReviewWithQuery={navigateToReviewWithQuery}
+                            navigateToBlogPost={navigateToBlogPost}
                            />;
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
       case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} />;
