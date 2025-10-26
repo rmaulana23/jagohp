@@ -6,7 +6,6 @@ import { BattleResult } from './PhoneBattle';
 import VersusIcon from './icons/VersusIcon';
 import CrownIcon from './icons/CrownIcon';
 import PreviewCard from './PreviewCard';
-import InsightPublic from './InsightPublic';
 import EcommerceButtons from './EcommerceButtons';
 import SparklesIcon from './icons/SparklesIcon';
 import SignalIcon from './icons/SignalIcon';
@@ -76,7 +75,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
           .from('blog_posts')
           .select('*, blog_categories(name)')
           .order('published_at', { ascending: false })
-          .limit(3);
+          .limit(5); // Fetch 5 latest posts
         if (error) throw error;
         if (data) {
           setRecentPosts(data as any);
@@ -318,117 +317,179 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
         setQuickMatchLoading(false);
     }
   };
+  
+  const latestPost = recentPosts[0] || null;
+  const otherRecentPosts = recentPosts.slice(1);
 
   return (
-    <section className="pb-10">
-      <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-        {/* LEFT: CONTENT & INTERACTION */}
-        <div className="md:col-span-7 space-y-8">
-            <div>
-              <div className="h-32">
-                <PhoneScreenDisplay 
-                  latestPost={recentPosts[0] || null}
-                  navigateToBlogPost={navigateToBlogPost}
-                />
-              </div>
-              <div className="mt-6">
-                <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
-              </div>
-            </div>
-
-            {/* QUICK SMART REVIEW (includes mobile Blog Card) */}
-            <div className="space-y-4 md:space-y-0">
-                <div className="md:hidden">
-                    {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} navigateToBlogPost={navigateToBlogPost} />}
-                </div>
-
+    <>
+      <section className="pb-10">
+        <div className="max-w-6xl mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+            {/* LEFT: CONTENT & INTERACTION */}
+            <div className="md:col-span-7 space-y-8 flex flex-col">
                 <div>
-                    <label className="font-semibold text-slate-800 text-lg md:hidden">Quick Smart Review</label>
-                    <div className="mt-2 flex gap-3 items-center">
-                        <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung S25 Ultra..." />
-                        <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Review'}</button>
+                <div className="h-32">
+                    <PhoneScreenDisplay 
+                    latestPost={latestPost}
+                    navigateToBlogPost={navigateToBlogPost}
+                    />
+                </div>
+                <div className="mt-6">
+                    <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
+                </div>
+                </div>
+
+                {/* QUICK SMART REVIEW (includes mobile Blog Card) */}
+                <div className="space-y-4 md:space-y-0">
+                    <div className="md:hidden">
+                        {latestPost && <BlogCard post={latestPost} navigateToBlogPost={navigateToBlogPost} />}
                     </div>
-                    <div className="mt-2 text-sm small-muted md:hidden">Ketik model atau tipe HP</div>
-                    {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang mereview, mohon tunggu..</div>}
-                    {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
-                    {latestReviewResult && (
-                        <div className="mt-4 md:hidden">
-                            <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
+
+                    <div>
+                        <label className="font-semibold text-slate-800 text-lg md:hidden">Quick Smart Review</label>
+                        <div className="mt-2 flex gap-3 items-center">
+                            <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung S25 Ultra..." />
+                            <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Review'}</button>
                         </div>
-                    )}
-                </div>
-            </div>
-             
-            {/* Quick Compare & RESULT */}
-            <div>
-                <div className="glass p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-semibold text-slate-800 text-lg">Quick Compare</h3>
-                        <div className="text-sm small-muted">Bandingkan 2 HP tipe berbeda</div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input id="cmpA" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 1" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
-                        <input id="cmpB" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 2" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
-                    </div>
-                    <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                        <button onClick={() => handleCompareAction('compare')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-slate-400 text-slate-600 font-semibold hover:bg-slate-100 transition-colors disabled:opacity-50">
-                            {battleModeLoading === 'compare' ? 'Membandingkan...' : 'Compare'}
-                        </button>
-                        <button onClick={() => handleCompareAction('battle')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
-                            {battleModeLoading === 'battle' ? 'Membandingkan...' : 'Battle Mode'}
-                        </button>
+                        <div className="mt-2 text-sm small-muted md:hidden">Ketik model atau tipe HP</div>
+                        {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang mereview, mohon tunggu..</div>}
+                        {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
+                        {latestReviewResult && (
+                            <div className="mt-4 md:hidden">
+                                <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
+                            </div>
+                        )}
                     </div>
                 </div>
-                {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang membandingkan, mohon tunggu..</div>}
-                {battleError && <div className="text-center p-4 text-red-500">{battleError}</div>}
-                {battleData && <div className="md:hidden mt-4"><BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} /></div>}
+                
+                {/* Quick Compare & RESULT */}
+                <div>
+                    <div className="glass p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-slate-800 text-lg">Quick Compare</h3>
+                            <div className="text-sm small-muted">Bandingkan 2 HP tipe berbeda</div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <input id="cmpA" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 1" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
+                            <input id="cmpB" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 2" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
+                        </div>
+                        <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                            <button onClick={() => handleCompareAction('compare')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-slate-400 text-slate-600 font-semibold hover:bg-slate-100 transition-colors disabled:opacity-50">
+                                {battleModeLoading === 'compare' ? 'Membandingkan...' : 'Compare'}
+                            </button>
+                            <button onClick={() => handleCompareAction('battle')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
+                                {battleModeLoading === 'battle' ? 'Membandingkan...' : 'Battle Mode'}
+                            </button>
+                        </div>
+                    </div>
+                    {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang membandingkan, mohon tunggu..</div>}
+                    {battleError && <div className="text-center p-4 text-red-500">{battleError}</div>}
+                    {battleData && <div className="md:hidden mt-4"><BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} /></div>}
+                </div>
+
+                {/* Quick Phone Match & RESULT */}
+                <div className="mt-auto">
+                    <QuickPhoneMatch
+                        options={["1 Jutaan", "2 Jutaan", "3 Jutaan", "Diatas 4 Juta"]}
+                        selectedBudget={quickMatchBudget}
+                        onSelectBudget={handleQuickMatch}
+                        loading={quickMatchLoading}
+                    />
+                    {quickMatchLoading && <div className="text-center p-4 small-muted animate-pulse">Mencari HP terbaik untukmu...</div>}
+                    {quickMatchError && <div className="text-center p-4 text-red-500">{quickMatchError}</div>}
+                    {quickMatchResult && <div className="md:hidden mt-4"><QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} /></div>}
+                </div>
             </div>
 
-            {/* Quick Phone Match & RESULT */}
-            <div>
-                <QuickPhoneMatch
-                    options={["1 Jutaan", "2 Jutaan", "3 Jutaan", "Diatas 4 Juta"]}
-                    selectedBudget={quickMatchBudget}
-                    onSelectBudget={handleQuickMatch}
-                    loading={quickMatchLoading}
-                />
-                {quickMatchLoading && <div className="text-center p-4 small-muted animate-pulse">Mencari HP terbaik untukmu...</div>}
-                {quickMatchError && <div className="text-center p-4 text-red-500">{quickMatchError}</div>}
-                {quickMatchResult && <div className="md:hidden mt-4"><QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} /></div>}
-            </div>
-        </div>
-
-        {/* RIGHT: LEADERBOARDS & PREVIEW */}
-        <div className="md:col-span-5 space-y-5 hidden md:block">
-            {latestReviewResult && (
+            {/* RIGHT: LEADERBOARDS & PREVIEW */}
+            <div className="md:col-span-5 space-y-5 hidden md:block">
+                {latestReviewResult && (
+                    <div className="hidden md:block">
+                        <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
+                    </div>
+                )}
                 <div className="hidden md:block">
-                    <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
+                {latestPost && <BlogCard post={latestPost} navigateToBlogPost={navigateToBlogPost} />}
                 </div>
-            )}
-            <div className="hidden md:block">
-              {recentPosts.length > 0 && <LatestBlogCard post={recentPosts[0]} navigateToBlogPost={navigateToBlogPost} />}
+            
+                {battleData && (
+                    <div className="hidden md:block">
+                        <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />
+                    </div>
+                )}
+                {quickMatchResult && (
+                    <div className="hidden md:block">
+                        <QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} />
+                    </div>
+                )}
             </div>
-           
-            {battleData && (
-                 <div className="hidden md:block">
-                    <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />
-                </div>
-            )}
-            {quickMatchResult && (
-                 <div className="hidden md:block">
-                    <QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} />
-                </div>
-            )}
-            <InsightPublic />
+            </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {otherRecentPosts.length > 0 && (
+        <section className="pb-12">
+            <div className="max-w-6xl mx-auto px-4">
+                <div className="space-y-6">
+                    {otherRecentPosts.map(post => (
+                        <div key={post.id} className="glass flex flex-col md:flex-row overflow-hidden group transition-shadow duration-300 hover:shadow-xl animate-fade-in">
+                            <div className="md:w-2/5 xl:w-1/3 flex-shrink-0">
+                                <img 
+                                    src={post.image_url} 
+                                    alt={post.title} 
+                                    className="w-full h-48 md:h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                />
+                            </div>
+                            <div className="p-6 flex flex-col flex-grow">
+                                <div className="flex-grow">
+                                    <div className="flex flex-wrap gap-2 mb-2">
+                                        {post.blog_categories && post.blog_categories.length > 0 ? (
+                                            post.blog_categories.map(cat => (
+                                                <div key={cat.name} className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                                                    {cat.name}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                                                Umum
+                                            </div>
+                                        )}
+                                    </div>
+                                    <h4 className="font-bold text-xl text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">{post.title}</h4>
+                                    <p className="text-sm text-slate-500 mt-2 line-clamp-3">{post.excerpt}</p>
+                                </div>
+                                <div className="mt-4 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => navigateToBlogPost(post)}
+                                        className="inline-block px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md"
+                                    >
+                                        Baca Selengkapnya
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <div className="text-center mt-8">
+                    <button 
+                        onClick={() => setPage('blog')}
+                        className="px-6 py-2.5 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors"
+                    >
+                        Lihat Semua Artikel
+                    </button>
+                </div>
+            </div>
+        </section>
+      )}
+    </>
   );
 };
 
 // --- Snippet Components ---
 
-const LatestBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, navigateToBlogPost }) => (
+const BlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, navigateToBlogPost }) => (
     <div className="w-full text-left glass overflow-hidden animate-fade-in group transition-shadow duration-300 hover:shadow-xl flex flex-col">
         <div className="flex-grow">
             <div className="relative">

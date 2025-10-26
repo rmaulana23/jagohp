@@ -16,7 +16,6 @@ const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuth
     { label: 'Smart Review', key: 'review' },
     { label: 'Compare', key: 'battle' },
     { label: 'Phone Match', key: 'finder' },
-    { label: 'Blog', key: 'blog' },
     { label: 'About', key: 'about' }
   ];
 
