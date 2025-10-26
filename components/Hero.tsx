@@ -47,6 +47,46 @@ interface HeroProps {
   navigateToBlogPost: (post: BlogPost) => void;
 }
 
+const HorizontalBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, navigateToBlogPost }) => (
+    <div className="glass flex flex-col md:flex-row overflow-hidden group transition-shadow duration-300 hover:shadow-xl animate-fade-in">
+        <div className="md:w-2/5 xl:w-1/3 flex-shrink-0">
+            <img 
+                src={post.image_url} 
+                alt={post.title} 
+                className="w-full h-48 md:h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+            />
+        </div>
+        <div className="p-6 flex flex-col flex-grow">
+            <div className="flex-grow">
+                <div className="flex flex-wrap gap-2 mb-2">
+                    {post.blog_categories && post.blog_categories.length > 0 ? (
+                        post.blog_categories.map(cat => (
+                            <div key={cat.name} className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                                {cat.name}
+                            </div>
+                        ))
+                    ) : (
+                        <div className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                            Umum
+                        </div>
+                    )}
+                </div>
+                <h4 className="font-bold text-xl text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">{post.title}</h4>
+                <p className="text-sm text-slate-500 mt-2 line-clamp-3">{post.excerpt}</p>
+            </div>
+            <div className="mt-4 pt-4">
+                <button
+                    type="button"
+                    onClick={() => navigateToBlogPost(post)}
+                    className="inline-block px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md"
+                >
+                    Baca Selengkapnya
+                </button>
+            </div>
+        </div>
+    </div>
+);
+
 const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, latestReviewResult, setLatestReviewResult, navigateToReviewWithQuery, navigateToBlogPost }) => {
   const [reviewQuery, setReviewQuery] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
@@ -340,12 +380,8 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                     </div>
                     </div>
 
-                    {/* QUICK SMART REVIEW (includes mobile Blog Card) */}
+                    {/* QUICK SMART REVIEW */}
                     <div className="space-y-4 md:space-y-0">
-                        <div className="md:hidden">
-                            {latestPost && <BlogCard post={latestPost} navigateToBlogPost={navigateToBlogPost} />}
-                        </div>
-
                         <div>
                             <label className="font-semibold text-slate-800 text-lg md:hidden">Quick Smart Review</label>
                             <div className="mt-2 flex gap-3 items-center">
@@ -431,50 +467,23 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
         </div>
       </section>
 
-      {otherRecentPosts.length > 0 && (
+      {recentPosts.length > 0 && (
         <section className="pb-12">
             <div className="max-w-6xl mx-auto px-4">
-                <div className="space-y-6">
-                    {otherRecentPosts.map(post => (
-                        <div key={post.id} className="glass flex flex-col md:flex-row overflow-hidden group transition-shadow duration-300 hover:shadow-xl animate-fade-in">
-                            <div className="md:w-2/5 xl:w-1/3 flex-shrink-0">
-                                <img 
-                                    src={post.image_url} 
-                                    alt={post.title} 
-                                    className="w-full h-48 md:h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                                />
-                            </div>
-                            <div className="p-6 flex flex-col flex-grow">
-                                <div className="flex-grow">
-                                    <div className="flex flex-wrap gap-2 mb-2">
-                                        {post.blog_categories && post.blog_categories.length > 0 ? (
-                                            post.blog_categories.map(cat => (
-                                                <div key={cat.name} className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
-                                                    {cat.name}
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
-                                                Umum
-                                            </div>
-                                        )}
-                                    </div>
-                                    <h4 className="font-bold text-xl text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">{post.title}</h4>
-                                    <p className="text-sm text-slate-500 mt-2 line-clamp-3">{post.excerpt}</p>
-                                </div>
-                                <div className="mt-4 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => navigateToBlogPost(post)}
-                                        className="inline-block px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md"
-                                    >
-                                        Baca Selengkapnya
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                {/* Mobile: Show all 5 recent posts */}
+                <div className="space-y-6 md:hidden">
+                    {recentPosts.map(post => (
+                        <HorizontalBlogCard key={post.id} post={post} navigateToBlogPost={navigateToBlogPost} />
                     ))}
                 </div>
+
+                {/* Desktop: Show posts 2-5 (latest is in the sidebar) */}
+                <div className="space-y-6 hidden md:block">
+                    {otherRecentPosts.map(post => (
+                        <HorizontalBlogCard key={post.id} post={post} navigateToBlogPost={navigateToBlogPost} />
+                    ))}
+                </div>
+
                 <div className="text-center mt-8">
                     <button 
                         onClick={() => setPage('blog')}
