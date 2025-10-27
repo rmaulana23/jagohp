@@ -190,7 +190,12 @@ const App: React.FC = () => {
 
       <Footer setPage={navigate} page={path} />
       
-      <BottomNav page={path} setPage={navigate} />
+      <BottomNav 
+        page={path} 
+        setPage={navigate} 
+        isAdminAuthenticated={isAdminAuthenticated}
+        onAdminLogout={handleAdminLogout}
+      />
 
       <TanyaAI 
         isOpen={isChatModalOpen} 

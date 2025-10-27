@@ -489,7 +489,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                         onClick={() => setPage('blog')}
                         className="px-6 py-2.5 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors"
                     >
-                        Lihat Semua Artikel
+                        Lihat Semua Blog
                     </button>
                 </div>
             </div>

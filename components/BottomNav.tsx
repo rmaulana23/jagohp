@@ -4,32 +4,54 @@ import DocumentTextIcon from './icons/DocumentTextIcon';
 import SwitchHorizontalIcon from './icons/SwitchHorizontalIcon';
 import SparklesIcon from './icons/SparklesIcon';
 import NewspaperIcon from './icons/NewspaperIcon';
+import Squares2x2Icon from './icons/Squares2x2Icon';
+import LogoutIcon from './icons/LogoutIcon';
 
-const BottomNav: React.FC<{ page: string; setPage: (page: string) => void }> = ({ page, setPage }) => {
-  const navItems = [
+interface BottomNavProps {
+  page: string;
+  setPage: (page: string) => void;
+  isAdminAuthenticated: boolean;
+  onAdminLogout: () => void;
+}
+
+const BottomNav: React.FC<BottomNavProps> = ({ page, setPage, isAdminAuthenticated, onAdminLogout }) => {
+  const baseNavItems = [
     { label: 'Home', key: 'home', icon: HomeIcon },
     { label: 'Review', key: 'review', icon: DocumentTextIcon },
     { label: 'Compare', key: 'battle', icon: SwitchHorizontalIcon },
     { label: 'Match', key: 'finder', icon: SparklesIcon },
     { label: 'Blog', key: 'blog', icon: NewspaperIcon },
   ];
+
+  const adminNavItems = [
+    { label: 'Dashboard', key: 'admin', icon: Squares2x2Icon },
+    { label: 'Blog', key: 'blog', icon: NewspaperIcon },
+    { label: 'Keluar', key: 'logout', icon: LogoutIcon, action: onAdminLogout },
+  ];
+
+  const navItems = isAdminAuthenticated ? adminNavItems : baseNavItems;
+  const gridColsClass = isAdminAuthenticated ? 'grid-cols-3' : 'grid-cols-5';
   
-  const handleNavClick = (pageKey: string) => {
-      setPage(pageKey);
+  const handleNavClick = (item: (typeof navItems)[0]) => {
+      if (item.key === 'logout' && 'action' in item) {
+        (item as { action: () => void }).action();
+      } else {
+        setPage(item.key);
+      }
   };
 
   const currentRootPage = page.split('/')[0] || 'home';
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-900 z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.2)]">
-      <div className="max-w-md mx-auto h-full grid grid-cols-5 items-center">
+      <div className={`max-w-md mx-auto h-full grid ${gridColsClass} items-center`}>
         {navItems.map(item => {
           const isActive = currentRootPage === item.key;
           const Icon = item.icon;
           return (
             <button
               key={item.key}
-              onClick={() => handleNavClick(item.key)}
+              onClick={() => handleNavClick(item)}
               className="flex flex-col items-center justify-center h-full gap-0.5 text-slate-400 transition-colors duration-200"
               aria-current={isActive ? 'page' : undefined}
             >
