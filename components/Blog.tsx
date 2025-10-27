@@ -47,7 +47,7 @@ const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
         setPosts((data as any) || []);
       } catch (err: any) {
         console.error('Error fetching blog posts:', err);
-        setError('Gagal memuat postingan blog. Coba lagi nanti.');
+        setError('Gagal memuat artikel. Coba lagi nanti.');
       } finally {
         setLoading(false);
       }

@@ -343,7 +343,7 @@ const Overview: React.FC<{
     return (
         <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-8">
-                 <div><h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron text-left">Admin Dashboard</h1><p className="text-base text-slate-500 mt-2 text-left">Manajemen Konten Blog</p></div>
+                 <div><h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron text-left">Admin Dashboard</h1><p className="text-base text-slate-500 mt-2 text-left">Manajemen Konten Artikel</p></div>
             </div>
             <div className="flex justify-end mb-4 gap-3"><button onClick={onNewPost} className="px-5 py-2 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity">Buat Postingan Baru</button></div>
             <div className="border-b border-slate-300 mb-4 flex">
@@ -451,11 +451,11 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
         const file = e.target.files[0];
         const fileName = `${Date.now()}-${file.name}`;
         try {
+            contentRef.current?.focus();
             const { error } = await supabase.storage.from('blog-images').upload(fileName, file);
             if (error) throw error;
             const { data: publicUrlData } = supabase.storage.from('blog-images').getPublicUrl(fileName);
             if (publicUrlData) {
-                contentRef.current?.focus();
                 const img = `<img src="${publicUrlData.publicUrl}" alt="" style="max-width: 100%; height: auto; border-radius: 8px; margin: 1.5em auto; display: block;" />`;
                 document.execCommand('insertHTML', false, img);
                 handleContentChange();
@@ -525,7 +525,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                                     <button type="button" onClick={handleImageToolbarClick} title="Sisipkan Gambar" className="p-1.5 text-slate-600 hover:bg-slate-200 rounded"><ImageIcon className="w-5 h-5" /></button>
                                     <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
                                 </div>
-                                <div ref={contentRef} id="content" onInput={handleContentChange} contentEditable={true} className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none"></div>
+                                <div ref={contentRef} id="content" onInput={handleContentChange} contentEditable={true} dangerouslySetInnerHTML={{ __html: formData.content || '' }} className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none"></div>
                             </div>
                         </div>
                         <div className="flex justify-end pt-4"><button type="submit" disabled={loading} className="px-5 py-2 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{loading ? 'Menyimpan...' : (isEditing ? 'Perbarui Postingan' : 'Publikasikan')}</button></div>
