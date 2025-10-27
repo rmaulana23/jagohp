@@ -42,9 +42,10 @@ interface CommentFormProps {
     onCancel?: () => void;
     initialContent?: string;
     submitLabel: string;
+    isAdminAuthenticated: boolean;
 }
 
-const CommentForm: FC<CommentFormProps> = ({ postId, parentId = null, onSuccess, onCancel, initialContent = '', submitLabel }) => {
+const CommentForm: FC<CommentFormProps> = ({ postId, parentId = null, onSuccess, onCancel, initialContent = '', submitLabel, isAdminAuthenticated }) => {
     const [authorName, setAuthorName] = useState('');
     const [content, setContent] = useState(initialContent);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,18 +53,22 @@ const CommentForm: FC<CommentFormProps> = ({ postId, parentId = null, onSuccess,
     const [cooldown, setCooldown] = useState(0);
 
     useEffect(() => {
-        const storedName = localStorage.getItem('commentAuthorName') || '';
-        if (!initialContent) setAuthorName(storedName);
+        if (isAdminAuthenticated) {
+            setAuthorName('Admin Jago-HP');
+        } else {
+            const storedName = localStorage.getItem('commentAuthorName') || '';
+            if (!initialContent) setAuthorName(storedName);
+        }
 
         const storedTime = localStorage.getItem('lastCommentTime');
-        if (storedTime) {
+        if (storedTime && !initialContent) {
             const time = parseInt(storedTime, 10);
             const diff = Date.now() - time;
             if (diff < 60000) {
                 setCooldown(Math.ceil((60000 - diff) / 1000));
             }
         }
-    }, [initialContent]);
+    }, [initialContent, isAdminAuthenticated]);
 
     useEffect(() => {
         if (cooldown > 0) {
@@ -74,7 +79,9 @@ const CommentForm: FC<CommentFormProps> = ({ postId, parentId = null, onSuccess,
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!authorName.trim() || !content.trim()) {
+        const authorForSubmit = isAdminAuthenticated ? 'Admin Jago-HP' : authorName.trim();
+        
+        if (!authorForSubmit || !content.trim()) {
             alert('Nama dan komentar tidak boleh kosong.');
             return;
         }
@@ -89,9 +96,15 @@ const CommentForm: FC<CommentFormProps> = ({ postId, parentId = null, onSuccess,
                 const { error } = await supabase.from('comments').update({ content, updated_at: new Date().toISOString() }).eq('id', parentId as number);
                 if (error) throw error;
             } else { // Submitting new comment
-                const { error } = await supabase.from('comments').insert([{ post_id: postId, author_name: authorName, content, parent_id: parentId }]);
+                const { data, error } = await supabase.from('comments').insert([{ post_id: postId, author_name: authorForSubmit, content, parent_id: parentId }]).select('id').single();
                 if (error) throw error;
-                localStorage.setItem('commentAuthorName', authorName);
+
+                if (!isAdminAuthenticated) {
+                    localStorage.setItem('commentAuthorName', authorForSubmit);
+                    const myIds = JSON.parse(localStorage.getItem('myCommentIds') || '[]');
+                    myIds.push(data.id);
+                    localStorage.setItem('myCommentIds', JSON.stringify(myIds));
+                }
                 const now = Date.now();
                 localStorage.setItem('lastCommentTime', String(now));
                 setCooldown(60);
@@ -108,14 +121,14 @@ const CommentForm: FC<CommentFormProps> = ({ postId, parentId = null, onSuccess,
     return (
         <div className={!initialContent ? "glass p-5" : ""}>
             <form onSubmit={handleSubmit} className="space-y-4">
-                {!initialContent && (
+                {!initialContent && !isAdminAuthenticated && (
                     <div>
                         <label htmlFor={`author_name_${parentId || 'new'}`} className="block text-sm font-medium text-slate-700">Nama</label>
                         <input type="text" id={`author_name_${parentId || 'new'}`} value={authorName} onChange={e => setAuthorName(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" maxLength={50} required />
                     </div>
                 )}
                 <div>
-                    {!initialContent && <label htmlFor={`content_${parentId || 'new'}`} className="block text-sm font-medium text-slate-700">Komentar Anda</label>}
+                    {!initialContent && <label htmlFor={`content_${parentId || 'new'}`} className="block text-sm font-medium text-slate-700">{isAdminAuthenticated ? 'Komentar Anda (sebagai Admin Jago-HP)' : 'Komentar Anda'}</label>}
                     <textarea id={`content_${parentId || 'new'}`} value={content} onChange={e => setContent(e.target.value)} rows={initialContent ? 2 : 4} className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" maxLength={1000} required autoFocus={!!initialContent}></textarea>
                 </div>
                 <div className="flex justify-end items-center gap-4">
@@ -145,6 +158,7 @@ const CommentItem: FC<CommentItemProps> = ({ comment, postId, onDelete, onSucces
 
     const isOwnComment = myCommentIds.includes(comment.id);
     const isEdited = new Date(comment.updated_at) > new Date(comment.created_at);
+    const canReply = !isOwnComment || isAdminAuthenticated;
 
     return (
         <div className="flex items-start gap-4">
@@ -152,7 +166,7 @@ const CommentItem: FC<CommentItemProps> = ({ comment, postId, onDelete, onSucces
             <div className="flex-1">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="font-semibold text-slate-800">{comment.author_name}</p>
+                        <p className={`font-semibold ${comment.author_name === 'Admin Jago-HP' ? 'text-indigo-600' : 'text-slate-800'}`}>{comment.author_name}</p>
                         <p className="text-xs text-slate-400">{new Date(comment.created_at).toLocaleString('id-ID')}{isEdited && <span className="italic"> (diubah)</span>}</p>
                     </div>
                 </div>
@@ -166,6 +180,7 @@ const CommentItem: FC<CommentItemProps> = ({ comment, postId, onDelete, onSucces
                             onSuccess={() => { setIsEditing(false); onSuccess(); }}
                             onCancel={() => setIsEditing(false)}
                             submitLabel="Perbarui"
+                            isAdminAuthenticated={isAdminAuthenticated}
                         />
                     </div>
                 ) : (
@@ -174,7 +189,7 @@ const CommentItem: FC<CommentItemProps> = ({ comment, postId, onDelete, onSucces
 
                 {!isEditing && (
                     <div className="flex items-center gap-3 text-xs mt-2">
-                        <button onClick={() => setIsReplying(!isReplying)} className="font-semibold text-slate-500 hover:text-slate-800">Balas</button>
+                        {canReply && <button onClick={() => setIsReplying(!isReplying)} className="font-semibold text-slate-500 hover:text-slate-800">{isReplying ? 'Batal' : 'Balas'}</button>}
                         {isOwnComment && <button onClick={() => setIsEditing(true)} className="font-semibold text-blue-600 hover:underline">Edit</button>}
                         {(isOwnComment || isAdminAuthenticated) && <button onClick={() => onDelete(comment.id)} className="font-semibold text-red-600 hover:underline">Hapus</button>}
                     </div>
@@ -188,6 +203,7 @@ const CommentItem: FC<CommentItemProps> = ({ comment, postId, onDelete, onSucces
                             onSuccess={() => { setIsReplying(false); onSuccess(); }}
                             onCancel={() => setIsReplying(false)}
                             submitLabel="Kirim Balasan"
+                            isAdminAuthenticated={isAdminAuthenticated}
                         />
                     </div>
                 )}
@@ -293,6 +309,7 @@ const CommentsSection: React.FC<{ post: BlogPostData, isAdminAuthenticated: bool
                     postId={post.id}
                     onSuccess={handleCommentSuccess}
                     submitLabel="Kirim Komentar"
+                    isAdminAuthenticated={isAdminAuthenticated}
                 />
             </div>
             <div className="space-y-5">

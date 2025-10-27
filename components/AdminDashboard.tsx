@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, FC } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import BoldIcon from './icons/BoldIcon';
 import ItalicIcon from './icons/ItalicIcon';
@@ -33,6 +33,7 @@ interface Comment {
     author_name: string;
     created_at: string;
     blog_posts: {
+        id: number;
         title: string;
         slug: string;
     } | null;
@@ -144,6 +145,69 @@ const AdminDashboard: React.FC<{ setPage: (page: string) => void; onAdminLogout:
     );
 };
 
+// --- Admin Comment Form Component ---
+interface AdminCommentFormProps {
+    comment: Comment; // The comment being replied to
+    onSuccess: () => void;
+    onCancel: () => void;
+}
+
+const AdminCommentForm: FC<AdminCommentFormProps> = ({ comment, onSuccess, onCancel }) => {
+    const [content, setContent] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!content.trim() || !comment.blog_posts) return;
+
+        setIsSubmitting(true);
+        setError(null);
+        if (!supabase) {
+            setError("Database tidak tersedia.");
+            setIsSubmitting(false);
+            return;
+        }
+
+        try {
+            const { error: insertError } = await supabase.from('comments').insert({
+                post_id: comment.blog_posts.id,
+                author_name: 'Admin Jago-HP',
+                content: content.trim(),
+                parent_id: comment.id
+            });
+            if (insertError) throw insertError;
+            onSuccess();
+        } catch (err: any) {
+            setError('Gagal mengirim balasan.');
+            console.error(err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="mt-3 p-3 bg-slate-200 rounded-md">
+            <textarea
+                value={content}
+                onChange={e => setContent(e.target.value)}
+                placeholder={`Membalas ${comment.author_name}...`}
+                rows={3}
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                required
+                autoFocus
+            />
+            <div className="flex justify-end gap-2 mt-2">
+                <button type="button" onClick={onCancel} className="px-4 py-1.5 rounded-lg bg-slate-300 text-slate-800 text-sm font-semibold hover:bg-slate-400">Batal</button>
+                <button type="submit" disabled={isSubmitting} className="px-5 py-1.5 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 text-sm">
+                    {isSubmitting ? 'Mengirim...' : 'Kirim Balasan'}
+                </button>
+            </div>
+            {error && <p className="text-red-500 text-xs text-right mt-1">{error}</p>}
+        </form>
+    );
+};
+
 // --- Overview Component ---
 const Overview: React.FC<{
     posts: BlogPost[], loading: boolean, error: string | null,
@@ -160,6 +224,7 @@ const Overview: React.FC<{
     const [hasNewComments, setHasNewComments] = useState(false);
     const [commentsCurrentPage, setCommentsCurrentPage] = useState(1);
     const [totalComments, setTotalComments] = useState(0);
+    const [replyingToComment, setReplyingToComment] = useState<Comment | null>(null);
 
     const [categories, setCategories] = useState<Category[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(false);
@@ -201,7 +266,7 @@ const Overview: React.FC<{
             const from = (page - 1) * COMMENTS_PER_PAGE;
             const to = from + COMMENTS_PER_PAGE - 1;
 
-            const { data, error } = await supabase.from('comments').select(`id, content, author_name, created_at, blog_posts ( title, slug ), parent_comment:parent_id(author_name)`).order('created_at', { ascending: false }).range(from, to);
+            const { data, error } = await supabase.from('comments').select(`id, content, author_name, created_at, blog_posts ( id, title, slug ), parent_comment:parent_id(author_name)`).order('created_at', { ascending: false }).range(from, to);
             if (error) throw error;
             setComments(data as any || []);
             setCommentsCurrentPage(page);
@@ -288,7 +353,7 @@ const Overview: React.FC<{
             </div>
             <div className="glass p-6 md:p-8">
                 {activeTab === 'posts' && (<>{loading && <p>Memuat postingan...</p>}{error && <p className="text-red-500">{error}</p>}{!loading && !error && (<div className="space-y-3">{posts.length > 0 ? posts.map(post => (<div key={post.id} className="flex justify-between items-center p-3 bg-slate-100 rounded-lg"><div><h3 className="font-semibold text-slate-800">{post.title}</h3><p className="text-xs text-slate-500">{new Date(post.published_at!).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p></div><div className="flex gap-2"><button onClick={() => onEditPost(post)} className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">Edit</button><button onClick={() => onDeletePost(post.id!)} className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-md hover:bg-red-200">Hapus</button></div></div>)) : <p className="text-slate-500 text-center">Belum ada postingan.</p>}</div>)}</>)}
-                {activeTab === 'comments' && (<>{loadingComments && <p>Memuat komentar...</p>}{errorComments && <p className="text-red-500">{errorComments}</p>}{!loadingComments && !errorComments && (<div className="space-y-4">{comments.length > 0 ? comments.map(comment => (<div key={comment.id} className="p-3 bg-slate-100 rounded-lg"><div className="flex justify-between items-start"><div><p className="text-sm text-slate-600">"{comment.content}"</p><p className="text-xs text-slate-500 mt-2"><strong>{comment.author_name}</strong> &bull; {new Date(comment.created_at).toLocaleString('id-ID')}</p><p className="text-xs text-slate-500 mt-1">Di artikel: <a href={`#blog/${comment.blog_posts?.slug}`} onClick={(e) => { e.preventDefault(); setPage(`blog/${comment.blog_posts?.slug}`)}} className="text-blue-600 hover:underline">{comment.blog_posts?.title}</a></p></div><button onClick={() => handleDeleteComment(comment.id)} className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-md hover:bg-red-200 flex-shrink-0 ml-2">Hapus</button></div>{comment.parent_comment && <div className="mt-2 pl-3 text-xs text-slate-500 border-l-2 border-slate-300">Membalas komentar dari <strong>{comment.parent_comment.author_name}</strong></div>}</div>)) : <p className="text-slate-500 text-center py-4">Belum ada komentar terbaru saat ini.</p>}{<PaginationControls currentPage={commentsCurrentPage} totalPages={totalCommentPages} onPageChange={fetchComments} />}</div>)}</>)}
+                {activeTab === 'comments' && (<>{loadingComments && <p>Memuat komentar...</p>}{errorComments && <p className="text-red-500">{errorComments}</p>}{!loadingComments && !errorComments && (<div className="space-y-4">{comments.length > 0 ? comments.map(comment => (<div key={comment.id} className="p-3 bg-slate-100 rounded-lg"><div className="flex justify-between items-start"><div><p className="text-sm text-slate-600">"{comment.content}"</p><p className="text-xs text-slate-500 mt-2"><strong>{comment.author_name}</strong> &bull; {new Date(comment.created_at).toLocaleString('id-ID')}</p><p className="text-xs text-slate-500 mt-1">Di artikel: <a href={`#blog/${comment.blog_posts?.slug}`} onClick={(e) => { e.preventDefault(); setPage(`blog/${comment.blog_posts?.slug}`)}} className="text-blue-600 hover:underline">{comment.blog_posts?.title}</a></p>{comment.parent_comment && <div className="mt-2 pl-3 text-xs text-slate-500 border-l-2 border-slate-300">Membalas komentar dari <strong>{comment.parent_comment.author_name}</strong></div>}</div><div className="flex gap-2 flex-shrink-0 ml-2">{comment.blog_posts && (<button onClick={() => setReplyingToComment(comment.id === replyingToComment?.id ? null : comment)} className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">{replyingToComment?.id === comment.id ? 'Batal' : 'Balas'}</button>)}<button onClick={() => handleDeleteComment(comment.id)} className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-md hover:bg-red-200">Hapus</button></div></div>{replyingToComment?.id === comment.id && <AdminCommentForm comment={replyingToComment} onSuccess={() => { setReplyingToComment(null); fetchComments(commentsCurrentPage); }} onCancel={() => setReplyingToComment(null)} />}</div>)) : <p className="text-slate-500 text-center py-4">Belum ada komentar terbaru saat ini.</p>}{<PaginationControls currentPage={commentsCurrentPage} totalPages={totalCommentPages} onPageChange={fetchComments} />}</div>)}</>)}
                 {activeTab === 'categories' && (<div><form onSubmit={handleAddCategory} className="flex gap-2 mb-4 pb-4 border-b border-slate-200"><input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder="Nama kategori baru" className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" /><button type="submit" className="px-4 py-2 rounded-md bg-green-600 text-white font-semibold text-sm hover:bg-green-700">Tambah</button></form>{loadingCategories && <p>Memuat kategori...</p>}{errorCategories && <p className="text-red-500">{errorCategories}</p>}<div className="space-y-2">{categories.map(cat => (<div key={cat.id} className="flex justify-between items-center p-2 bg-slate-50 rounded-md">{editingCategory?.id === cat.id ? (<input type="text" value={editingCategory.name} onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value})} className="flex-1 px-2 py-1 bg-white border border-slate-300 rounded-md sm:text-sm"/>) : (<span className="font-medium text-slate-700">{cat.name}</span>)}<div className="flex gap-2 ml-2">{editingCategory?.id === cat.id ? (<><button onClick={() => handleUpdateCategory(editingCategory)} className="px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-md hover:bg-green-200">Simpan</button><button onClick={() => setEditingCategory(null)} className="px-3 py-1 text-xs font-semibold bg-slate-200 text-slate-600 rounded-md hover:bg-slate-300">Batal</button></>) : (<><button onClick={() => setEditingCategory(cat)} className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">Edit</button><button onClick={() => handleDeleteCategory(cat.id)} className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-md hover:bg-red-200">Hapus</button></>)}</div></div>))}</div></div>)}
             </div>
         </div>
