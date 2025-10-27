@@ -153,7 +153,16 @@ const App: React.FC = () => {
       case 'finder': return <PhoneFinder />;
       case 'blog': 
         if (param) {
-          return <BlogPost post={selectedPost} slug={param} setPage={navigate} setSelectedPost={setSelectedPost} isAdminAuthenticated={isAdminAuthenticated} />;
+          return <BlogPost 
+                    post={selectedPost} 
+                    slug={param} 
+                    setPage={navigate} 
+                    setSelectedPost={setSelectedPost} 
+                    isAdminAuthenticated={isAdminAuthenticated}
+                    latestReviewResult={latestReviewResult}
+                    setLatestReviewResult={handleSetLatestReviewResult}
+                    navigateToFullReview={navigateToFullReview}
+                 />;
         }
         return <Blog setPage={navigate} navigateToBlogPost={navigateToBlogPost} />;
       case 'leaderboard': return <Leaderboard />;

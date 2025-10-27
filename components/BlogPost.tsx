@@ -1,5 +1,7 @@
 import React, { useState, useEffect, FC } from 'react';
 import { supabase } from '../utils/supabaseClient';
+import { ReviewResult } from './SmartReview';
+import QuickReviewWidget from './QuickReviewWidget';
 
 // --- TYPE DEFINITIONS ---
 interface BlogPostData {
@@ -32,6 +34,9 @@ interface BlogPostProps {
     setPage: (page: string) => void;
     setSelectedPost: (post: BlogPostData | null) => void;
     isAdminAuthenticated: boolean;
+    latestReviewResult: ReviewResult | null;
+    setLatestReviewResult: (result: ReviewResult | null) => void;
+    navigateToFullReview: (result: ReviewResult) => void;
 }
 
 // --- COMMENT FORM COMPONENT ---
@@ -303,7 +308,7 @@ const CommentsSection: React.FC<{ post: BlogPostData, isAdminAuthenticated: bool
 
     return (
         <div className="mt-10 border-t border-slate-200 pt-8">
-            <h3 className="text-2xl font-bold text-slate-800 mb-6">Diskusi ({totalComments})</h3>
+            <h3 className="text-2xl font-bold text-slate-800 mb-6">Komentar ({totalComments})</h3>
             <div className="mb-8">
                 <CommentForm
                     postId={post.id}
@@ -332,8 +337,94 @@ const CommentsSection: React.FC<{ post: BlogPostData, isAdminAuthenticated: bool
     );
 };
 
+// --- RELATED POSTS COMPONENT ---
+interface RelatedPostsProps {
+    currentPostId: number;
+    setPage: (page: string) => void;
+    setSelectedPost: (post: BlogPostData | null) => void;
+    layout?: 'default' | 'sidebar';
+}
+
+const RelatedPosts: FC<RelatedPostsProps> = ({ currentPostId, setPage, setSelectedPost, layout = 'default' }) => {
+    const [related, setRelated] = useState<BlogPostData[]>([]);
+
+    useEffect(() => {
+        const fetchRelated = async () => {
+            if (!supabase) return;
+            try {
+                const { data, error } = await supabase
+                    .from('blog_posts')
+                    .select('*, blog_categories(name)')
+                    .neq('id', currentPostId)
+                    .order('published_at', { ascending: false })
+                    .limit(3);
+                if (error) throw error;
+                setRelated((data as any) || []);
+            } catch (err) {
+                console.error("Failed to fetch related posts:", err);
+            }
+        };
+        fetchRelated();
+    }, [currentPostId]);
+
+    if (related.length === 0) return null;
+
+    const handleNavigation = (post: BlogPostData) => {
+        setSelectedPost(post);
+        setPage(`blog/${post.slug}`);
+    };
+
+    if (layout === 'sidebar') {
+        return (
+            <div>
+                <h3 className="text-lg font-bold text-slate-800 mb-4">Baca Juga</h3>
+                <div className="space-y-4">
+                    {related.map(post => (
+                        <div key={post.id} className="glass overflow-hidden group transition-shadow duration-300 hover:shadow-sm flex items-center cursor-pointer" onClick={() => handleNavigation(post)}>
+                            <img src={post.image_url} alt={post.title} className="w-20 h-20 object-cover flex-shrink-0" />
+                            <div className="p-3">
+                                <h4 className="font-semibold text-sm text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors line-clamp-3">{post.title}</h4>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mt-12">
+            <h3 className="text-2xl font-bold text-slate-800 mb-6 text-center">Baca juga artikel lainnya</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {related.map(post => (
+                    <div key={post.id} className="glass overflow-hidden group transition-shadow duration-300 hover:shadow-xl flex flex-col cursor-pointer" onClick={() => handleNavigation(post)}>
+                        <img src={post.image_url} alt={post.title} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <div className="p-4 flex flex-col flex-grow">
+                             <div className="flex flex-wrap gap-1 mb-2">
+                                {post.blog_categories.slice(0, 2).map(cat => (
+                                    <span key={cat.name} className="text-[10px] font-semibold text-[color:var(--accent1)] bg-[color:var(--accent1)]/10 px-2 py-0.5 rounded-full">{cat.name}</span>
+                                ))}
+                            </div>
+                            <h4 className="font-bold text-slate-800 leading-tight flex-grow group-hover:text-[color:var(--accent1)] transition-colors">{post.title}</h4>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 // --- MAIN BLOG POST COMPONENT ---
-const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPost, isAdminAuthenticated }) => {
+const BlogPost: React.FC<BlogPostProps> = ({ 
+    post, 
+    slug, 
+    setPage, 
+    setSelectedPost, 
+    isAdminAuthenticated,
+    latestReviewResult,
+    setLatestReviewResult,
+    navigateToFullReview 
+}) => {
     const [internalPost, setInternalPost] = useState<BlogPostData | null>(post);
     const [loading, setLoading] = useState(!post && !!slug);
     const [error, setError] = useState<string | null>(null);
@@ -409,20 +500,56 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPos
 
     return (
         <section className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
-            <div className="container mx-auto max-w-3xl animate-fade-in">
-                <article className="glass p-6 md:p-10">
-                    <div className="mb-6">
-                        <button onClick={() => setPage('blog')} className="text-sm font-semibold text-[color:var(--accent1)] hover:underline mb-4">&larr; Kembali ke Blog</button>
-                        <div className="flex flex-wrap gap-2">
-                           {postToRender.blog_categories.map(cat => (<span key={cat.name} className="text-sm font-bold text-[color:var(--accent1)]">{cat.name}</span>))}
+            <div className="container mx-auto max-w-6xl animate-fade-in">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    {/* Left Column: Article and Comments */}
+                    <div className="lg:col-span-8">
+                        <article className="glass p-6 md:p-10">
+                            <div className="mb-6">
+                                <button onClick={() => setPage('blog')} className="text-sm font-semibold text-[color:var(--accent1)] hover:underline mb-4">&larr; Kembali ke Blog</button>
+                                <div className="flex flex-wrap gap-2">
+                                {postToRender.blog_categories.map(cat => (<span key={cat.name} className="text-sm font-bold text-[color:var(--accent1)]">{cat.name}</span>))}
+                                </div>
+                                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">{postToRender.title}</h1>
+                                <div className="mt-4 text-xs text-slate-400 flex items-center gap-4"><span>Oleh <strong>{postToRender.author}</strong></span><span>{new Date(postToRender.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
+                            </div>
+                            <img src={postToRender.image_url} alt={postToRender.title} className="w-full h-auto max-h-80 object-cover rounded-lg my-6" />
+                            <div className="prose max-w-none text-slate-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: postToRender.content }}></div>
+                        </article>
+
+                        <div className="mt-8">
+                             <div className="lg:hidden">
+                                <RelatedPosts
+                                    currentPostId={postToRender.id}
+                                    setPage={setPage}
+                                    setSelectedPost={setSelectedPost}
+                                    layout="default"
+                                />
+                            </div>
+                            <CommentsSection post={postToRender} isAdminAuthenticated={isAdminAuthenticated} />
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">{postToRender.title}</h1>
-                        <div className="mt-4 text-xs text-slate-400 flex items-center gap-4"><span>Oleh <strong>{postToRender.author}</strong></span><span>{new Date(postToRender.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
                     </div>
-                    <img src={postToRender.image_url} alt={postToRender.title} className="w-full h-64 md:h-80 object-cover rounded-lg my-6" />
-                    <div className="prose max-w-none text-slate-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: postToRender.content }}></div>
-                </article>
-                <CommentsSection post={postToRender} isAdminAuthenticated={isAdminAuthenticated} />
+
+                    {/* Right Column: Quick Review Widget & Related Posts */}
+                    <div className="lg:col-span-4">
+                        <div className="lg:sticky lg:top-28 space-y-6">
+                           <QuickReviewWidget 
+                                latestReviewResult={latestReviewResult}
+                                setLatestReviewResult={setLatestReviewResult}
+                                navigateToFullReview={navigateToFullReview}
+                           />
+                           <div className="hidden lg:block">
+                               <RelatedPosts
+                                    currentPostId={postToRender.id}
+                                    setPage={setPage}
+                                    setSelectedPost={setSelectedPost}
+                                    layout="sidebar"
+                                />
+                           </div>
+                        </div>
+                    </div>
+                </div>
             </div>
              <style>{`
                 .prose p, .prose div { margin-bottom: 1em; }
