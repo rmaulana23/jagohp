@@ -2,6 +2,7 @@ import React, { useState, useEffect, FC } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { ReviewResult } from './SmartReview';
 import QuickReviewWidget from './QuickReviewWidget';
+import BlogShareButtons from './BlogShareButtons';
 
 // --- TYPE DEFINITIONS ---
 interface BlogPostData {
@@ -492,8 +493,8 @@ const BlogPost: React.FC<BlogPostProps> = ({
         return (
             <div className="flex-grow flex flex-col items-center justify-center text-center p-8">
                 <h2 className="text-2xl font-bold text-slate-800">{error || 'Postingan Tidak Ditemukan'}</h2>
-                <p className="text-slate-500 mt-2">Sepertinya ada yang salah. Silakan kembali ke halaman blog.</p>
-                <button onClick={() => setPage('blog')} className="mt-6 px-6 py-2 rounded-lg bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors">Kembali ke Blog</button>
+                <p className="text-slate-500 mt-2">Sepertinya ada yang salah. Silakan kembali ke halaman Artikel.</p>
+                <button onClick={() => setPage('blog')} className="mt-6 px-6 py-2 rounded-lg bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors">Kembali ke Artikel</button>
             </div>
         );
     }
@@ -507,7 +508,7 @@ const BlogPost: React.FC<BlogPostProps> = ({
                     <div className="lg:col-span-8">
                         <article className="glass p-6 md:p-10">
                             <div className="mb-6">
-                                <button onClick={() => setPage('blog')} className="text-sm font-semibold text-[color:var(--accent1)] hover:underline mb-4">&larr; Kembali ke Blog</button>
+                                <button onClick={() => setPage('blog')} className="text-sm font-semibold text-[color:var(--accent1)] hover:underline mb-4">&larr; Kembali ke Artikel</button>
                                 <div className="flex flex-wrap gap-2">
                                 {postToRender.blog_categories.map(cat => (<span key={cat.name} className="text-sm font-bold text-[color:var(--accent1)]">{cat.name}</span>))}
                                 </div>
@@ -516,6 +517,7 @@ const BlogPost: React.FC<BlogPostProps> = ({
                             </div>
                             <img src={postToRender.image_url} alt={postToRender.title} className="w-full h-auto max-h-80 object-cover rounded-lg my-6" />
                             <div className="prose max-w-none text-slate-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: postToRender.content }}></div>
+                            <BlogShareButtons title={postToRender.title} slug={postToRender.slug} />
                         </article>
 
                         <div className="mt-8">

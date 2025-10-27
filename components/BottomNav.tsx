@@ -16,16 +16,16 @@ interface BottomNavProps {
 
 const BottomNav: React.FC<BottomNavProps> = ({ page, setPage, isAdminAuthenticated, onAdminLogout }) => {
   const baseNavItems = [
-    { label: 'Home', key: 'home', icon: HomeIcon },
+    { label: 'Beranda', key: 'home', icon: HomeIcon },
     { label: 'Review', key: 'review', icon: DocumentTextIcon },
     { label: 'Compare', key: 'battle', icon: SwitchHorizontalIcon },
     { label: 'Match', key: 'finder', icon: SparklesIcon },
-    { label: 'Blog', key: 'blog', icon: NewspaperIcon },
+    { label: 'Artikel', key: 'blog', icon: NewspaperIcon },
   ];
 
   const adminNavItems = [
     { label: 'Dashboard', key: 'admin', icon: Squares2x2Icon },
-    { label: 'Blog', key: 'blog', icon: NewspaperIcon },
+    { label: 'Artikel', key: 'blog', icon: NewspaperIcon },
     { label: 'Keluar', key: 'logout', icon: LogoutIcon, action: onAdminLogout },
   ];
 
