@@ -455,6 +455,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
             if (error) throw error;
             const { data: publicUrlData } = supabase.storage.from('blog-images').getPublicUrl(fileName);
             if (publicUrlData) {
+                contentRef.current?.focus();
                 const img = `<img src="${publicUrlData.publicUrl}" alt="" style="max-width: 100%; height: auto; border-radius: 8px; margin: 1.5em auto; display: block;" />`;
                 document.execCommand('insertHTML', false, img);
                 handleContentChange();
@@ -524,7 +525,7 @@ const PostEditor: React.FC<{ post: BlogPost | null, onBack: () => void, onSucces
                                     <button type="button" onClick={handleImageToolbarClick} title="Sisipkan Gambar" className="p-1.5 text-slate-600 hover:bg-slate-200 rounded"><ImageIcon className="w-5 h-5" /></button>
                                     <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
                                 </div>
-                                <div ref={contentRef} id="content" onInput={handleContentChange} contentEditable={true} dangerouslySetInnerHTML={{ __html: formData.content || '' }} className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none"></div>
+                                <div ref={contentRef} id="content" onInput={handleContentChange} contentEditable={true} className="p-3 min-h-[250px] bg-white rounded-b-md focus:outline-none prose max-w-none"></div>
                             </div>
                         </div>
                         <div className="flex justify-end pt-4"><button type="submit" disabled={loading} className="px-5 py-2 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{loading ? 'Menyimpan...' : (isEditing ? 'Perbarui Postingan' : 'Publikasikan')}</button></div>
