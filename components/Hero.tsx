@@ -32,6 +32,7 @@ interface BlogPost {
   author: string;
   published_at: string;
   image_url: string;
+  status: 'published' | 'draft' | 'trashed';
   blog_categories: { name: string }[];
 }
 
@@ -114,6 +115,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*, blog_categories(name)')
+          .eq('status', 'published') // Only fetch published posts
           .order('published_at', { ascending: false })
           .limit(5); // Fetch 5 latest posts
         if (error) throw error;

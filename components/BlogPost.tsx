@@ -15,6 +15,7 @@ interface BlogPostData {
   image_url: string;
   content: string;
   view_count: number;
+  status: 'published' | 'draft' | 'trashed';
   blog_categories: { name: string }[];
 }
 
@@ -38,6 +39,13 @@ interface BlogPostProps {
     latestReviewResult: ReviewResult | null;
     setLatestReviewResult: (result: ReviewResult | null) => void;
     navigateToFullReview: (result: ReviewResult) => void;
+}
+
+interface OtherPost {
+    id: number;
+    slug: string;
+    title: string;
+    image_url: string;
 }
 
 // --- COMMENT FORM COMPONENT ---
@@ -282,8 +290,10 @@ const CommentsSection: React.FC<{ post: BlogPostData, isAdminAuthenticated: bool
     };
 
     useEffect(() => {
-        fetchAndNestComments();
-    }, [post.id]);
+        if (post?.id) {
+            fetchAndNestComments();
+        }
+    }, [post?.id]);
     
     const handleCommentDelete = async (id: number) => {
         if (!supabase || (!isAdminAuthenticated && !myCommentIds.includes(id))) return;
@@ -324,61 +334,131 @@ const CommentsSection: React.FC<{ post: BlogPostData, isAdminAuthenticated: bool
 
 // --- MAIN BLOG POST COMPONENT ---
 const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPost, isAdminAuthenticated, latestReviewResult, setLatestReviewResult, navigateToFullReview }) => {
-    const [postData, setPostData] = useState<BlogPostData | null>(post);
-    const [loading, setLoading] = useState(!post);
+    // Initialize state from prop if it matches the current slug, to prevent flicker on initial navigation
+    const [postData, setPostData] = useState<BlogPostData | null>(() => (post && post.slug === slug ? post : null));
+    const [loading, setLoading] = useState(!postData);
     const [error, setError] = useState<string | null>(null);
-
+    const [otherPosts, setOtherPosts] = useState<OtherPost[]>([]);
+    
     useEffect(() => {
+        // This effect is the single source of truth for fetching data based on the slug.
         const fetchPost = async () => {
             if (!slug || !supabase) {
-                setError("Data tidak valid untuk memuat postingan.");
+                setError(slug ? "Koneksi database tidak tersedia." : "Postingan tidak ditemukan.");
                 setLoading(false);
                 return;
             }
+
             setLoading(true);
+            setError(null);
+            
             try {
                 // Fetch post by slug
-                const { data: postArray, error: dbError } = await supabase
+                const { data, error: dbError } = await supabase
                     .from('blog_posts')
                     .select('*, blog_categories(name)')
                     .eq('slug', slug)
                     .single();
 
-                if (dbError) throw dbError;
-                
-                if (postArray) {
-                    const fetchedPost = postArray as any;
-                    setPostData(fetchedPost);
-                    setSelectedPost(fetchedPost); // Update global state
-                    
-                    // Increment view count
-                    const { error: viewError } = await supabase.rpc('increment_view_count', {
-                        post_slug: slug
-                    });
-                    if(viewError) console.warn("Failed to increment view count", viewError);
-
-                } else {
-                    throw new Error('Postingan tidak ditemukan.');
+                // Handle not found or not published
+                if (dbError || !data || data.status !== 'published') {
+                    throw new Error('Postingan tidak ditemukan atau belum dipublikasikan.');
                 }
+                
+                const fetchedPost = data as any;
+                window.scrollTo(0, 0);
+                setPostData(fetchedPost);
+                setSelectedPost(fetchedPost);
+                
+                // Increment view count
+                supabase.rpc('increment_view_count', { post_slug: slug })
+                    .then(({ error: viewError }) => {
+                        if(viewError) console.warn("Failed to increment view count", viewError);
+                    });
+
             } catch (err: any) {
                 console.error('Error fetching blog post:', err);
                 setError(err.message || 'Gagal memuat postingan.');
+                setPostData(null);
             } finally {
                 setLoading(false);
             }
         };
 
-        if (!postData && slug) {
+        // If the component's current data doesn't match the slug from the URL,
+        // it means we need to fetch the new post data.
+        if (!postData || postData.slug !== slug) {
             fetchPost();
-        } else {
-            setLoading(false);
         }
-        
-        // Cleanup on unmount
+    }, [slug]);
+
+    useEffect(() => {
+        // This separate effect handles cleanup ONLY when the component unmounts.
         return () => {
             setSelectedPost(null);
         };
-    }, [slug, post, setSelectedPost]);
+    }, []);
+
+    useEffect(() => {
+        const fetchOtherPosts = async () => {
+            if (!supabase || !postData?.id) return;
+
+            try {
+                const { data, error } = await supabase
+                    .from('blog_posts')
+                    .select('id, slug, title, image_url')
+                    .eq('status', 'published')
+                    .neq('id', postData.id)
+                    .order('published_at', { ascending: false })
+                    .limit(4);
+
+                if (error) throw error;
+                setOtherPosts(data || []);
+            } catch (err) {
+                console.error("Failed to fetch other posts:", err);
+            }
+        };
+
+        if (postData) {
+            fetchOtherPosts();
+        }
+    }, [postData]);
+
+    const OtherArticlesWidget: FC<{ posts: OtherPost[]; setPage: (path: string) => void; }> = ({ posts, setPage }) => {
+        if (posts.length === 0) {
+            return null;
+        }
+
+        const handlePostClick = (post: OtherPost) => {
+            setPage(`blog/${post.slug}`);
+        };
+
+        return (
+            <div className="glass p-5 space-y-4 mt-8">
+                <h3 className="font-semibold text-slate-800 text-lg">Baca Artikel Lainnya</h3>
+                <div className="space-y-4">
+                    {posts.map(post => (
+                        <button 
+                            key={post.id} 
+                            onClick={() => handlePostClick(post)} 
+                            className="w-full flex items-center gap-4 group text-left"
+                        >
+                            <img 
+                                src={post.image_url} 
+                                alt={post.title} 
+                                className="w-16 h-16 object-cover rounded-md flex-shrink-0 group-hover:scale-105 transition-transform duration-300" 
+                            />
+                            <div>
+                                <p className="text-sm font-semibold text-slate-700 leading-tight group-hover:text-[color:var(--accent1)] transition-colors line-clamp-2">
+                                    {post.title}
+                                </p>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+    };
 
     if (loading) return <div className="text-center p-10">Memuat postingan...</div>;
     if (error) return <div className="text-center p-10 text-red-500">{error}</div>;
@@ -407,15 +487,21 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPos
                             <BlogShareButtons title={postData.title} slug={postData.slug} />
                         </article>
                     </div>
-                    <div className="mt-8">
-                         <CommentsSection post={postData} isAdminAuthenticated={isAdminAuthenticated}/>
-                    </div>
+                    {postData && (
+                        <div className="mt-8">
+                            <CommentsSection post={postData} isAdminAuthenticated={isAdminAuthenticated}/>
+                        </div>
+                    )}
                 </div>
                 <aside className="lg:col-span-4 lg:sticky lg:top-32 h-fit">
                     <QuickReviewWidget 
                         latestReviewResult={latestReviewResult}
                         setLatestReviewResult={setLatestReviewResult}
                         navigateToFullReview={navigateToFullReview}
+                    />
+                     <OtherArticlesWidget 
+                        posts={otherPosts}
+                        setPage={setPage}
                     />
                 </aside>
             </div>

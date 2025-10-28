@@ -13,6 +13,7 @@ interface BlogPost {
   image_url: string;
   content: string;
   view_count: number;
+  status: 'published' | 'draft' | 'trashed';
   blog_categories: { name: string }[];
 }
 
@@ -38,6 +39,7 @@ const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
         const { data, error: dbError } = await supabase
           .from('blog_posts')
           .select('*, blog_categories(name)')
+          .eq('status', 'published') // Only fetch published posts
           .order('published_at', { ascending: false });
 
         if (dbError) {
