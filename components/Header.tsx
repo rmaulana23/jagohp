@@ -21,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuth
 
   const adminNavItems = [
     { label: 'Dashboard', key: 'admin' },
-    { label: 'Artikel', key: 'blog' },
+    { label: 'Blog', key: 'blog' },
   ];
 
   const navItems = isAdminAuthenticated 

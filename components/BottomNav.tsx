@@ -6,6 +6,7 @@ import SparklesIcon from './icons/SparklesIcon';
 import NewspaperIcon from './icons/NewspaperIcon';
 import Squares2x2Icon from './icons/Squares2x2Icon';
 import LogoutIcon from './icons/LogoutIcon';
+import InformationCircleIcon from './icons/InformationCircleIcon';
 
 interface BottomNavProps {
   page: string;
@@ -20,17 +21,18 @@ const BottomNav: React.FC<BottomNavProps> = ({ page, setPage, isAdminAuthenticat
     { label: 'Review', key: 'review', icon: DocumentTextIcon },
     { label: 'Compare', key: 'battle', icon: SwitchHorizontalIcon },
     { label: 'Match', key: 'finder', icon: SparklesIcon },
-    { label: 'Artikel', key: 'blog', icon: NewspaperIcon },
+    { label: 'Blog', key: 'blog', icon: NewspaperIcon },
+    { label: 'Tentang', key: 'about', icon: InformationCircleIcon },
   ];
 
   const adminNavItems = [
     { label: 'Dashboard', key: 'admin', icon: Squares2x2Icon },
-    { label: 'Artikel', key: 'blog', icon: NewspaperIcon },
+    { label: 'Blog', key: 'blog', icon: NewspaperIcon },
     { label: 'Keluar', key: 'logout', icon: LogoutIcon, action: onAdminLogout },
   ];
 
   const navItems = isAdminAuthenticated ? adminNavItems : baseNavItems;
-  const gridColsClass = isAdminAuthenticated ? 'grid-cols-3' : 'grid-cols-5';
+  const gridColsClass = isAdminAuthenticated ? 'grid-cols-3' : 'grid-cols-6';
   
   const handleNavClick = (item: (typeof navItems)[0]) => {
       if (item.key === 'logout' && 'action' in item) {

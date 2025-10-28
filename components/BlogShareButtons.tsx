@@ -10,7 +10,7 @@ const BlogShareButtons: React.FC<BlogShareButtonsProps> = ({ title, slug }) => {
 
   const postUrl = `${window.location.origin}/#blog/${slug}`;
   const shareTextWhatsapp = `*${title}*\n\nBaca selengkapnya di JAGO-HP:\n${postUrl}`;
-  const shareTextSocial = `Artikel keren dari JAGO-HP: "${title}"\n\n#jagohp #rekomendasihp #gadget #reviewhp\n\nBaca selengkapnya di ${postUrl}`;
+  const shareTextSocial = `Postingan keren dari JAGO-HP: "${title}"\n\n#jagohp #rekomendasihp #gadget #reviewhp\n\nBaca selengkapnya di ${postUrl}`;
 
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareTextWhatsapp)}`;
 
@@ -29,7 +29,7 @@ const BlogShareButtons: React.FC<BlogShareButtonsProps> = ({ title, slug }) => {
     <div className="mt-8 pt-6 border-t border-slate-200">
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-semibold text-slate-700">
-          Bagikan artikel ini:
+          Bagikan postingan ini:
         </p>
         {copyStatus && <span className="text-sm text-green-600 transition-opacity duration-300">{copyStatus}</span>}
       </div>

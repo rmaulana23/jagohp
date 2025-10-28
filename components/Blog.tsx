@@ -47,7 +47,7 @@ const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
         setPosts((data as any) || []);
       } catch (err: any) {
         console.error('Error fetching blog posts:', err);
-        setError('Gagal memuat artikel. Coba lagi nanti.');
+        setError('Gagal memuat postingan. Coba lagi nanti.');
       } finally {
         setLoading(false);
       }
@@ -61,14 +61,14 @@ const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
       <div className="container mx-auto max-w-5xl animate-fade-in">
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">
-            Artikel
+            Blog
           </h1>
           <p className="text-base text-slate-500 leading-relaxed max-w-3xl mx-auto mt-3">
             Wawasan, tips, dan review mendalam seputar dunia smartphone.
           </p>
         </div>
 
-        {loading && <div className="text-center text-slate-500">Memuat artikel...</div>}
+        {loading && <div className="text-center text-slate-500">Memuat postingan...</div>}
         {error && <div className="text-center text-red-500">{error}</div>}
 
         {!loading && !error && (
@@ -114,7 +114,7 @@ const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
             {posts.length === 0 && (
                  <div className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-center p-10 h-64">
                     <h3 className="font-semibold text-slate-600">Belum Ada Postingan</h3>
-                    <p className="text-sm text-slate-400 mt-1">Sepertinya belum ada artikel yang dipublikasikan. Cek lagi nanti!</p>
+                    <p className="text-sm text-slate-400 mt-1">Sepertinya belum ada postingan yang dipublikasikan. Cek lagi nanti!</p>
                 </div>
             )}
             </div>

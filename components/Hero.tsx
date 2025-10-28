@@ -373,6 +373,7 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                         <PhoneScreenDisplay 
                         latestPost={latestPost}
                         navigateToBlogPost={navigateToBlogPost}
+                        setPage={setPage}
                         />
                     </div>
                     <div className="mt-6">
@@ -489,12 +490,21 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                         onClick={() => setPage('blog')}
                         className="px-6 py-2.5 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors"
                     >
-                        Lihat Semua Artikel
+                        Lihat Semua Blog
                     </button>
                 </div>
             </div>
         </section>
       )}
+
+      {/* Mobile Quick Links Footer */}
+      <div className="md:hidden px-6 mt-8">
+        <div className="border-t border-slate-200 pt-5 flex justify-center items-center gap-x-6 gap-y-2 flex-wrap">
+          <a href="#faq" onClick={(e) => {e.preventDefault(); setPage('faq')}} className="text-xs text-slate-500 hover:text-slate-800 transition-colors">FAQ</a>
+          <a href="#partnership" onClick={(e) => {e.preventDefault(); setPage('partnership')}} className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Partnership</a>
+          <a href="#privacy" onClick={(e) => {e.preventDefault(); setPage('privacy')}} className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Privacy Policy</a>
+        </div>
+      </div>
     </>
   );
 };
@@ -622,7 +632,7 @@ const QuickMatchResultCard: FC<{ result: QuickMatchResult; onSeeFull: () => void
 
 const SpecItem: FC<{ label: string; value: any }> = ({ label, value }) => value ? (<div className="flex justify-between gap-2"><dt className="font-normal text-slate-500 truncate">{label}</dt><dd className="font-medium text-slate-700 text-right truncate">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</dd></div>) : null;
 
-const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: (post: BlogPost) => void; }> = ({ latestPost, navigateToBlogPost }) => {
+const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: (post: BlogPost) => void; setPage: (page: string) => void; }> = ({ latestPost, navigateToBlogPost, setPage }) => {
   const [time, setTime] = useState('');
   const [weather, setWeather] = useState<{ temp: string; icon: string } | null>(null);
 
@@ -779,8 +789,15 @@ const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: 
                 </div>
             </div>
             
-            {/* Right Side: Instagram Icon */}
-            <div className="flex-shrink-0 self-end">
+            {/* Right Side: Action Icons */}
+            <div className="flex-shrink-0 self-end flex items-end gap-2">
+                <button 
+                    onClick={() => setPage('blog')}
+                    className="px-3 py-1.5 rounded-lg text-[10px] bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/25 transition-colors"
+                    title="Lihat semua blog"
+                >
+                    Blog
+                </button>
                 <a 
                     href="https://www.instagram.com/jagohp" 
                     target="_blank" 
