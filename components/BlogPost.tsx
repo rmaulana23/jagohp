@@ -493,7 +493,7 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPos
                         </div>
                     )}
                 </div>
-                <aside className="lg:col-span-4 lg:sticky lg:top-32 h-fit">
+                <aside className="lg:col-span-4 h-fit">
                     <QuickReviewWidget 
                         latestReviewResult={latestReviewResult}
                         setLatestReviewResult={setLatestReviewResult}
