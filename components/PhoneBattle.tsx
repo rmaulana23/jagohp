@@ -132,32 +132,27 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
         const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
 
         const prompt = `**Core Role: AI Data Synthesizer & Battle Analyst for JAGO-HP**
-        Your primary task is to perform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.
+Your primary task is to perform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.
 
-        **Context & Knowledge Cut-off (Mandatory):**
-        - **Knowledge Date:** Your knowledge is fully updated as of **23 Oktober 2025**.
-        - **Device Status:** You must assume any phone model a user searches for has already been launched by this date. Your primary data source for launch status and specs should be GSMArena.
+**Data Source & Verification (CRITICAL):**
+- **Primary Source:** Your primary, non-negotiable data source is **GSMArena**. You MUST find every device requested on this site. Its database is extremely comprehensive and includes recently announced devices (e.g., 'Redmi 15C 5G' is at https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php). It is a critical failure to claim a device is not found if it is on GSMArena. Perform a deep search.
+- **Supplementary Sources:** Use nanoreview.net, AnTuTu, Geekbench, and DXOMark for additional data after successful identification on GSMArena.
+- **Knowledge Date:** Your knowledge is fully updated as of **23 Oktober 2025**.
 
-        **Data Sources (Mandatory):**
-        - You **MUST** source and synthesize data from a wide range of reliable sources, prioritizing: **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
+**Execution Steps & Rules (Strictly Follow):**
+1.  **Identify Gadgets:** Identify the official name for each device in ${phoneList} using GSMArena. **Do not invent or speculate on unreleased models or models from 2026 and beyond.**
+2.  **Extract & Synthesize Data:** Extract all relevant specs, synthesizing information from your full range of sources to get the most accurate, final data.
+3.  **Handle Unannounced Devices:** Only if a device is genuinely not found on GSMArena after an exhaustive search, state this in the summary. Use \`null\` for unavailable data.
+4.  **Holistic Analysis & Winner Determination:**
+    -   Compare the synthesized final specs. **DO NOT** rely on a single metric.
+    -   Consider overall value: performance, display, camera, battery, price.
+    -   Declare **one winner** in the \`winnerName\` field based on this holistic view. Use 'Seri' for a tie.
+5.  **Generate Summaries:** Write the \`battleSummary\` and \`targetAudience\` based on your comparative analysis.
+6.  **Failure Condition:** If an input is not a gadget, the \`battleSummary\` MUST contain an error message.
 
-        **Universal Brand & Device Knowledge:**
-        You are an expert on all devices (smartphones, tablets, feature phones) from all major brands (Samsung, Apple, Xiaomi, Google, etc.). You **MUST** retrieve full, official data for any existing device from these brands.
-
-        **Execution Steps & Rules (Strictly Follow):**
-        1.  **Identify Gadgets:** Identify the official name and type for each device in ${phoneList}.
-        2.  **Extract & Synthesize Data:** Extract all relevant specs for every device, synthesizing information from your full range of specified sources to get the most accurate, final data.
-        3.  **Handle Unannounced Devices:** If a device is not found on GSMArena by 23 Oktober 2025, consider it unreleased and state this in the summary. Use \`null\` for unavailable data.
-        4.  **Holistic Analysis & Winner Determination:**
-            -   Compare the synthesized final specs. **DO NOT** rely on a single metric.
-            -   Consider overall value: performance, display, camera, battery, price.
-            -   Declare **one winner** in the \`winnerName\` field based on this holistic view. Use 'Seri' for a tie.
-        5.  **Generate Summaries:** Write the \`battleSummary\` and \`targetAudience\` based on your comparative analysis.
-        6.  **Failure Condition:** If an input is not a gadget, the \`battleSummary\` MUST contain an error message.
-
-        **Final Output:**
-        - Ensure the JSON strictly follows the schema.
-        - The 'phones' array must be in the same order as the input list.`;
+**Final Output:**
+- Ensure the JSON strictly follows the schema.
+- The 'phones' array must be in the same order as the input list.`;
 
         try {
             const response = await ai.models.generateContent({

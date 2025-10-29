@@ -61,12 +61,11 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
         };
         const prompt = `**Core Role: Comprehensive Data Synthesizer for JAGO-HP**
 Your task is to act as an AI Gadget Reviewer and generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
-**Knowledge Cut-off & Context:** Your knowledge is updated as of **23 Oktober 2025**. You must assume any phone model a user searches for has already been launched by this date.
-**Data Sources (Mandatory):** You MUST synthesize data from reliable sources like **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
-**Universal Brand Knowledge:** You are an expert on all major phone brands.
+**Knowledge Cut-off & Context:** Your knowledge is updated as of **23 Oktober 2025**.
+**Data Source & Verification (CRITICAL):** Your primary, non-negotiable data source is **GSMArena**. You MUST find the device requested on this site. The database is extremely comprehensive and includes recently announced devices (for example, 'Redmi 15C 5G' is listed here: https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php). It is a critical failure to claim a device is not found if it is on GSMArena. Perform a deep search. Synthesize data from other reliable sources like nanoreview.net, AnTuTu, and DXOMark only after successful identification on GSMArena.
 
 **Execution Steps & Formatting Rules (VERY IMPORTANT):**
-1.  **Identify Gadget:** Find the official product based on the query.
+1.  **Identify Gadget:** Find the official product on GSMArena based on the user's query ('${reviewQuery}'). **Do not invent or speculate on unreleased models or models from 2026 and beyond.**
 2.  **Extract & Synthesize Data:** Use the specified sources to gather the most accurate, final data.
 3.  **Handle Missing Data:** Use \`null\` for numeric fields or "N/A" for strings if data is genuinely unavailable after checking all sources.
 4.  **Populate JSON:** Fill all fields according to the schema with the following formatting constraints:
@@ -75,7 +74,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
     -   \`specs.ram\`: Format: "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
     -   \`specs.camera\`: A short summary of main lenses. Example: "Utama: 200MP + 50MP", "50MP Wide + 12MP Ultrawide".
     -   \`specs.battery\`: Just the capacity. Example: "5000 mAh".
-5.  **Failure Conditions:** If the device cannot be found on GSMArena by 23 Oktober 2025, state this clearly. If not found at all, the \`phoneName\` must contain an error message.
+5.  **Failure Conditions:** Only if the device genuinely cannot be found on GSMArena after an exhaustive search, the \`phoneName\` must contain an error message.
 
 **Final Output:** Strictly adhere to the JSON schema and all formatting rules.`;
         

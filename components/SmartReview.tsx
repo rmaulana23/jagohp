@@ -149,30 +149,25 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         }
 
         const prompt = `**Core Role: Comprehensive Data Synthesizer & AI Gadget Reviewer for JAGO-HP**
-        Your primary task is to generate a comprehensive, data-driven review in **Bahasa Indonesia** for the gadget: '${searchQuery}'.
+Your primary task is to generate a comprehensive, data-driven review in **Bahasa Indonesia** for the gadget: '${searchQuery}'.
 
-        **Context & Knowledge Cut-off (Mandatory):**
-        - **Knowledge Date:** Your knowledge is fully updated as of **23 Oktober 2025**.
-        - **Device Status:** You must assume any phone model a user searches for has already been launched by this date. Your primary data source for launch status and specs should be GSMArena.
+**Data Source & Verification (CRITICAL):**
+- **Primary Source:** Your primary, non-negotiable data source is **GSMArena**. You MUST find the device '${searchQuery}' on this site. Its database is extremely comprehensive and includes recently announced devices (e.g., 'Redmi 15C 5G' is at https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php). It is a critical failure to claim a device is not found if it is on GSMArena. Perform a deep search.
+- **Supplementary Sources:** Use nanoreview.net, AnTuTu, Geekbench, and DXOMark for additional data after successful identification on GSMArena.
+- **Knowledge Date:** Your knowledge is fully updated as of **23 Oktober 2025**.
 
-        **Data Sources (Mandatory):**
-        - You **MUST** source and synthesize data from a wide range of reliable, top-tier sources, prioritizing: **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
+**Execution Steps & Rules (Strictly Follow):**
+1.  **Identify Gadget:** Identify the official name of '${searchQuery}' on GSMArena, correcting typos. **Do not invent or speculate on unreleased models or models from 2026 and beyond.**
+2.  **Extract & Synthesize Data:** Extract all relevant specifications, synthesizing information from your full range of sources to get the most accurate, final data.
+3.  **Handle Missing Data:** If data is genuinely unavailable after checking all sources, use \`null\` for numbers or "N/A" for strings. **DO NOT FAIL** the request for empty fields.
+4.  **Generate Full Review Content:** Populate the entire JSON schema.
+    -   **Ratings:** Provide a 1-10 score for each category based on the final, official product performance.
+    -   **Summaries & Analysis:** Write all textual content based on objective, synthesized data.
+5.  **Failure Condition (Not Found):** Only if the device genuinely cannot be found on GSMArena after an exhaustive search, populate the \`phoneName\` field with an error message like "Maaf: Perangkat '${searchQuery}' tidak dapat ditemukan."
 
-        **Universal Brand & Device Knowledge:**
-        You are an expert on all devices (smartphones, tablets, feature phones) from all major brands (Samsung, Apple, Xiaomi, Google, etc.). You **MUST** retrieve full, official data for any existing device from these brands.
-
-        **Execution Steps & Rules (Strictly Follow):**
-        1.  **Identify Gadget:** Identify the official name of '${searchQuery}', correcting typos.
-        2.  **Extract & Synthesize Data:** Extract all relevant specifications for the gadget, synthesizing information from your full range of specified sources to get the most accurate, final data.
-        3.  **Handle Missing Data:** If data is genuinely unavailable after checking all sources, use \`null\` for numbers or "N/A" for strings. **DO NOT FAIL** the request for empty fields.
-        4.  **Generate Full Review Content:** Populate the entire JSON schema using the synthesized data.
-            -   **Ratings:** Provide a 1-10 score for each category based on the final, official product performance.
-            -   **Summaries & Analysis:** Write all textual content based on objective, synthesized data.
-        5.  **Failure Condition (Not Found):** Only if the device cannot be found on GSMArena by 23 Oktober 2025, populate the \`phoneName\` field with an error message like "Maaf: Perangkat '${searchQuery}' tidak dapat ditemukan."
-
-        **Final Output:**
-        - Ensure the JSON strictly adheres to the schema.
-        - The \`phoneName\` field must contain the official, full device name.`;
+**Final Output:**
+- Ensure the JSON strictly adheres to the schema.
+- The \`phoneName\` field must contain the official, full device name.`;
 
         try {
             const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema } });

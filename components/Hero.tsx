@@ -169,12 +169,11 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     };
     const prompt = `**Core Role: Comprehensive Data Synthesizer for JAGO-HP**
 Your task is to act as an AI Gadget Reviewer and generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
-**Knowledge Cut-off & Context:** Your knowledge is updated as of **23 Oktober 2025**. You must assume any phone model a user searches for has already been launched by this date.
-**Data Sources (Mandatory):** You MUST synthesize data from reliable sources like **GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.**
-**Universal Brand Knowledge:** You are an expert on all major phone brands.
+**Knowledge Cut-off & Context:** Your knowledge is updated as of **23 Oktober 2025**.
+**Data Source & Verification (CRITICAL):** Your primary, non-negotiable data source is **GSMArena**. You MUST find the device requested on this site. The database is extremely comprehensive and includes recently announced devices (for example, 'Redmi 15C 5G' is listed here: https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php). It is a critical failure to claim a device is not found if it is on GSMArena. Perform a deep search. Synthesize data from other reliable sources like nanoreview.net, AnTuTu, and DXOMark only after successful identification on GSMArena.
 
 **Execution Steps & Formatting Rules (VERY IMPORTANT):**
-1.  **Identify Gadget:** Find the official product based on the query.
+1.  **Identify Gadget:** Find the official product on GSMArena based on the user's query ('${reviewQuery}'). **Do not invent or speculate on unreleased models or models from 2026 and beyond.**
 2.  **Extract & Synthesize Data:** Use the specified sources to gather the most accurate, final data.
 3.  **Handle Missing Data:** Use \`null\` for numeric fields or "N/A" for strings if data is genuinely unavailable after checking all sources.
 4.  **Populate JSON:** Fill all fields according to the schema with the following formatting constraints:
@@ -183,7 +182,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
     -   \`specs.ram\`: Format: "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
     -   \`specs.camera\`: A short summary of main lenses. Example: "Utama: 200MP + 50MP", "50MP Wide + 12MP Ultrawide".
     -   \`specs.battery\`: Just the capacity. Example: "5000 mAh".
-5.  **Failure Conditions:** If the device cannot be found on GSMArena by 23 Oktober 2025, state this clearly. If not found at all, the \`phoneName\` must contain an error message.
+5.  **Failure Conditions:** Only if the device genuinely cannot be found on GSMArena after an exhaustive search, the \`phoneName\` must contain an error message.
 
 **Final Output:** Strictly adhere to the JSON schema and all formatting rules.`;
     
@@ -261,17 +260,23 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
     
     const prompt = mode === 'battle'
         ? `**Core Role: AI Battle Analyst for JAGO-HP**
-Your task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.
-**Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.
-**Knowledge Cut-off:** Your knowledge is updated to **23 Oktober 2025**. You must assume any phone model a user searches for has already been launched by this date.
-**Execution:** First, extract and synthesize the final specification data. Second, perform a holistic analysis to determine a clear winner. Third, write a brief, insightful summary of the battle.
-**Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`
+    Your task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.
+    **Data Source & Verification (CRITICAL):** Your primary, non-negotiable data source is **GSMArena**. You MUST find every device requested on this site. Its database is extremely comprehensive and includes recently announced devices (e.g., 'Redmi 15C 5G' is at https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php). It is a critical failure to claim a device is not found if it is on GSMArena. Perform a deep search. Use other sources like nanoreview.net and AnTuTu for supplementary data only.
+    **Knowledge Cut-off:** Your knowledge is updated to **23 Oktober 2025**.
+    **Execution:**
+    1. **Identify & Verify:** Use GSMArena to find the official devices. Do not invent or speculate on unreleased models or models from 2026 and beyond.
+    2. **Synthesize Data:** Extract and synthesize the final specification data.
+    3. **Analyze & Decide:** Perform a holistic analysis to determine a clear winner.
+    4. **Summarize:** Write a brief, insightful summary of the battle.
+    **Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`
         : `**Core Role: Data Extractor for JAGO-HP**
-Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.
-**Mandatory Data Sources:** Use the latest data from GSMArena, nanoreview.net, AnTuTu, Geekbench, and DXOMark.
-**Knowledge Cut-off:** Your knowledge is updated to **23 Oktober 2025**. You must assume any phone model a user searches for has already been launched by this date.
-**Strict Rule:** You MUST NOT provide any summary, analysis, or winner. Your ONLY job is to return the raw specification data for the 'phones' object.
-**Final Output:** Strictly adhere to the JSON schema.`;
+    Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.
+    **Data Source & Verification (CRITICAL):** Your primary, non-negotiable data source is **GSMArena**. You MUST find every device requested on this site. Its database is extremely comprehensive and includes recently announced devices (e.g., 'Redmi 15C 5G' is at https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php). It is a critical failure to claim a device is not found if it is on GSMArena. Perform a deep search. Use other sources like nanoreview.net and AnTuTu for supplementary data only.
+    **Knowledge Cut-off:** Your knowledge is updated to **23 Oktober 2025**.
+    **Execution:**
+    1. **Identify & Verify:** Use GSMArena to find the official devices. Do not invent or speculate on unreleased models or models from 2026 and beyond.
+    2. **Extract Data:** Your ONLY job is to return the raw specification data for the 'phones' object. You MUST NOT provide any summary, analysis, or winner.
+    **Final Output:** Strictly adhere to the JSON schema.`;
     
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
@@ -302,21 +307,6 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
     setQuickMatchError(null);
     setQuickMatchResult(null);
 
-    const cacheKey = `quickmatch_${budget.replace(/\s+/g, '_').toLowerCase()}`;
-
-    if (supabase) {
-      try {
-        const { data } = await supabase.from('quick_match_cache').select('result_data').eq('cache_key', cacheKey).single();
-        if (data && data.result_data) {
-          setQuickMatchResult(data.result_data as QuickMatchResult);
-          setQuickMatchLoading(false);
-          return;
-        }
-      } catch (err) {
-        console.warn('Supabase quick match cache check failed', err);
-      }
-    }
-
     const schema = {
         type: Type.OBJECT,
         properties: {
@@ -338,20 +328,14 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
 
     const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia.
     **Tugas:** Berdasarkan budget **${budget}**, berikan **SATU** rekomendasi smartphone **all-rounder** terbaik. All-rounder berarti seimbang antara performa, kamera, dan baterai untuk harganya.
-    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Anda harus berasumsi semua perangkat yang relevan sudah dirilis.
+    **Sumber Data & Validasi (KRITIS):** Sumber data utama Anda yang tidak bisa ditawar adalah **GSMArena**. Anda WAJIB menemukan dan memvalidasi semua data smartphone melalui situs ini. Datanya sangat lengkap, bahkan untuk model baru seperti 'Redmi 15C 5G' (terdaftar di https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php). Jangan pernah menyatakan perangkat tidak ada jika terdaftar di GSMArena.
+    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Jangan merekomendasikan perangkat yang belum rilis atau dari tahun 2026 ke atas.
     **Output:** Berikan jawaban dalam format JSON sesuai skema. 'reason' harus sangat singkat (1 kalimat).`;
 
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
         const parsedResult: QuickMatchResult = JSON.parse(response.text.trim());
         setQuickMatchResult(parsedResult);
-        if (supabase) {
-            try {
-                await supabase.from('quick_match_cache').insert({ cache_key: cacheKey, result_data: parsedResult });
-            } catch (err) {
-                console.warn('Supabase quick match cache write failed', err);
-            }
-        }
     } catch (e) {
         console.error(e);
         setQuickMatchError("Gagal mendapatkan rekomendasi. Coba lagi.");
@@ -437,7 +421,11 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                         />
                         {quickMatchLoading && <div className="text-center p-4 small-muted animate-pulse">Mencari HP terbaik untukmu...</div>}
                         {quickMatchError && <div className="text-center p-4 text-red-500">{quickMatchError}</div>}
-                        {quickMatchResult && <div className="md:hidden mt-4"><QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} /></div>}
+                        {quickMatchResult && (
+                            <div className="mt-4 md:self-start md:w-full">
+                                <QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} />
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -455,16 +443,9 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
             </div>
             
             {/* Desktop-only Full-Width Results Section */}
-            {(battleData || quickMatchResult) && (
-                <div className="hidden md:block mt-8 space-y-6">
-                    {battleData && (
-                        <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />
-                    )}
-                    {quickMatchResult && (
-                        <div className="max-w-lg mx-auto">
-                            <QuickMatchResultCard result={quickMatchResult} onSeeFull={() => navigateToReviewWithQuery(quickMatchResult.phoneName)} />
-                        </div>
-                    )}
+            {battleData && (
+                <div className="hidden md:block mt-8">
+                    <BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} />
                 </div>
             )}
         </div>

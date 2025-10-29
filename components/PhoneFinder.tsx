@@ -79,8 +79,8 @@ const PhoneFinder: React.FC = () => {
     const mainActivities = activities.filter(act => !["Butuh NFC", "RAM Min. 8GB atau Lebih", "Storage Min. 128GB atau Lebih"].includes(act)).join(', ') || "Tidak ada preferensi spesifik";
 
     const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia, memberikan **SATU rekomendasi smartphone TUNGGAL** paling TEPAT berdasarkan kuesioner.
-    **Sumber Data (Wajib):** GSMArena, nanoreview.net, AnTuTu, Geekbench, DXOMark.
-    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Anda harus mengasumsikan semua perangkat yang relevan untuk rekomendasi ini sudah dirilis.
+    **Sumber Data & Validasi (KRITIS):** Sumber data utama Anda yang tidak bisa ditawar adalah **GSMArena**. Anda WAJIB memvalidasi keberadaan dan semua data teknis dari setiap smartphone yang Anda pertimbangkan melalui situs ini. Database-nya sangat lengkap, bahkan untuk model baru seperti 'Redmi 15C 5G' (terdaftar di https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php), jadi semua data pasti ada. Jangan pernah merekomendasikan perangkat tanpa memverifikasinya di GSMArena.
+    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Jangan merekomendasikan perangkat yang belum rilis atau dari tahun 2026 ke atas.
     ---
     **Input Pengguna:**
     - **Aktivitas Utama & Fitur:** ${mainActivities}
