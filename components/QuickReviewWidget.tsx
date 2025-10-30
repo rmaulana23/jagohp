@@ -5,14 +5,14 @@ import { ReviewResult } from './SmartReview';
 import PreviewCard from './PreviewCard';
 
 interface QuickReviewWidgetProps {
-    latestReviewResult: ReviewResult | null;
-    setLatestReviewResult: (result: ReviewResult | null) => void;
+    reviewHistory: ReviewResult[];
+    onAddToHistory: (result: ReviewResult) => void;
     navigateToFullReview: (result: ReviewResult) => void;
 }
 
 const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
-    latestReviewResult,
-    setLatestReviewResult,
+    reviewHistory,
+    onAddToHistory,
     navigateToFullReview,
 }) => {
     const [reviewQuery, setReviewQuery] = useState('');
@@ -20,6 +20,8 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
     const [reviewError, setReviewError] = useState<string | null>(null);
 
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
+
+    const latestReviewResult = reviewHistory.length > 0 ? reviewHistory[0] : null;
 
     const handleReviewSearch = async () => {
         if (!reviewQuery.trim()) return;
@@ -36,7 +38,7 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
                     .eq('phone_name_query', cacheKey)
                     .single();
                 if (data && data.review_data) {
-                    setLatestReviewResult(data.review_data as ReviewResult);
+                    onAddToHistory(data.review_data as ReviewResult);
                     setReviewLoading(false);
                     return;
                 }
@@ -83,9 +85,8 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
             const parsedResult: ReviewResult = JSON.parse(response.text.trim());
             if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
                 setReviewError(parsedResult.phoneName);
-                setLatestReviewResult(null);
             } else {
-                setLatestReviewResult(parsedResult);
+                onAddToHistory(parsedResult);
             }
         } catch (e) {
             console.error(e);

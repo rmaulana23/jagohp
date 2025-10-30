@@ -25,7 +25,7 @@ const App: React.FC = () => {
   // State to hold full results for detail pages
   const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
-  const [latestReviewResult, setLatestReviewResult] = useState<ReviewResult | null>(null);
+  const [reviewHistory, setReviewHistory] = useState<ReviewResult[]>([]);
   const [reviewQuery, setReviewQuery] = useState('');
 
   // Admin state
@@ -52,27 +52,29 @@ const App: React.FC = () => {
 
   useEffect(() => {
     try {
-      const storedReview = localStorage.getItem('latestQuickReview');
-      if (storedReview) {
-        setLatestReviewResult(JSON.parse(storedReview));
+      const storedHistory = localStorage.getItem('reviewHistory');
+      if (storedHistory) {
+        setReviewHistory(JSON.parse(storedHistory));
       }
     } catch (error) {
-      console.error("Failed to parse latest review from localStorage", error);
-      localStorage.removeItem('latestQuickReview');
+      console.error("Failed to parse review history from localStorage", error);
+      localStorage.removeItem('reviewHistory');
     }
   }, []);
 
-  const handleSetLatestReviewResult = (result: ReviewResult | null) => {
-    setLatestReviewResult(result);
-    if (result) {
+  const handleAddToReviewHistory = (result: ReviewResult) => {
+    setReviewHistory(prevHistory => {
+      // Remove if already exists to move it to the front
+      const filteredHistory = prevHistory.filter(item => item.phoneName.toLowerCase() !== result.phoneName.toLowerCase());
+      // Add to the beginning and limit to 5
+      const newHistory = [result, ...filteredHistory].slice(0, 5);
       try {
-        localStorage.setItem('latestQuickReview', JSON.stringify(result));
+        localStorage.setItem('reviewHistory', JSON.stringify(newHistory));
       } catch (error) {
-        console.error("Failed to save latest review to localStorage", error);
+        console.error("Failed to save review history to localStorage", error);
       }
-    } else {
-      localStorage.removeItem('latestQuickReview');
-    }
+      return newHistory;
+    });
   };
 
   const handleLogoClick = () => {
@@ -143,13 +145,13 @@ const App: React.FC = () => {
                             openChat={openChat} 
                             navigateToFullReview={navigateToFullReview} 
                             navigateToFullBattle={navigateToFullBattle} 
-                            latestReviewResult={latestReviewResult}
-                            setLatestReviewResult={handleSetLatestReviewResult}
+                            reviewHistory={reviewHistory}
+                            onAddToHistory={handleAddToReviewHistory}
                             navigateToReviewWithQuery={navigateToReviewWithQuery}
                             navigateToBlogPost={navigateToBlogPost}
                            />;
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
-      case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} clearGlobalResult={clearGlobalReviewResult} />;
+      case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} clearGlobalResult={clearGlobalReviewResult} reviewHistory={reviewHistory} onAddToHistory={handleAddToReviewHistory} />;
       case 'finder': return <PhoneFinder />;
       case 'blog': 
         if (param) {
@@ -159,8 +161,8 @@ const App: React.FC = () => {
                     setPage={navigate} 
                     setSelectedPost={setSelectedPost} 
                     isAdminAuthenticated={isAdminAuthenticated}
-                    latestReviewResult={latestReviewResult}
-                    setLatestReviewResult={handleSetLatestReviewResult}
+                    reviewHistory={reviewHistory}
+                    onAddToHistory={handleAddToReviewHistory}
                     navigateToFullReview={navigateToFullReview}
                  />;
         }

@@ -36,8 +36,8 @@ interface BlogPostProps {
     setPage: (page: string) => void;
     setSelectedPost: (post: BlogPostData | null) => void;
     isAdminAuthenticated: boolean;
-    latestReviewResult: ReviewResult | null;
-    setLatestReviewResult: (result: ReviewResult | null) => void;
+    reviewHistory: ReviewResult[];
+    onAddToHistory: (result: ReviewResult) => void;
     navigateToFullReview: (result: ReviewResult) => void;
 }
 
@@ -115,7 +115,8 @@ const CommentForm: FC<CommentFormProps> = ({ postId, parentId = null, onSuccess,
 
                 if (!isAdminAuthenticated) {
                     localStorage.setItem('commentAuthorName', authorForSubmit);
-                    const myIds = JSON.parse(localStorage.getItem('myCommentIds') || '[]');
+                    const myIds = JSON.parse(localStorage.getItem('myCommentIds') || '[]'
+                    );
                     myIds.push(data.id);
                     localStorage.setItem('myCommentIds', JSON.stringify(myIds));
                 }
@@ -333,7 +334,7 @@ const CommentsSection: React.FC<{ post: BlogPostData, isAdminAuthenticated: bool
 
 
 // --- MAIN BLOG POST COMPONENT ---
-const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPost, isAdminAuthenticated, latestReviewResult, setLatestReviewResult, navigateToFullReview }) => {
+const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPost, isAdminAuthenticated, reviewHistory, onAddToHistory, navigateToFullReview }) => {
     // Initialize state from prop if it matches the current slug, to prevent flicker on initial navigation
     const [postData, setPostData] = useState<BlogPostData | null>(() => (post && post.slug === slug ? post : null));
     const [loading, setLoading] = useState(!postData);
@@ -495,8 +496,8 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPos
                 </div>
                 <aside className="lg:col-span-4 h-fit">
                     <QuickReviewWidget 
-                        latestReviewResult={latestReviewResult}
-                        setLatestReviewResult={setLatestReviewResult}
+                        reviewHistory={reviewHistory}
+                        onAddToHistory={onAddToHistory}
                         navigateToFullReview={navigateToFullReview}
                     />
                      <OtherArticlesWidget 

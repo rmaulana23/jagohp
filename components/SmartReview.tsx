@@ -65,9 +65,11 @@ interface SmartReviewProps {
     initialQuery?: string;
     initialResult?: ReviewResult | null;
     clearGlobalResult: () => void;
+    reviewHistory: ReviewResult[];
+    onAddToHistory: (result: ReviewResult) => void;
 }
 
-const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialResult = null, clearGlobalResult }) => {
+const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialResult = null, clearGlobalResult, reviewHistory, onAddToHistory }) => {
     const [query, setQuery] = useState(initialQuery);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -178,6 +180,7 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
                 setError(parsedResult.phoneName);
                 setReview(null);
             } else {
+                onAddToHistory(parsedResult);
                 setReview(parsedResult);
                 if (supabase) {
                     try {
@@ -256,6 +259,16 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
                                 }} 
                                />}
                 </div>
+
+                {reviewHistory && reviewHistory.length > 0 && !loading && (
+                    <ReviewHistory 
+                        history={reviewHistory} 
+                        onSelectReview={(selectedReview) => {
+                            setReview(selectedReview);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        currentPhoneName={review?.phoneName}/>
+                )}
             </div>
         </section>
     );
@@ -439,5 +452,157 @@ const TabContentCamera: FC<{ review: ReviewResult }> = ({ review }) => (
 const SpecItem: FC<{ label: string; value: string | undefined | null }> = ({ label, value }) => (
     value ? (<><dt className="small-muted truncate">{label}</dt><dd className="text-slate-700 text-right">{value}</dd></>) : null
 );
+
+// --- NEW HISTORY COMPONENTS ---
+
+const HistoryCard: FC<{ review: ReviewResult, onSelect: () => void, isActive: boolean }> = ({ review, onSelect, isActive }) => {
+    const { phoneName, ratings, specs } = review;
+    
+    const calculateOverallScore = () => {
+        if (!ratings) return 'N/A';
+        const scores = [
+            ratings.gaming,
+            ratings.kamera,
+            ratings.baterai,
+            ratings.layarDesain,
+            ratings.performa,
+            ratings.storageRam,
+        ];
+        const validScores = scores.filter(s => typeof s === 'number' && s > 0);
+        if (validScores.length === 0) return 'N/A';
+        const sum = validScores.reduce((acc, score) => acc + score, 0);
+        const average = sum / validScores.length;
+        return average.toFixed(1);
+    };
+
+    const overallScore = calculateOverallScore();
+    const brand = phoneName.split(' ')[0] || '';
+    const model = phoneName.split(' ').slice(1).join(' ');
+
+    return (
+        <div className={`p-4 flex flex-col bg-[color:var(--accent1)] rounded-xl shadow-lg text-white transition-all duration-300 ${isActive ? 'ring-2 ring-offset-2 ring-offset-slate-100 ring-[color:var(--accent1)]' : 'hover:-translate-y-1'}`}>
+            <div className="flex justify-between items-start gap-3">
+                <div>
+                    <h3 className="font-semibold text-lg">{brand}</h3>
+                    <p className="text-2xl font-bold font-orbitron -mt-1 line-clamp-2">{model}</p>
+                </div>
+                <p className="text-4xl font-bold font-orbitron flex-shrink-0">{overallScore}</p>
+            </div>
+            
+            <dl className="mt-4 space-y-1 text-sm text-slate-200 flex-grow">
+                {specs.camera && <dt>Kamera {specs.camera}</dt>}
+                {specs.processor && <dt>{specs.processor}</dt>}
+                {specs.display && <dt>Layar {specs.display.split(',').find(s => s.includes('Hz'))?.trim() || specs.display.split(',')[0]}</dt>}
+            </dl>
+
+            <button
+                onClick={onSelect}
+                className="w-full mt-4 px-3 py-2 rounded-lg text-sm bg-white/20 text-white font-semibold hover:bg-white/30 transition-colors"
+            >
+                Lihat Detail
+            </button>
+        </div>
+    );
+};
+
+const KNOWN_BRANDS = ['Samsung', 'Apple', 'Xiaomi', 'Oppo', 'Huawei', 'Google', 'Vivo', 'Poco', 'iQOO', 'Infinix', 'iTel'];
+
+const getBrand = (phoneName: string): string => {
+    const lowerCaseName = phoneName.toLowerCase();
+    
+    // Special case for iPhone
+    if (lowerCaseName.startsWith('iphone')) {
+        return 'Apple';
+    }
+
+    for (const brand of KNOWN_BRANDS) {
+        if (lowerCaseName.startsWith(brand.toLowerCase())) {
+            return brand;
+        }
+    }
+    return 'Others';
+};
+
+const ReviewHistory: FC<{ history: ReviewResult[], onSelectReview: (review: ReviewResult) => void, currentPhoneName?: string }> = ({ history, onSelectReview, currentPhoneName }) => {
+    const [activeTab, setActiveTab] = useState('All');
+
+    const tabs = useMemo(() => {
+        if (history.length === 0) return [];
+        
+        const brandsInHistory = new Set<string>();
+        history.forEach(item => {
+            brandsInHistory.add(getBrand(item.phoneName));
+        });
+
+        const sortedBrands = Array.from(brandsInHistory).sort((a, b) => {
+            const indexA = KNOWN_BRANDS.indexOf(a);
+            const indexB = KNOWN_BRANDS.indexOf(b);
+            if (a === 'Others') return 1;
+            if (b === 'Others') return -1;
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            return a.localeCompare(b);
+        });
+
+        return ['All', ...sortedBrands];
+    }, [history]);
+
+    useEffect(() => {
+        if (!tabs.includes(activeTab)) {
+            setActiveTab('All');
+        }
+    }, [tabs, activeTab]);
+
+    const filteredHistory = history.filter(item => {
+        if (activeTab === 'All') {
+            return true;
+        }
+        return getBrand(item.phoneName) === activeTab;
+    });
+
+    if (history.length === 0) {
+        return null;
+    }
+
+    return (
+        <div className="mt-12">
+            <h2 className="text-2xl font-bold text-slate-900 mb-4 text-center">Riwayat Review Terakhir</h2>
+            
+            <div className="flex justify-center flex-wrap gap-2 mb-6">
+                {tabs.map(tab => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors duration-200 ${
+                            activeTab === tab 
+                                ? 'bg-[color:var(--accent1)] text-white shadow' 
+                                : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                        }`}
+                    >
+                        {tab}
+                    </button>
+                ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {filteredHistory.length > 0 ? (
+                    filteredHistory.map(item => (
+                        <HistoryCard 
+                            key={item.phoneName} 
+                            review={item} 
+                            onSelect={() => onSelectReview(item)}
+                            isActive={item.phoneName === currentPhoneName}
+                        />
+                    ))
+                ) : (
+                    <div className="md:col-span-3 text-center text-slate-500 py-8">
+                        Tidak ada riwayat untuk brand ini.
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
 
 export default SmartReview;

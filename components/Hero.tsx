@@ -42,8 +42,8 @@ interface HeroProps {
   openChat: () => void;
   navigateToFullReview: (result: ReviewResult) => void;
   navigateToFullBattle: (result: BattleResult) => void;
-  latestReviewResult: ReviewResult | null;
-  setLatestReviewResult: (result: ReviewResult | null) => void;
+  reviewHistory: ReviewResult[];
+  onAddToHistory: (result: ReviewResult) => void;
   navigateToReviewWithQuery: (phoneName: string) => void;
   navigateToBlogPost: (post: BlogPost) => void;
 }
@@ -88,7 +88,7 @@ const HorizontalBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPo
     </div>
 );
 
-const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, latestReviewResult, setLatestReviewResult, navigateToReviewWithQuery, navigateToBlogPost }) => {
+const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, reviewHistory, onAddToHistory, navigateToReviewWithQuery, navigateToBlogPost }) => {
   const [reviewQuery, setReviewQuery] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
@@ -144,7 +144,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
           .eq('phone_name_query', cacheKey)
           .single();
         if (data && data.review_data) {
-          setLatestReviewResult(data.review_data as ReviewResult);
+          onAddToHistory(data.review_data as ReviewResult);
           setReviewLoading(false);
           return;
         }
@@ -192,7 +192,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
         if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
             setReviewError(parsedResult.phoneName);
         } else {
-            setLatestReviewResult(parsedResult);
+            onAddToHistory(parsedResult);
             if (supabase) {
               try {
                 await supabase.from('quick_reviews').insert({
@@ -346,6 +346,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
   
   const latestPost = recentPosts[0] || null;
   const otherRecentPosts = recentPosts.slice(1);
+  const latestReviewResult = reviewHistory.length > 0 ? reviewHistory[0] : null;
 
   return (
     <>
@@ -379,7 +380,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
                             {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang mereview, mohon tunggu..</div>}
                             {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
                             {latestReviewResult && (
-                                <div className="mt-4 md:hidden">
+                                <div className="mt-4 animate-fade-in md:hidden">
                                     <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
                                 </div>
                             )}
@@ -432,7 +433,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
                 {/* RIGHT: LEADERBOARDS & PREVIEW */}
                 <div className="md:col-span-5 space-y-5 hidden md:block">
                     {latestReviewResult && (
-                        <div className="hidden md:block">
+                        <div className="hidden md:block animate-fade-in">
                             <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
                         </div>
                     )}
