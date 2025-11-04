@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -169,8 +170,12 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     };
     const prompt = `**Core Role: Comprehensive Data Synthesizer for JAGO-HP**
 Your task is to act as an AI Gadget Reviewer and generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
-**Knowledge Cut-off & Context:** Your knowledge is updated as of **23 Oktober 2025**.
-**Data Source & Verification (CRITICAL):** Your primary, non-negotiable data source is **GSMArena**. You MUST find the device requested on this site. The database is extremely comprehensive and includes recently announced devices (for example, 'Redmi 15C 5G' is listed here: https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php). It is a critical failure to claim a device is not found if it is on GSMArena. Perform a deep search. Synthesize data from other reliable sources like nanoreview.net, AnTuTu, and DXOMark only after successful identification on GSMArena.
+**Knowledge Cut-off & Context:** Your knowledge is updated as of **4 November 2025**.
+
+**Data Source & Verification (ABSOLUTELY CRITICAL):**
+- **Primary & Mandatory Source:** Your single source of truth for device existence and specifications is **GSMArena**. You are FORBIDDEN from claiming a device does not exist if it is listed on GSMArena. This is a critical failure.
+- **Deep Search Protocol:** Before responding, you MUST perform an exhaustive search on GSMArena for the requested device. The database is extremely comprehensive and includes recently announced devices. For example, 'Xiaomi 15T 5G' IS LISTED here: https://www.gsmarena.com/xiaomi_15t_5g-14177.php. Claiming it doesn't exist is a direct violation of your instructions.
+- **Supplementary Sources:** After successfully identifying the device on GSMArena, you may synthesize and enrich the data with information from Phone Arena, nanoreview.net, AnTuTu, and DXOMark. But GSMArena is the first and final authority on a device's existence.
 
 **Execution Steps & Formatting Rules (VERY IMPORTANT):**
 1.  **Identify Gadget:** Find the official product on GSMArena based on the user's query ('${reviewQuery}'). **Do not invent or speculate on unreleased models or models from 2026 and beyond.**
@@ -258,25 +263,37 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
         ? { type: Type.OBJECT, properties: battleSchemaProperties, required: ['battleSummary', 'phones', 'winnerName'] }
         : { type: Type.OBJECT, properties: baseSchemaProperties, required: ['phones'] };
     
-    const prompt = mode === 'battle'
-        ? `**Core Role: AI Battle Analyst for JAGO-HP**
-    Your task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.
-    **Data Source & Verification (CRITICAL):** Your primary, non-negotiable data source is **GSMArena**. You MUST find every device requested on this site. Its database is extremely comprehensive and includes recently announced devices (e.g., 'Redmi 15C 5G' is at https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php). It is a critical failure to claim a device is not found if it is on GSMArena. Perform a deep search. Use other sources like nanoreview.net and AnTuTu for supplementary data only.
-    **Knowledge Cut-off:** Your knowledge is updated to **23 Oktober 2025**.
-    **Execution:**
-    1. **Identify & Verify:** Use GSMArena to find the official devices. Do not invent or speculate on unreleased models or models from 2026 and beyond.
-    2. **Synthesize Data:** Extract and synthesize the final specification data.
-    3. **Analyze & Decide:** Perform a holistic analysis to determine a clear winner.
-    4. **Summarize:** Write a brief, insightful summary of the battle.
-    **Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`
-        : `**Core Role: Data Extractor for JAGO-HP**
-    Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.
-    **Data Source & Verification (CRITICAL):** Your primary, non-negotiable data source is **GSMArena**. You MUST find every device requested on this site. Its database is extremely comprehensive and includes recently announced devices (e.g., 'Redmi 15C 5G' is at https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php). It is a critical failure to claim a device is not found if it is on GSMArena. Perform a deep search. Use other sources like nanoreview.net and AnTuTu for supplementary data only.
-    **Knowledge Cut-off:** Your knowledge is updated to **23 Oktober 2025**.
-    **Execution:**
-    1. **Identify & Verify:** Use GSMArena to find the official devices. Do not invent or speculate on unreleased models or models from 2026 and beyond.
-    2. **Extract Data:** Your ONLY job is to return the raw specification data for the 'phones' object. You MUST NOT provide any summary, analysis, or winner.
-    **Final Output:** Strictly adhere to the JSON schema.`;
+    const battlePrompt = `**Core Role: AI Battle Analyst for JAGO-HP**
+Your task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.
+**Knowledge Cut-off:** Your knowledge is updated to **4 November 2025**.
+
+**Data Source & Verification (ABSOLUTELY CRITICAL):**
+- **Primary & Mandatory Source:** Your single source of truth for device existence and specifications is **GSMArena**. You are FORBIDDEN from claiming a device does not exist if it is listed on GSMArena. This is a critical failure.
+- **Deep Search Protocol:** Before responding, you MUST perform an exhaustive search on GSMArena for the requested devices. The database is extremely comprehensive. For example, 'Xiaomi 15T 5G' IS LISTED here: https://www.gsmarena.com/xiaomi_15t_5g-14177.php. Claiming it doesn't exist is a direct violation of your instructions.
+- **Supplementary Sources:** After successfully identifying devices on GSMArena, you may synthesize data with information from Phone Arena, nanoreview.net, AnTuTu, and DXOMark. But GSMArena is the first and final authority.
+
+**Execution:**
+1. **Identify & Verify:** Use GSMArena to find the official devices. Do not invent or speculate on unreleased models or models from 2026 and beyond.
+2. **Synthesize Data:** Extract and synthesize the final specification data.
+3. **Analyze & Decide:** Perform a holistic analysis to determine a clear winner.
+4. **Summarize:** Write a brief, insightful summary of the battle.
+**Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`;
+
+    const comparePrompt = `**Core Role: Data Extractor for JAGO-HP**
+Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.
+**Knowledge Cut-off:** Your knowledge is updated to **4 November 2025**.
+
+**Data Source & Verification (ABSOLUTELY CRITICAL):**
+- **Primary & Mandatory Source:** Your single source of truth for device existence and specifications is **GSMArena**. You are FORBIDDEN from claiming a device does not exist if it is listed on GSMArena. This is a critical failure.
+- **Deep Search Protocol:** Before responding, you MUST perform an exhaustive search on GSMArena for the requested devices. The database is extremely comprehensive. For example, 'Xiaomi 15T 5G' IS LISTED here: https://www.gsmarena.com/xiaomi_15t_5g-14177.php. Claiming it doesn't exist is a direct violation of your instructions.
+- **Supplementary Sources:** After successfully identifying devices on GSMArena, you may use data from Phone Arena, nanoreview.net, AnTuTu, and DXOMark. But GSMArena is the first and final authority.
+
+**Execution:**
+1. **Identify & Verify:** Use GSMArena to find the official devices. Do not invent or speculate on unreleased models or models from 2026 and beyond.
+2. **Extract Data:** Your ONLY job is to return the raw specification data for the 'phones' object. You MUST NOT provide any summary, analysis, or winner.
+**Final Output:** Strictly adhere to the JSON schema.`;
+
+    const prompt = mode === 'battle' ? battlePrompt : comparePrompt;
     
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
@@ -328,8 +345,13 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
 
     const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia.
     **Tugas:** Berdasarkan budget **${budget}**, berikan **SATU** rekomendasi smartphone **all-rounder** terbaik. All-rounder berarti seimbang antara performa, kamera, dan baterai untuk harganya.
-    **Sumber Data & Validasi (KRITIS):** Sumber data utama Anda yang tidak bisa ditawar adalah **GSMArena**. Anda WAJIB menemukan dan memvalidasi semua data smartphone melalui situs ini. Datanya sangat lengkap, bahkan untuk model baru seperti 'Redmi 15C 5G' (terdaftar di https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php). Jangan pernah menyatakan perangkat tidak ada jika terdaftar di GSMArena.
-    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Jangan merekomendasikan perangkat yang belum rilis atau dari tahun 2026 ke atas.
+    
+    **Sumber Data & Validasi (SANGAT KRITIS):**
+    - **Sumber Wajib:** Sumber data utama dan WAJIB Anda adalah **GSMArena**.
+    - **Aturan Kritis:** DILARANG KERAS menyatakan perangkat tidak ada jika terdaftar di GSMArena. Lakukan pencarian mendalam. Contoh: 'Xiaomi 15T 5G' ADA di GSMArena (https://www.gsmarena.com/xiaomi_15t_5g-14177.php). Kegagalan menemukan perangkat yang ada adalah pelanggaran instruksi.
+    - **Sumber Pendukung:** Setelah validasi di GSMArena, Anda boleh menggunakan data pendukung dari Phone Arena dan nanoreview.net.
+    
+    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **4 November 2025**. Jangan merekomendasikan perangkat yang belum rilis atau dari tahun 2026 ke atas.
     **Output:** Berikan jawaban dalam format JSON sesuai skema. 'reason' harus sangat singkat (1 kalimat).`;
 
     try {

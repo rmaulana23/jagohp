@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -153,10 +154,12 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         const prompt = `**Core Role: Comprehensive Data Synthesizer & AI Gadget Reviewer for JAGO-HP**
 Your primary task is to generate a comprehensive, data-driven review in **Bahasa Indonesia** for the gadget: '${searchQuery}'.
 
-**Data Source & Verification (CRITICAL):**
-- **Primary Source:** Your primary, non-negotiable data source is **GSMArena**. You MUST find the device '${searchQuery}' on this site. Its database is extremely comprehensive and includes recently announced devices (e.g., 'Redmi 15C 5G' is at https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php). It is a critical failure to claim a device is not found if it is on GSMArena. Perform a deep search.
-- **Supplementary Sources:** Use nanoreview.net, AnTuTu, Geekbench, and DXOMark for additional data after successful identification on GSMArena.
-- **Knowledge Date:** Your knowledge is fully updated as of **23 Oktober 2025**.
+**Knowledge Date:** Your knowledge is fully updated as of **4 November 2025**.
+
+**Data Source & Verification (ABSOLUTELY CRITICAL):**
+- **Primary & Mandatory Source:** Your single source of truth for device existence and specifications is **GSMArena**. You are FORBIDDEN from claiming a device does not exist if it is listed on GSMArena. This is a critical failure.
+- **Deep Search Protocol:** Before responding, you MUST perform an exhaustive search on GSMArena for the requested device '${searchQuery}'. The database is extremely comprehensive. For example, 'Xiaomi 15T 5G' IS LISTED here: https://www.gsmarena.com/xiaomi_15t_5g-14177.php. Claiming it doesn't exist is a direct violation of your instructions.
+- **Supplementary Sources:** After successfully identifying the device on GSMArena, you may synthesize and enrich data with information from Phone Arena, nanoreview.net, AnTuTu, Geekbench, and DXOMark. But GSMArena is the first and final authority.
 
 **Execution Steps & Rules (Strictly Follow):**
 1.  **Identify Gadget:** Identify the official name of '${searchQuery}' on GSMArena, correcting typos. **Do not invent or speculate on unreleased models or models from 2026 and beyond.**

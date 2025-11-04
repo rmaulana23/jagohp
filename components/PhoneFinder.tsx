@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, FC } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -79,8 +80,13 @@ const PhoneFinder: React.FC = () => {
     const mainActivities = activities.filter(act => !["Butuh NFC", "RAM Min. 8GB atau Lebih", "Storage Min. 128GB atau Lebih"].includes(act)).join(', ') || "Tidak ada preferensi spesifik";
 
     const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia, memberikan **SATU rekomendasi smartphone TUNGGAL** paling TEPAT berdasarkan kuesioner.
-    **Sumber Data & Validasi (KRITIS):** Sumber data utama Anda yang tidak bisa ditawar adalah **GSMArena**. Anda WAJIB memvalidasi keberadaan dan semua data teknis dari setiap smartphone yang Anda pertimbangkan melalui situs ini. Database-nya sangat lengkap, bahkan untuk model baru seperti 'Redmi 15C 5G' (terdaftar di https://www.gsmarena.com/xiaomi_redmi_15c_5g-14039.php), jadi semua data pasti ada. Jangan pernah merekomendasikan perangkat tanpa memverifikasinya di GSMArena.
-    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Jangan merekomendasikan perangkat yang belum rilis atau dari tahun 2026 ke atas.
+    
+    **Sumber Data & Validasi (SANGAT KRITIS):**
+    - **Sumber Wajib:** Sumber data utama dan WAJIB Anda adalah **GSMArena**.
+    - **Aturan Kritis:** DILARANG KERAS menyatakan perangkat tidak ada jika terdaftar di GSMArena. Lakukan pencarian mendalam. Contoh: 'Xiaomi 15T 5G' ADA di GSMArena (https://www.gsmarena.com/xiaomi_15t_5g-14177.php). Kegagalan menemukan perangkat yang ada adalah pelanggaran instruksi.
+    - **Sumber Pendukung:** Setelah validasi di GSMArena, Anda boleh menggunakan data pendukung dari Phone Arena dan nanoreview.net.
+    
+    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **4 November 2025**. Jangan merekomendasikan perangkat yang belum rilis atau dari tahun 2026 ke atas.
     ---
     **Input Pengguna:**
     - **Aktivitas Utama & Fitur:** ${mainActivities}

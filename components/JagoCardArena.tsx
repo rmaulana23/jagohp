@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, FC, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GoogleGenAI, Type } from "@google/genai";
@@ -518,7 +519,8 @@ const JagoCardArena: React.FC = () => {
         const currentDeckNames = [...playerDeck, ...opponentDeck].map(c => c.name).join(', ');
         const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
         **Tugas:** Buat **SATU KARTU** smartphone acak yang kompetitif dan belum ada di deck ini: ${currentDeckNames}.
-        **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Semua perangkat yang relevan harus dianggap sudah dirilis.
+        **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **4 November 2025**. Semua perangkat yang relevan harus dianggap sudah dirilis.
+        **Validasi Data:** Semua data spesifikasi WAJIB divalidasi dan berdasarkan data yang ada di **GSMArena**. Jangan mengarang perangkat atau spesifikasi.
         **Data yang Diperlukan:** id, name, specs (processorName, cpuScore, batteryMah, ramGb, refreshRate, cameraScore).
         **Aturan Penting:** \`cameraScore\` tidak boleh 100, targetkan di atas 80.
         **Output:** Berikan jawaban HANYA dalam format JSON objek tunggal sesuai skema.`;
@@ -591,7 +593,8 @@ const JagoCardArena: React.FC = () => {
     
     const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
     **Tugas:** Buat sebuah "card pool" berisi **10 kartu** smartphone yang **BERBEDA SATU SAMA LAIN**, sangat beragam, dan menarik. Pastikan ada campuran dari berbagai merek (Samsung, Xiaomi, Apple, Google, dll.) dan segmen (flagship, mid-ranger, pilihan unik).
-    **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Semua perangkat yang relevan harus dianggap sudah dirilis.
+    **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **4 November 2025**. Semua perangkat yang relevan harus dianggap sudah dirilis.
+    **Validasi Data:** Semua data spesifikasi WAJIB divalidasi dan berdasarkan data yang ada di **GSMArena**. Jangan mengarang perangkat atau spesifikasi.
     **Data yang Diperlukan per HP:**
     - \`id\`: ID unik (misal: "s25u").
     - \`name\`: Nama resmi HP.
@@ -772,91 +775,4 @@ const JagoCardArena: React.FC = () => {
                     ❤️ Heal
                     {playerHealCooldown > 0 && <span className="absolute -top-1 -right-1 text-xs bg-cyan-500 text-white rounded-full px-1.5 py-0.5">{playerHealCooldown}s</span>}
                   </button>
-                  <button onClick={() => playPlayerTurn("skill")} disabled={isAnimating || playerEnergy < 40 || !!gameOver || currentTurn !== 'player' || playerSkillCooldown > 0} className="relative px-2 py-2 rounded-md bg-indigo-600/90 font-semibold disabled:opacity-40">
-                    💥 Skill {playerSkillCooldown > 0 && <span className="absolute -top-1 -right-1 text-xs bg-cyan-500 text-white rounded-full px-1.5 py-0.5">{playerSkillCooldown}s</span>}
-                  </button>
-              </div>
-              <div className="mt-3">
-                <div className="text-xs text-gray-400">Player Energy: {playerEnergy}/100</div>
-                <div className="w-full h-2.5 bg-white/10 rounded-full mt-1"><div className="h-full bg-purple-400 rounded-full" style={{ width: `${playerEnergy}%` }} /></div>
-              </div>
-            </div>
-        </div>
-        
-        <div className="order-3 lg:order-1 lg:col-span-3 space-y-4">
-            <div className="hidden lg:block bg-white/5 rounded-xl p-3">
-               <h3 className="font-semibold text-gray-300 mb-2">Battle Controls</h3>
-              <div className="grid grid-cols-3 gap-2">
-                  <button onClick={() => playPlayerTurn("attack")} disabled={isAnimating || !!gameOver || currentTurn !== 'player'} className="px-2 py-2 rounded-md bg-red-600/90 font-semibold disabled:opacity-40">⚔️ Atk</button>
-                  <button onClick={() => playPlayerTurn("heal")} disabled={isAnimating || !!gameOver || currentTurn !== 'player' || playerHealCooldown > 0} className="relative px-2 py-2 rounded-md bg-green-600/90 font-semibold disabled:opacity-40">
-                    ❤️ Heal
-                    {playerHealCooldown > 0 && <span className="absolute -top-1 -right-1 text-xs bg-cyan-500 text-white rounded-full px-1.5 py-0.5">{playerHealCooldown}s</span>}
-                  </button>
-                  <button onClick={() => playPlayerTurn("skill")} disabled={isAnimating || playerEnergy < 40 || !!gameOver || currentTurn !== 'player' || playerSkillCooldown > 0} className="relative px-2 py-2 rounded-md bg-indigo-600/90 font-semibold disabled:opacity-40">
-                    💥 Skill {playerSkillCooldown > 0 && <span className="absolute -top-1 -right-1 text-xs bg-cyan-500 text-white rounded-full px-1.5 py-0.5">{playerSkillCooldown}s</span>}
-                  </button>
-              </div>
-              <div className="mt-3">
-                <div className="text-xs text-gray-400">Player Energy: {playerEnergy}/100</div>
-                <div className="w-full h-2.5 bg-white/10 rounded-full mt-1"><div className="h-full bg-purple-400 rounded-full" style={{ width: `${playerEnergy}%` }} /></div>
-              </div>
-            </div>
-            <div className="bg-white/5 rounded-xl p-3">
-              <h3 className="font-semibold text-gray-300 mb-2">Your Deck</h3>
-              <div className="flex flex-col gap-2">{playerDeck.map(c => <button key={c.id} onClick={() => handleSelectPlayerCard(c.id)} disabled={isAnimating || currentTurn !== 'player'} className={`w-full text-left px-3 py-1.5 rounded-md text-sm font-medium disabled:opacity-50 ${c.id === playerCard?.id ? "bg-indigo-500" : "bg-white/10"}`}>{c.name}</button>)}</div>
-            </div>
-        </div>
-
-        <div className="order-4 lg:order-3 lg:col-span-3 space-y-4">
-           <div className="bg-white/5 rounded-xl p-3">
-              <h3 className="font-semibold text-gray-300 mb-2">Opponent Deck</h3>
-              <div className="flex flex-col gap-2">{opponentDeck.map(c => 
-                <div key={c.id} className={`w-full text-left px-3 py-1.5 rounded-md text-sm font-medium ${c.id === opponentCard?.id ? "bg-rose-600/50" : "bg-white/10"}`}>
-                  <span className="filter blur-sm select-none">{c.name}</span>
-                </div>
-              )}</div>
-            </div>
-            <div className="bg-white/5 rounded-xl p-3">
-                 <div className="text-xs text-gray-400">Opponent Energy: {opponentEnergy}/100</div>
-                 <div className="w-full h-2.5 bg-white/10 rounded-full mt-1"><div className="h-full bg-rose-400 rounded-full" style={{ width: `${opponentEnergy}%` }} /></div>
-            </div>
-            <div className="hidden lg:block bg-white/5 rounded-xl p-3 text-xs text-gray-300 space-y-1">
-                <h3 className="font-semibold text-gray-200 mb-2">How to Play</h3>
-                <p><strong className="text-red-400">Attack:</strong> Deals damage.</p>
-                <p><strong className="text-green-400">Heal:</strong> Recovers HP. <strong className="text-cyan-400">{opponentHealCooldown > 0 ? `(Opponent CD: ${opponentHealCooldown}s)`: ''}</strong></p>
-                <p><strong className="text-indigo-400">Skill:</strong> High damage, costs 40 Energy. <strong className="text-cyan-400">{opponentSkillCooldown > 0 ? `(Opponent CD: ${opponentSkillCooldown}s)`: ''}</strong></p>
-             </div>
-        </div>
-
-        <div className="order-5 lg:hidden mt-4 w-full max-w-md mx-auto space-y-4">
-             <div className="bg-white/5 rounded-xl p-3">
-              <h3 className="font-semibold text-gray-300 mb-2 text-center">Battle Log</h3>
-              <div className="text-xs text-gray-300 h-24 overflow-y-auto space-y-1 pr-2 text-center">{log.map((l, i) => <p key={i}>{l}</p>)}</div>
-            </div>
-            <div className="bg-white/5 rounded-xl p-3 text-xs text-gray-300 space-y-1">
-                <h3 className="font-semibold text-gray-200 mb-2">How to Play</h3>
-                <p><strong className="text-red-400">Attack:</strong> Deals damage.</p>
-                <p><strong className="text-green-400">Heal:</strong> Recovers HP. <strong className="text-cyan-400">{opponentHealCooldown > 0 ? `(Opponent CD: ${opponentHealCooldown}s)`: ''}</strong></p>
-                <p><strong className="text-indigo-400">Skill:</strong> High damage, costs 40 Energy. <strong className="text-cyan-400">{opponentSkillCooldown > 0 ? `(Opponent CD: ${opponentSkillCooldown}s)`: ''}</strong></p>
-             </div>
-        </div>
-
-      </div>
-    );
-  };
-
-
-  return (
-    <div className="min-h-full bg-[color:var(--accent1)] p-4 sm:p-6 text-gray-100 font-sans">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl sm:text-3xl font-extrabold font-orbitron">JAGO Card Arena</h1>
-          <p className="text-sm text-gray-400 mt-1">A mini-game by JAGO-HP</p>
-        </div>
-        {renderGameContent()}
-      </div>
-    </div>
-  );
-};
-
-export default JagoCardArena;
+                  <button onClick={() => playPlayerTurn("skill")} disabled={isAnimating || playerEnergy < 40 || !!gameOver || currentTurn !== 'player' || playerSkillCooldown > 0}

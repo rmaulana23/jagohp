@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, FC, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GoogleGenAI, Type } from "@google/genai";
@@ -465,7 +466,8 @@ const JCC: React.FC = () => {
         };
         const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
         **Tugas:** Buat **SATU KARTU** smartphone acak yang belum ada di deck ini: ${deck.map(c => c.name).join(', ')}.
-        **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Semua perangkat yang relevan harus dianggap sudah dirilis.
+        **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **4 November 2025**. Semua perangkat yang relevan harus dianggap sudah dirilis.
+        **Validasi Data:** Semua data spesifikasi WAJIB divalidasi dan berdasarkan data yang ada di **GSMArena**. Jangan mengarang perangkat atau spesifikasi.
         **Data yang Diperlukan:** id, name, specs (processorName, cpuScore, batteryMah, ramGb, refreshRate, cameraScore).
         **Output:** Berikan jawaban HANYA dalam format JSON objek tunggal sesuai skema.`;
         
@@ -549,7 +551,8 @@ const JCC: React.FC = () => {
     
     const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
     **Tugas:** Buat sebuah "deck" berisi **3 kartu** smartphone yang beragam dan menarik untuk dimainkan. Sertakan campuran dari flagship, mid-ranger, dan mungkin satu pilihan unik/niche.
-    **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **23 Oktober 2025**. Semua perangkat yang relevan harus dianggap sudah dirilis.
+    **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **4 November 2025**. Semua perangkat yang relevan harus dianggap sudah dirilis.
+    **Validasi Data:** Semua data spesifikasi WAJIB divalidasi dan berdasarkan data yang ada di **GSMArena**. Jangan mengarang perangkat atau spesifikasi.
     **Data yang Diperlukan per HP:**
     - \`id\`: ID unik (misal: "s25u").
     - \`name\`: Nama resmi HP.
