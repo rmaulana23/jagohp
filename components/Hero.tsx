@@ -46,6 +46,8 @@ interface HeroProps {
   navigateToFullBattle: (result: BattleResult) => void;
   navigateToReviewWithQuery: (phoneName: string) => void;
   navigateToBlogPost: (post: BlogPost) => void;
+  persistentQuickReviewResult: ReviewResult | null;
+  onSetPersistentQuickReviewResult: (result: ReviewResult | null) => void;
 }
 
 const HorizontalBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, navigateToBlogPost }) => (
@@ -88,11 +90,10 @@ const HorizontalBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPo
     </div>
 );
 
-const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, navigateToReviewWithQuery, navigateToBlogPost }) => {
+const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, navigateToReviewWithQuery, navigateToBlogPost, persistentQuickReviewResult, onSetPersistentQuickReviewResult }) => {
   const [reviewQuery, setReviewQuery] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
-  const [quickReviewResult, setQuickReviewResult] = useState<ReviewResult | null>(null);
   
   const [comparePhoneA, setComparePhoneA] = useState('');
   const [comparePhoneB, setComparePhoneB] = useState('');
@@ -134,7 +135,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     if (!reviewQuery.trim()) return;
     setReviewLoading(true);
     setReviewError(null);
-    setQuickReviewResult(null);
+    onSetPersistentQuickReviewResult(null);
 
     const cacheKey = reviewQuery.trim().toLowerCase();
 
@@ -146,7 +147,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
           .eq('phone_name_query', cacheKey)
           .single();
         if (data && data.review_data) {
-          setQuickReviewResult(data.review_data as ReviewResult);
+          onSetPersistentQuickReviewResult(data.review_data as ReviewResult);
           setReviewLoading(false);
           return;
         }
@@ -203,7 +204,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
         if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
             setReviewError(parsedResult.phoneName);
         } else {
-            setQuickReviewResult(parsedResult);
+            onSetPersistentQuickReviewResult(parsedResult);
             if (supabase) {
               try {
                 await supabase.from('quick_reviews').insert({
@@ -441,11 +442,11 @@ ${basePrompt}
                             <div className="mt-2 text-sm small-muted md:hidden">Ketik model atau tipe HP</div>
                             {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang mereview, mohon tunggu..</div>}
                             {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
-                            {quickReviewResult && (
+                            {persistentQuickReviewResult && (
                                 <div className="md:hidden mt-4">
                                     <PreviewCard
-                                        result={quickReviewResult}
-                                        onSeeFull={() => navigateToFullReview(quickReviewResult)}
+                                        result={persistentQuickReviewResult}
+                                        onSeeFull={() => navigateToFullReview(persistentQuickReviewResult)}
                                     />
                                 </div>
                             )}
@@ -497,11 +498,11 @@ ${basePrompt}
 
                 {/* RIGHT: LEADERBOARDS & PREVIEW */}
                 <div className="md:col-span-5 space-y-5 hidden md:block">
-                    {quickReviewResult && (
+                    {persistentQuickReviewResult && (
                         <div>
                             <PreviewCard
-                                result={quickReviewResult}
-                                onSeeFull={() => navigateToFullReview(quickReviewResult)}
+                                result={persistentQuickReviewResult}
+                                onSeeFull={() => navigateToFullReview(persistentQuickReviewResult)}
                             />
                         </div>
                     )}

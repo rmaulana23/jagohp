@@ -34,6 +34,9 @@ const App: React.FC = () => {
   // Blog post state
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
+  // Persistent Quick Review State
+  const [persistentQuickReviewResult, setPersistentQuickReviewResultState] = useState<ReviewResult | null>(null);
+
   useEffect(() => {
     const onHashChange = () => {
         setPath(window.location.hash.substring(1) || 'home');
@@ -44,6 +47,31 @@ const App: React.FC = () => {
     onHashChange();
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
+
+  useEffect(() => {
+    try {
+      const savedReview = localStorage.getItem('lastQuickReviewResult');
+      if (savedReview) {
+        setPersistentQuickReviewResultState(JSON.parse(savedReview));
+      }
+    } catch (error) {
+      console.error("Gagal memuat review cepat dari localStorage:", error);
+      localStorage.removeItem('lastQuickReviewResult');
+    }
+  }, []);
+
+  const handleSetPersistentQuickReview = (result: ReviewResult | null) => {
+    setPersistentQuickReviewResultState(result);
+    if (result) {
+      try {
+        localStorage.setItem('lastQuickReviewResult', JSON.stringify(result));
+      } catch (error) {
+        console.error("Gagal menyimpan review cepat ke localStorage:", error);
+      }
+    } else {
+      localStorage.removeItem('lastQuickReviewResult');
+    }
+  };
   
   const navigate = (newPath: string) => {
     window.location.hash = newPath;
@@ -119,6 +147,8 @@ const App: React.FC = () => {
                             navigateToFullBattle={navigateToFullBattle} 
                             navigateToReviewWithQuery={navigateToReviewWithQuery}
                             navigateToBlogPost={navigateToBlogPost}
+                            persistentQuickReviewResult={persistentQuickReviewResult}
+                            onSetPersistentQuickReviewResult={handleSetPersistentQuickReview}
                            />;
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
       case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} clearGlobalResult={clearGlobalReviewResult} />;
