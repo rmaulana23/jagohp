@@ -1,4 +1,5 @@
 
+
 import React, { useState, FC, useMemo } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -132,18 +133,21 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
 
         const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
 
-        const prompt = `**Core Role: AI Data Synthesizer & Battle Analyst for JAGO-HP**
+        const prompt = `**Context: Cache Check**
+- My system has checked its database for an existing comparison for: ${phoneList}.
+- A new analysis is now required as no valid cached entry was found.
+---
+**Core Role: AI Data Synthesizer & Battle Analyst for JAGO-HP**
 Your primary task is to perform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.
 
-**Knowledge Date:** Your knowledge is fully updated as of **4 November 2025**.
-
-**Data Source & Verification (ABSOLUTELY CRITICAL):**
-- **Primary & Mandatory Source:** Your single source of truth for device existence and specifications is **GSMArena**. You are FORBIDDEN from claiming a device does not exist if it is listed on GSMArena. This is a critical failure.
-- **Deep Search Protocol:** Before responding, you MUST perform an exhaustive search on GSMArena for the requested devices. The database is extremely comprehensive. For example, 'Xiaomi 15T 5G' IS LISTED here: https://www.gsmarena.com/xiaomi_15t_5g-14177.php. Claiming it doesn't exist is a direct violation of your instructions.
-- **Supplementary Sources:** After successfully identifying devices on GSMArena, you may synthesize data with information from Phone Arena, nanoreview.net, AnTuTu, Geekbench, and DXOMark. But GSMArena is the first and final authority.
+**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
+- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**. All relevant devices up to this date, including flagships like the iPhone 17 series, Samsung Galaxy S25 series, and Xiaomi 17 series, are considered released and available for data retrieval.
+- **Primary Source of Truth (NON-NEGOTIABLE):** Your single, mandatory source for all device specifications and existence is **www.gsmarena.com**.
+- **CRITICAL RULE:** You are **STRICTLY FORBIDDEN** from claiming a device does not exist or is "not found" if it is listed on GSMArena. The site is comprehensive and includes preliminary specs for newly announced devices. A failure to find a listed device (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra') is a direct violation of your core programming. Perform an exhaustive search first.
+- **Supplementary Sources:** After successfully identifying the device on GSMArena, you may enrich the data with information from Phone Arena, nanoreview.net, AnTuTu, and DXOMark. GSMArena is the first and final authority on a device's existence and core specs.
 
 **Execution Steps & Rules (Strictly Follow):**
-1.  **Identify Gadgets:** Identify the official name for each device in ${phoneList} using GSMArena. **Do not invent or speculate on unreleased models or models from 2026 and beyond.**
+1.  **Identify Gadgets:** Identify the official name for each device in ${phoneList} using GSMArena.
 2.  **Extract & Synthesize Data:** Extract all relevant specs, synthesizing information from your full range of sources to get the most accurate, final data.
 3.  **Handle Unannounced Devices:** Only if a device is genuinely not found on GSMArena after an exhaustive search, state this in the summary. Use \`null\` for unavailable data.
 4.  **Holistic Analysis & Winner Determination:**

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -52,6 +53,10 @@ export interface ReviewResult {
       antutuScore: number | null;
     }[];
     gamingReview: string;
+    gamingRatings?: {
+        game: string;
+        score: number;
+    }[];
   };
   cameraAssessment?: {
     dxomarkScore: number | null;
@@ -108,7 +113,18 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     antutuScore: { type: Type.INTEGER },
                     geekbenchScore: { type: Type.STRING },
                     competitors: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, antutuScore: { type: Type.INTEGER } } } },
-                    gamingReview: { type: Type.STRING }
+                    gamingReview: { type: Type.STRING },
+                    gamingRatings: {
+                        type: Type.ARRAY,
+                        description: "An array of gaming performance ratings for specific games.",
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                game: { type: Type.STRING, description: "Name of the game, one of [PUBG Battlegrounds, COD Warzone, Mobile Legends, Genshin Impact, Real Racing 3]" },
+                                score: { type: Type.NUMBER, description: "Rating score from 1 to 10 for the game." }
+                            }
+                        }
+                    }
                 }
             },
             cameraAssessment: {
@@ -149,24 +165,28 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
             }
         }
 
-        const prompt = `**Core Role: Comprehensive Data Synthesizer & AI Gadget Reviewer for JAGO-HP**
+        const prompt = `**Context: Cache Check**
+- Before invoking you, my system has already checked its internal database (cache) for an existing review of '${searchQuery}'.
+- No suitable result was found, which is why I am now requesting you to generate a new, comprehensive review.
+---
+**Core Role: Comprehensive Data Synthesizer & AI Gadget Reviewer for JAGO-HP**
 Your primary task is to generate a comprehensive, data-driven review in **Bahasa Indonesia** for the gadget: '${searchQuery}'.
 
-**Knowledge Date:** Your knowledge is fully updated as of **4 November 2025**.
-
-**Data Source & Verification (ABSOLUTELY CRITICAL):**
-- **Primary & Mandatory Source:** Your single source of truth for device existence and specifications is **GSMArena**. You are FORBIDDEN from claiming a device does not exist if it is listed on GSMArena. This is a critical failure.
-- **Deep Search Protocol:** Before responding, you MUST perform an exhaustive search on GSMArena for the requested device '${searchQuery}'. The database is extremely comprehensive. For example, 'Xiaomi 15T 5G' IS LISTED here: https://www.gsmarena.com/xiaomi_15t_5g-14177.php. Claiming it doesn't exist is a direct violation of your instructions.
-- **Supplementary Sources:** After successfully identifying the device on GSMArena, you may synthesize and enrich data with information from Phone Arena, nanoreview.net, AnTuTu, Geekbench, and DXOMark. But GSMArena is the first and final authority.
+**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
+- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**. All relevant devices up to this date, including flagships like the iPhone 17 series, Samsung Galaxy S25 series, and Xiaomi 17 series, are considered released and available for data retrieval.
+- **Primary Source of Truth (NON-NEGOTIABLE):** Your single, mandatory source for all device specifications and existence is **www.gsmarena.com**.
+- **CRITICAL RULE:** You are **STRICTLY FORBIDDEN** from claiming a device does not exist or is "not found" if it is listed on GSMArena. The site is comprehensive and includes preliminary specs for newly announced devices. A failure to find a listed device (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra') is a direct violation of your core programming. Perform an exhaustive search first.
+- **Supplementary Sources:** After successfully identifying the device on GSMArena, you may enrich the data with information from Phone Arena, nanoreview.net, AnTuTu, and DXOMark. GSMArena is the first and final authority on a device's existence and core specs.
 
 **Execution Steps & Rules (Strictly Follow):**
-1.  **Identify Gadget:** Identify the official name of '${searchQuery}' on GSMArena, correcting typos. **Do not invent or speculate on unreleased models or models from 2026 and beyond.**
+1.  **Identify Gadget:** Identify the official name of '${searchQuery}' on GSMArena, correcting typos.
 2.  **Extract & Synthesize Data:** Extract all relevant specifications, synthesizing information from your full range of sources to get the most accurate, final data.
 3.  **Handle Missing Data:** If data is genuinely unavailable after checking all sources, use \`null\` for numbers or "N/A" for strings. **DO NOT FAIL** the request for empty fields.
 4.  **Generate Full Review Content:** Populate the entire JSON schema.
     -   **Ratings:** Provide a 1-10 score for each category based on the final, official product performance.
+    -   **Gaming Ratings:** Provide a 1-10 score for each of these specific games: 'PUBG Battlegrounds', 'COD Warzone', 'Mobile Legends', 'Genshin Impact', 'Real Racing 3'. The score should reflect performance (FPS, stability, graphics settings). If performance data for a specific game is genuinely not available after a thorough search, omit it from the array.
     -   **Summaries & Analysis:** Write all textual content based on objective, synthesized data.
-5.  **Failure Condition (Not Found):** Only if the device genuinely cannot be found on GSMArena after an exhaustive search, populate the \`phoneName\` field with an error message like "Maaf: Perangkat '${searchQuery}' tidak dapat ditemukan."
+5.  **Failure Condition (Not Found):** Only if the device genuinely cannot be found on www.gsmarena.com after an exhaustive search, populate the \`phoneName\` field with an error message like "Maaf: Perangkat '${searchQuery}' tidak dapat ditemukan."
 
 **Final Output:**
 - Ensure the JSON strictly adheres to the schema.
@@ -385,6 +405,34 @@ const PerformanceChart: FC<{ mainPhone: { name: string; score: number | null }, 
     );
 };
 
+const GamingPerformanceDisplay: FC<{ ratings?: { game: string; score: number }[] }> = ({ ratings }) => {
+    if (!ratings || ratings.length === 0) {
+        return <p className="small-muted">Data rating game tidak tersedia.</p>;
+    }
+
+    return (
+        <div className="space-y-3">
+            {ratings.map((rating, index) => {
+                const barWidth = rating.score ? (rating.score / 10) * 100 : 0;
+                return (
+                    <div key={index} className="text-sm">
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="font-semibold text-slate-800">{rating.game}</span>
+                            <span className="font-bold text-[color:var(--accent1)]">{rating.score.toFixed(1)} / 10</span>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-2.5">
+                            <div 
+                                className="h-2.5 rounded-full bg-gradient-to-r from-green-400 to-blue-500" 
+                                style={{ width: `${barWidth}%`, transition: 'width 0.5s ease-in-out' }}
+                            ></div>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
 const TabContentPerforma: FC<{ review: ReviewResult }> = ({ review }) => (
     <div className="space-y-6 text-sm">
         <div>
@@ -399,8 +447,12 @@ const TabContentPerforma: FC<{ review: ReviewResult }> = ({ review }) => (
             </p>
         </div>
         <div>
-            <h3 className="text-base font-bold text-slate-800 mb-2">Review Gaming</h3>
+            <h3 className="text-base font-bold text-slate-800 mb-2">Review Gaming Umum</h3>
             <p className="text-slate-600 leading-relaxed">{review.performance?.gamingReview || 'Ulasan gaming tidak tersedia.'}</p>
+        </div>
+        <div>
+            <h3 className="text-base font-bold text-slate-800 mb-3">Rating Performa Game</h3>
+            <GamingPerformanceDisplay ratings={review.performance?.gamingRatings} />
         </div>
     </div>
 );

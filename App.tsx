@@ -103,7 +103,7 @@ const App: React.FC = () => {
     setSelectedPost(post);
     navigate(`blog/${post.slug}`);
   };
-  
+
   const openChat = () => setIsChatModalOpen(true);
 
   const mainContent = () => {

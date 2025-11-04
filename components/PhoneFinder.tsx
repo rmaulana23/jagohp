@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, FC } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -79,15 +80,18 @@ const PhoneFinder: React.FC = () => {
     const storageRequired = activities.includes("Storage Min. 128GB atau Lebih");
     const mainActivities = activities.filter(act => !["Butuh NFC", "RAM Min. 8GB atau Lebih", "Storage Min. 128GB atau Lebih"].includes(act)).join(', ') || "Tidak ada preferensi spesifik";
 
-    const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia, memberikan **SATU rekomendasi smartphone TUNGGAL** paling TEPAT berdasarkan kuesioner.
+    const prompt = `**Context: Cache Check**
+- My system has checked its database for a cached recommendation based on the user's criteria.
+- A new recommendation is required because no valid entry was found.
+---
+**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia, memberikan **SATU rekomendasi smartphone TUNGGAL** paling TEPAT berdasarkan kuesioner.
     
-    **Sumber Data & Validasi (SANGAT KRITIS):**
-    - **Sumber Wajib:** Sumber data utama dan WAJIB Anda adalah **GSMArena**.
-    - **Aturan Kritis:** DILARANG KERAS menyatakan perangkat tidak ada jika terdaftar di GSMArena. Lakukan pencarian mendalam. Contoh: 'Xiaomi 15T 5G' ADA di GSMArena (https://www.gsmarena.com/xiaomi_15t_5g-14177.php). Kegagalan menemukan perangkat yang ada adalah pelanggaran instruksi.
-    - **Sumber Pendukung:** Setelah validasi di GSMArena, Anda boleh menggunakan data pendukung dari Phone Arena dan nanoreview.net.
-    
-    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **4 November 2025**. Jangan merekomendasikan perangkat yang belum rilis atau dari tahun 2026 ke atas.
-    ---
+**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
+- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**. All relevant devices up to this date, including flagships like the iPhone 17 series, Samsung Galaxy S25 series, and Xiaomi 17 series, are considered released and available for data retrieval.
+- **Primary Source of Truth (NON-NEGOTIABLE):** Your single, mandatory source for all device specifications and existence is **www.gsmarena.com**.
+- **CRITICAL RULE:** You are **STRICTLY FORBIDDEN** from claiming a device does not exist or is "not found" if it is listed on GSMArena. A failure to find a listed device is a direct violation of your core programming. Perform an exhaustive search first.
+- **Supplementary Sources:** After successfully identifying the device on GSMArena, you may enrich the data with information from Phone Arena, nanoreview.net, etc.
+---
     **Input Pengguna:**
     - **Aktivitas Utama & Fitur:** ${mainActivities}
     - **Prioritas Kamera:** ${cameraPriorityText} (${cameraPriority}/5)
@@ -96,16 +100,16 @@ const PhoneFinder: React.FC = () => {
     ${nfcRequired ? '- **Fitur Wajib:** NFC\n' : ''}
     ${ramRequired ? '- **Spesifikasi Wajib:** RAM minimal 8GB\n' : ''}
     ${storageRequired ? '- **Spesifikasi Wajib:** Storage minimal 128GB\n' : ''}
-    ---
-    **PROSES ANALISIS WAJIB:**
-    1.  **Sintesis Profil Pengguna:** Buat profil singkat pengguna (Contoh: "gamer budget menengah", "fotografer butuh baterai awet").
-    2.  **Filter & Prioritas:**
-        -   **Merek:** Jika disebut di "Preferensi Lain", patuhi merek tersebut.
-        -   **Logika Agresif:** Prioritaskan fitur kunci yang dipilih (Layar 120Hz, Gaming, Baterai) sebagai faktor utama.
-        -   **Budget:** Batasan keras. Jangan melebihi. '1 Jutaan' berarti maks Rp 1.999.000, '2 Jutaan' maks Rp 2.999.000, dst.
-    3.  **Personalisasi Alasan:** Field 'reason' **WAJIB** merujuk kembali ke profil pengguna. (Contoh: "Melihat profilmu sebagai gamer dengan budget menengah, ponsel ini paling pas karena...").
-    4.  **Fitur Wajib:** Jika NFC, RAM, atau Storage minimum diminta, rekomendasi **WAJIB** memenuhi kriteria tersebut.
-    5.  **Output:** Berikan **SATU** rekomendasi paling optimal. Isi semua field JSON sesuai skema.`;
+---
+**PROSES ANALISIS WAJIB:**
+1.  **Sintesis Profil Pengguna:** Buat profil singkat pengguna (Contoh: "gamer budget menengah", "fotografer butuh baterai awet").
+2.  **Filter & Prioritas:**
+    -   **Merek:** Jika disebut di "Preferensi Lain", patuhi merek tersebut.
+    -   **Logika Agresif:** Prioritaskan fitur kunci yang dipilih (Layar 120Hz, Gaming, Baterai) sebagai faktor utama.
+    -   **Budget:** Batasan keras. Jangan melebihi. '1 Jutaan' berarti maks Rp 1.999.000, '2 Jutaan' maks Rp 2.999.000, dst.
+3.  **Personalisasi Alasan:** Field 'reason' **WAJIB** merujuk kembali ke profil pengguna. (Contoh: "Melihat profilmu sebagai gamer dengan budget menengah, ponsel ini paling pas karena...").
+4.  **Fitur Wajib:** Jika NFC, RAM, atau Storage minimum diminta, rekomendasi **WAJIB** memenuhi kriteria tersebut.
+5.  **Output:** Berikan **SATU** rekomendasi paling optimal. Isi semua field JSON sesuai skema.`;
 
     try {
       const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema } });

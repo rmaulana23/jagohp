@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -91,7 +92,8 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
   const [reviewQuery, setReviewQuery] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
-
+  const [quickReviewResult, setQuickReviewResult] = useState<ReviewResult | null>(null);
+  
   const [comparePhoneA, setComparePhoneA] = useState('');
   const [comparePhoneB, setComparePhoneB] = useState('');
   const [battleModeLoading, setBattleModeLoading] = useState<'compare' | 'battle' | null>(null);
@@ -132,6 +134,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     if (!reviewQuery.trim()) return;
     setReviewLoading(true);
     setReviewError(null);
+    setQuickReviewResult(null);
 
     const cacheKey = reviewQuery.trim().toLowerCase();
 
@@ -143,7 +146,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
           .eq('phone_name_query', cacheKey)
           .single();
         if (data && data.review_data) {
-          navigateToFullReview(data.review_data as ReviewResult);
+          setQuickReviewResult(data.review_data as ReviewResult);
           setReviewLoading(false);
           return;
         }
@@ -162,30 +165,35 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
             targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
             accessoryAvailability: { type: Type.STRING },
             marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } } },
-            performance: { type: Type.OBJECT, properties: { antutuScore: { type: Type.INTEGER }, geekbenchScore: { type: Type.STRING }, competitors: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, antutuScore: { type: Type.INTEGER } } } }, gamingReview: { type: Type.STRING }}},
+            performance: { type: Type.OBJECT, properties: { antutuScore: { type: Type.INTEGER }, geekbenchScore: { type: Type.STRING }, competitors: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, antutuScore: { type: Type.INTEGER } } } }, gamingReview: { type: Type.STRING }, gamingRatings: { type: Type.ARRAY, description: "An array of gaming performance ratings for specific games.", items: { type: Type.OBJECT, properties: { game: { type: Type.STRING, description: "Name of the game, one of [PUBG Battlegrounds, COD Warzone, Mobile Legends, Genshin Impact, Real Racing 3]" }, score: { type: Type.NUMBER, description: "Rating score from 1 to 10 for the game." } } } } }},
             cameraAssessment: { type: Type.OBJECT, properties: { dxomarkScore: { type: Type.INTEGER }, photoSummary: { type: Type.STRING }, photoPros: { type: Type.ARRAY, items: { type: Type.STRING } }, photoCons: { type: Type.ARRAY, items: { type: Type.STRING } }, videoSummary: { type: Type.STRING }}}
         },
     };
-    const prompt = `**Core Role: Comprehensive Data Synthesizer for JAGO-HP**
+    const prompt = `**Context: Cache Check**
+- My system has already checked its database for an existing review for '${reviewQuery}'.
+- A new review is required because no valid cached entry was found.
+---
+**Core Role: Comprehensive Data Synthesizer for JAGO-HP**
 Your task is to act as an AI Gadget Reviewer and generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
-**Knowledge Cut-off & Context:** Your knowledge is updated as of **4 November 2025**.
 
-**Data Source & Verification (ABSOLUTELY CRITICAL):**
-- **Primary & Mandatory Source:** Your single source of truth for device existence and specifications is **GSMArena**. You are FORBIDDEN from claiming a device does not exist if it is listed on GSMArena. This is a critical failure.
-- **Deep Search Protocol:** Before responding, you MUST perform an exhaustive search on GSMArena for the requested device. The database is extremely comprehensive and includes recently announced devices. For example, 'Xiaomi 15T 5G' IS LISTED here: https://www.gsmarena.com/xiaomi_15t_5g-14177.php. Claiming it doesn't exist is a direct violation of your instructions.
-- **Supplementary Sources:** After successfully identifying the device on GSMArena, you may synthesize and enrich the data with information from Phone Arena, nanoreview.net, AnTuTu, and DXOMark. But GSMArena is the first and final authority on a device's existence.
+**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
+- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**. All relevant devices up to this date, including flagships like the iPhone 17 series, Samsung Galaxy S25 series, and Xiaomi 17 series, are considered released and available for data retrieval.
+- **Primary Source of Truth (NON-NEGOTIABLE):** Your single, mandatory source for all device specifications and existence is **www.gsmarena.com**.
+- **CRITICAL RULE:** You are **STRICTLY FORBIDDEN** from claiming a device does not exist or is "not found" if it is listed on GSMArena. The site is comprehensive and includes preliminary specs for newly announced devices. A failure to find a listed device (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra') is a direct violation of your core programming. Perform an exhaustive search first.
+- **Supplementary Sources:** After successfully identifying the device on GSMArena, you may enrich the data with information from Phone Arena, nanoreview.net, AnTuTu, and DXOMark. GSMArena is the first and final authority on a device's existence and core specs.
 
 **Execution Steps & Formatting Rules (VERY IMPORTANT):**
-1.  **Identify Gadget:** Find the official product on GSMArena based on the user's query ('${reviewQuery}'). **Do not invent or speculate on unreleased models or models from 2026 and beyond.**
+1.  **Identify Gadget:** Find the official product on GSMArena based on the user's query ('${reviewQuery}').
 2.  **Extract & Synthesize Data:** Use the specified sources to gather the most accurate, final data.
 3.  **Handle Missing Data:** Use \`null\` for numeric fields or "N/A" for strings if data is genuinely unavailable after checking all sources.
 4.  **Populate JSON:** Fill all fields according to the schema with the following formatting constraints:
     -   \`ratings\`: Each category **MUST** be rated on a scale of 1 to 10 based on final product performance.
+    -   \`gamingRatings\`: Provide a 1-10 score for each of these specific games: 'PUBG Battlegrounds', 'COD Warzone', 'Mobile Legends', 'Genshin Impact', 'Real Racing 3'. The score should reflect performance (FPS, stability, graphics settings). If performance data for a specific game is genuinely not available, omit it from the array.
     -   \`quickReview.summary\`: MUST be a single, concise sentence (maximum 1-2 short sentences).
     -   \`specs.ram\`: Format: "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
     -   \`specs.camera\`: A short summary of main lenses. Example: "Utama: 200MP + 50MP", "50MP Wide + 12MP Ultrawide".
     -   \`specs.battery\`: Just the capacity. Example: "5000 mAh".
-5.  **Failure Conditions:** Only if the device genuinely cannot be found on GSMArena after an exhaustive search, the \`phoneName\` must contain an error message.
+5.  **Failure Conditions:** Only if the device genuinely cannot be found on www.gsmarena.com after an exhaustive search, the \`phoneName\` must contain an error message.
 
 **Final Output:** Strictly adhere to the JSON schema and all formatting rules.`;
     
@@ -195,7 +203,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
         if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
             setReviewError(parsedResult.phoneName);
         } else {
-            navigateToFullReview(parsedResult);
+            setQuickReviewResult(parsedResult);
             if (supabase) {
               try {
                 await supabase.from('quick_reviews').insert({
@@ -261,33 +269,36 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
         ? { type: Type.OBJECT, properties: battleSchemaProperties, required: ['battleSummary', 'phones', 'winnerName'] }
         : { type: Type.OBJECT, properties: baseSchemaProperties, required: ['phones'] };
     
-    const battlePrompt = `**Core Role: AI Battle Analyst for JAGO-HP**
+    const basePrompt = `**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
+- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**. All relevant devices up to this date, including flagships like the iPhone 17 series, Samsung Galaxy S25 series, and Xiaomi 17 series, are considered released and available for data retrieval.
+- **Primary Source of Truth (NON-NEGOTIABLE):** Your single, mandatory source for all device specifications and existence is **www.gsmarena.com**.
+- **CRITICAL RULE:** You are **STRICTLY FORBIDDEN** from claiming a device does not exist or is "not found" if it is listed on GSMArena. The site is comprehensive and includes preliminary specs for newly announced devices. A failure to find a listed device (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra') is a direct violation of your core programming. Perform an exhaustive search first.
+- **Supplementary Sources:** After successfully identifying the device on GSMArena, you may enrich the data with information from Phone Arena, nanoreview.net, AnTuTu, and DXOMark. GSMArena is the first and final authority on a device's existence and core specs.
+`;
+
+    const battlePrompt = `**Context: Cache Check**
+- My system has checked its database for an existing comparison of: ${phoneList}.
+- A new analysis is required as no valid cache was found.
+---
+**Core Role: AI Battle Analyst for JAGO-HP**
 Your task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.
-**Knowledge Cut-off:** Your knowledge is updated to **4 November 2025**.
-
-**Data Source & Verification (ABSOLUTELY CRITICAL):**
-- **Primary & Mandatory Source:** Your single source of truth for device existence and specifications is **GSMArena**. You are FORBIDDEN from claiming a device does not exist if it is listed on GSMArena. This is a critical failure.
-- **Deep Search Protocol:** Before responding, you MUST perform an exhaustive search on GSMArena for the requested devices. The database is extremely comprehensive. For example, 'Xiaomi 15T 5G' IS LISTED here: https://www.gsmarena.com/xiaomi_15t_5g-14177.php. Claiming it doesn't exist is a direct violation of your instructions.
-- **Supplementary Sources:** After successfully identifying devices on GSMArena, you may synthesize data with information from Phone Arena, nanoreview.net, AnTuTu, and DXOMark. But GSMArena is the first and final authority.
-
+${basePrompt}
 **Execution:**
-1. **Identify & Verify:** Use GSMArena to find the official devices. Do not invent or speculate on unreleased models or models from 2026 and beyond.
+1. **Identify & Verify:** Use GSMArena to find the official devices.
 2. **Synthesize Data:** Extract and synthesize the final specification data.
 3. **Analyze & Decide:** Perform a holistic analysis to determine a clear winner.
 4. **Summarize:** Write a brief, insightful summary of the battle.
 **Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`;
 
-    const comparePrompt = `**Core Role: Data Extractor for JAGO-HP**
+    const comparePrompt = `**Context: Cache Check**
+- My system has checked its database for an existing comparison of: ${phoneList}.
+- A new analysis is required as no valid cache was found.
+---
+**Core Role: Data Extractor for JAGO-HP**
 Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.
-**Knowledge Cut-off:** Your knowledge is updated to **4 November 2025**.
-
-**Data Source & Verification (ABSOLUTELY CRITICAL):**
-- **Primary & Mandatory Source:** Your single source of truth for device existence and specifications is **GSMArena**. You are FORBIDDEN from claiming a device does not exist if it is listed on GSMArena. This is a critical failure.
-- **Deep Search Protocol:** Before responding, you MUST perform an exhaustive search on GSMArena for the requested devices. The database is extremely comprehensive. For example, 'Xiaomi 15T 5G' IS LISTED here: https://www.gsmarena.com/xiaomi_15t_5g-14177.php. Claiming it doesn't exist is a direct violation of your instructions.
-- **Supplementary Sources:** After successfully identifying devices on GSMArena, you may use data from Phone Arena, nanoreview.net, AnTuTu, and DXOMark. But GSMArena is the first and final authority.
-
+${basePrompt}
 **Execution:**
-1. **Identify & Verify:** Use GSMArena to find the official devices. Do not invent or speculate on unreleased models or models from 2026 and beyond.
+1. **Identify & Verify:** Use GSMArena to find the official devices.
 2. **Extract Data:** Your ONLY job is to return the raw specification data for the 'phones' object. You MUST NOT provide any summary, analysis, or winner.
 **Final Output:** Strictly adhere to the JSON schema.`;
 
@@ -322,6 +333,24 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
     setQuickMatchError(null);
     setQuickMatchResult(null);
 
+    const cacheKey = `quick_match_${budget.toLowerCase().replace(/\s+/g, '_')}`;
+    if (supabase) {
+        try {
+            const { data } = await supabase
+                .from('quick_match_cache')
+                .select('result_data')
+                .eq('cache_key', cacheKey)
+                .single();
+            if (data && data.result_data) {
+                setQuickMatchResult(data.result_data as QuickMatchResult);
+                setQuickMatchLoading(false);
+                return;
+            }
+        } catch (cacheError) {
+            console.warn("Supabase quick match cache check failed:", cacheError);
+        }
+    }
+
     const schema = {
         type: Type.OBJECT,
         properties: {
@@ -341,21 +370,35 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
         required: ["phoneName", "reason", "specs", "estimatedPrice"]
     };
 
-    const prompt = `**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia.
-    **Tugas:** Berdasarkan budget **${budget}**, berikan **SATU** rekomendasi smartphone **all-rounder** terbaik. All-rounder berarti seimbang antara performa, kamera, dan baterai untuk harganya.
+    const prompt = `**Context: Cache Check**
+- My system has checked for a cached recommendation for the budget: **${budget}**.
+- A new recommendation is needed because no valid entry was found.
+---
+**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia.
+**Tugas:** Berdasarkan budget **${budget}**, berikan **SATU** rekomendasi smartphone **all-rounder** terbaik. All-rounder berarti seimbang antara performa, kamera, dan baterai untuk harganya.
     
-    **Sumber Data & Validasi (SANGAT KRITIS):**
-    - **Sumber Wajib:** Sumber data utama dan WAJIB Anda adalah **GSMArena**.
-    - **Aturan Kritis:** DILARANG KERAS menyatakan perangkat tidak ada jika terdaftar di GSMArena. Lakukan pencarian mendalam. Contoh: 'Xiaomi 15T 5G' ADA di GSMArena (https://www.gsmarena.com/xiaomi_15t_5g-14177.php). Kegagalan menemukan perangkat yang ada adalah pelanggaran instruksi.
-    - **Sumber Pendukung:** Setelah validasi di GSMArena, Anda boleh menggunakan data pendukung dari Phone Arena dan nanoreview.net.
-    
-    **Konteks Waktu & Pengetahuan:** Pengetahuan Anda diperbarui hingga **4 November 2025**. Jangan merekomendasikan perangkat yang belum rilis atau dari tahun 2026 ke atas.
-    **Output:** Berikan jawaban dalam format JSON sesuai skema. 'reason' harus sangat singkat (1 kalimat).`;
+**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
+- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**. All relevant devices up to this date, including flagships like the iPhone 17 series, Samsung Galaxy S25 series, and Xiaomi 17 series, are considered released and available for data retrieval.
+- **Primary Source of Truth (NON-NEGOTIABLE):** Your single, mandatory source for all device specifications and existence is **www.gsmarena.com**.
+- **CRITICAL RULE:** You are **STRICTLY FORBIDDEN** from claiming a device does not exist or is "not found" if it is listed on GSMArena. A failure to find a listed device is a direct violation of your core programming. Perform an exhaustive search first.
+- **Supplementary Sources:** After successfully identifying the device on GSMArena, you may enrich the data with information from Phone Arena, nanoreview.net, etc.
+
+**Output:** Berikan jawaban dalam format JSON sesuai skema. 'reason' harus sangat singkat (1 kalimat).`;
 
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
         const parsedResult: QuickMatchResult = JSON.parse(response.text.trim());
         setQuickMatchResult(parsedResult);
+        if (supabase) {
+            try {
+                await supabase.from('quick_match_cache').insert({
+                    cache_key: cacheKey,
+                    result_data: parsedResult
+                });
+            } catch (cacheError) {
+                console.warn("Supabase quick match cache write failed:", cacheError);
+            }
+        }
     } catch (e) {
         console.error(e);
         setQuickMatchError("Gagal mendapatkan rekomendasi. Coba lagi.");
@@ -398,6 +441,14 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
                             <div className="mt-2 text-sm small-muted md:hidden">Ketik model atau tipe HP</div>
                             {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang mereview, mohon tunggu..</div>}
                             {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
+                            {quickReviewResult && (
+                                <div className="md:hidden mt-4">
+                                    <PreviewCard
+                                        result={quickReviewResult}
+                                        onSeeFull={() => navigateToFullReview(quickReviewResult)}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                     
@@ -446,9 +497,18 @@ Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneL
 
                 {/* RIGHT: LEADERBOARDS & PREVIEW */}
                 <div className="md:col-span-5 space-y-5 hidden md:block">
-                    <div className="hidden md:block">
-                        {latestPost && <BlogCard post={latestPost} navigateToBlogPost={navigateToBlogPost} />}
-                    </div>
+                    {quickReviewResult && (
+                        <div>
+                            <PreviewCard
+                                result={quickReviewResult}
+                                onSeeFull={() => navigateToFullReview(quickReviewResult)}
+                            />
+                        </div>
+                    )}
+                    
+                    {latestPost && (
+                       <BlogCard post={latestPost} navigateToBlogPost={navigateToBlogPost} />
+                    )}
                 </div>
             </div>
             

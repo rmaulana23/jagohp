@@ -465,11 +465,16 @@ const JCC: React.FC = () => {
             }
         };
         const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
-        **Tugas:** Buat **SATU KARTU** smartphone acak yang belum ada di deck ini: ${deck.map(c => c.name).join(', ')}.
-        **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **4 November 2025**. Semua perangkat yang relevan harus dianggap sudah dirilis.
-        **Validasi Data:** Semua data spesifikasi WAJIB divalidasi dan berdasarkan data yang ada di **GSMArena**. Jangan mengarang perangkat atau spesifikasi.
-        **Data yang Diperlukan:** id, name, specs (processorName, cpuScore, batteryMah, ramGb, refreshRate, cameraScore).
-        **Output:** Berikan jawaban HANYA dalam format JSON objek tunggal sesuai skema.`;
+**Tugas:** Buat **SATU KARTU** smartphone acak yang belum ada di deck ini: ${deck.map(c => c.name).join(', ')}.
+        
+**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
+- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**.
+- **Primary Source of Truth (NON-NEGOTIABLE):** Your single, mandatory source for all device specifications and existence is **www.gsmarena.com**.
+- **CRITICAL RULE:** You are **STRICTLY FORBIDDEN** from claiming a device does not exist. The site is comprehensive and includes preliminary specs for newly announced devices like the 'iPhone 17 Pro Max'.
+- **Supplementary Sources:** Phone Arena, nanoreview.net, etc.
+
+**Data yang Diperlukan:** id, name, specs (processorName, cpuScore, batteryMah, ramGb, refreshRate, cameraScore).
+**Output:** Berikan jawaban HANYA dalam format JSON objek tunggal sesuai skema.`;
         
         try {
             const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any } });
@@ -550,19 +555,24 @@ const JCC: React.FC = () => {
     };
     
     const prompt = `**Peran:** Ahli Data Gadget untuk Game Kartu.
-    **Tugas:** Buat sebuah "deck" berisi **3 kartu** smartphone yang beragam dan menarik untuk dimainkan. Sertakan campuran dari flagship, mid-ranger, dan mungkin satu pilihan unik/niche.
-    **Konteks Waktu:** Pengetahuan Anda diperbarui hingga **4 November 2025**. Semua perangkat yang relevan harus dianggap sudah dirilis.
-    **Validasi Data:** Semua data spesifikasi WAJIB divalidasi dan berdasarkan data yang ada di **GSMArena**. Jangan mengarang perangkat atau spesifikasi.
-    **Data yang Diperlukan per HP:**
-    - \`id\`: ID unik (misal: "s25u").
-    - \`name\`: Nama resmi HP.
-    - \`specs.processorName\`: Nama chipset (e.g., "Snapdragon 8 Gen 4").
-    - \`specs.cpuScore\`: Skor AnTuTu v10 (sebagai angka).
-    - \`specs.batteryMah\`: Kapasitas baterai (sebagai angka).
-    - \`specs.ramGb\`: Ukuran RAM (sebagai angka).
-    - \`specs.refreshRate\`: Refresh rate layar (sebagai angka).
-    - \`specs.cameraScore\`: Skor kamera 1-100 (estimasi berdasarkan kualitas keseluruhan).
-    **Output:** Berikan jawaban HANYA dalam format JSON array sesuai skema.`;
+**Tugas:** Buat sebuah "deck" berisi **3 kartu** smartphone yang beragam dan menarik untuk dimainkan. Sertakan campuran dari flagship, mid-ranger, dan mungkin satu pilihan unik/niche.
+
+**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
+- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**.
+- **Primary Source of Truth (NON-NEGOTIABLE):** Your single, mandatory source for all device specifications and existence is **www.gsmarena.com**.
+- **CRITICAL RULE:** You are **STRICTLY FORBIDDEN** from claiming a device does not exist. The site is comprehensive and includes preliminary specs for newly announced devices like the 'iPhone 17 Pro Max'.
+- **Supplementary Sources:** Phone Arena, nanoreview.net, etc.
+
+**Data yang Diperlukan per HP:**
+- \`id\`: ID unik (misal: "s25u").
+- \`name\`: Nama resmi HP.
+- \`specs.processorName\`: Nama chipset (e.g., "Snapdragon 8 Gen 4").
+- \`specs.cpuScore\`: Skor AnTuTu v10 (sebagai angka).
+- \`specs.batteryMah\`: Kapasitas baterai (sebagai angka).
+- \`specs.ramGb\`: Ukuran RAM (sebagai angka).
+- \`specs.refreshRate\`: Refresh rate layar (sebagai angka).
+- \`specs.cameraScore\`: Skor kamera 1-100 (estimasi berdasarkan kualitas keseluruhan).
+**Output:** Berikan jawaban HANYA dalam format JSON array sesuai skema.`;
 
     try {
         const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any } });
