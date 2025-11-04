@@ -36,8 +36,6 @@ interface BlogPostProps {
     setPage: (page: string) => void;
     setSelectedPost: (post: BlogPostData | null) => void;
     isAdminAuthenticated: boolean;
-    reviewHistory: ReviewResult[];
-    onAddToHistory: (result: ReviewResult) => void;
     navigateToFullReview: (result: ReviewResult) => void;
 }
 
@@ -334,7 +332,7 @@ const CommentsSection: React.FC<{ post: BlogPostData, isAdminAuthenticated: bool
 
 
 // --- MAIN BLOG POST COMPONENT ---
-const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPost, isAdminAuthenticated, reviewHistory, onAddToHistory, navigateToFullReview }) => {
+const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPost, isAdminAuthenticated, navigateToFullReview }) => {
     // Initialize state from prop if it matches the current slug, to prevent flicker on initial navigation
     const [postData, setPostData] = useState<BlogPostData | null>(() => (post && post.slug === slug ? post : null));
     const [loading, setLoading] = useState(!postData);
@@ -496,8 +494,6 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPos
                 </div>
                 <aside className="lg:col-span-4 h-fit">
                     <QuickReviewWidget 
-                        reviewHistory={reviewHistory}
-                        onAddToHistory={onAddToHistory}
                         navigateToFullReview={navigateToFullReview}
                     />
                      <OtherArticlesWidget 

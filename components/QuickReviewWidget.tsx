@@ -5,23 +5,18 @@ import { ReviewResult } from './SmartReview';
 import PreviewCard from './PreviewCard';
 
 interface QuickReviewWidgetProps {
-    reviewHistory: ReviewResult[];
-    onAddToHistory: (result: ReviewResult) => void;
     navigateToFullReview: (result: ReviewResult) => void;
 }
 
 const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
-    reviewHistory,
-    onAddToHistory,
     navigateToFullReview,
 }) => {
     const [reviewQuery, setReviewQuery] = useState('');
     const [reviewLoading, setReviewLoading] = useState(false);
     const [reviewError, setReviewError] = useState<string | null>(null);
+    const [quickReviewResult, setQuickReviewResult] = useState<ReviewResult | null>(null);
 
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
-
-    const latestReviewResult = reviewHistory.length > 0 ? reviewHistory[0] : null;
 
     const handleReviewSearch = async () => {
         if (!reviewQuery.trim()) return;
@@ -38,7 +33,7 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
                     .eq('phone_name_query', cacheKey)
                     .single();
                 if (data && data.review_data) {
-                    onAddToHistory(data.review_data as ReviewResult);
+                    setQuickReviewResult(data.review_data as ReviewResult);
                     setReviewLoading(false);
                     return;
                 }
@@ -86,7 +81,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
             if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
                 setReviewError(parsedResult.phoneName);
             } else {
-                onAddToHistory(parsedResult);
+                setQuickReviewResult(parsedResult);
             }
         } catch (e) {
             console.error(e);
@@ -117,9 +112,9 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
             </div>
             {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Mereview, mohon tunggu..</div>}
             {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
-            {latestReviewResult ? (
+            {quickReviewResult ? (
                 <div className="mt-4">
-                    <PreviewCard result={latestReviewResult} onSeeFull={() => navigateToFullReview(latestReviewResult)} />
+                    <PreviewCard result={quickReviewResult} onSeeFull={() => navigateToFullReview(quickReviewResult)} />
                 </div>
             ) : (
                 <div className="text-center text-sm text-slate-400 py-4">
