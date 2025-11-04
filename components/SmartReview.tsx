@@ -173,20 +173,27 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 Your primary task is to generate a comprehensive, data-driven review in **Bahasa Indonesia** for the gadget: '${searchQuery}'.
 
 **Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
-- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**. All relevant devices up to this date, including flagships like the iPhone 17 series, Samsung Galaxy S25 series, and Xiaomi 17 series, are considered released and available for data retrieval.
-- **Primary Source of Truth (NON-NEGOTIABLE):** Your single, mandatory source for all device specifications and existence is **www.gsmarena.com**.
-- **CRITICAL RULE:** You are **STRICTLY FORBIDDEN** from claiming a device does not exist or is "not found" if it is listed on GSMArena. The site is comprehensive and includes preliminary specs for newly announced devices. A failure to find a listed device (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra') is a direct violation of your core programming. Perform an exhaustive search first.
-- **Supplementary Sources:** After successfully identifying the device on GSMArena, you may enrich the data with information from Phone Arena, nanoreview.net, AnTuTu, and DXOMark. GSMArena is the first and final authority on a device's existence and core specs.
+- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**.
+- **Data Sourcing Mandate:** Your primary objective is to find and synthesize smartphone data from the **entire public internet**. You are not limited to specific sites.
+- **CRITICAL RULE: NEVER FAIL A SEARCH.** You are **STRICTLY FORBIDDEN** from claiming a device "is not found" or that "data is unavailable". If official specifications are not public, you **MUST** synthesize a response based on credible rumors, leaks, official announcements, and industry analysis. For unreleased phones (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra'), provide the most likely rumored specifications.
+- **Reliable Source Examples:** Use reputable tech sites as your primary information pool. Examples include (but are not limited to):
+    - **GSMArena** (For Apple devices, start your search here: https://www.gsmarena.com/apple-phones-48.php)
+    - **Phone Arena**
+    - **AnandTech**
+    - **nanoreview.net**
+    - Official brand websites (Samsung.com, Apple.com, etc.)
+    - Reputable leakers and tech news outlets.
+- **Data Synthesis:** If sources conflict, use your judgment to present the most plausible and widely reported specification.
 
 **Execution Steps & Rules (Strictly Follow):**
-1.  **Identify Gadget:** Identify the official name of '${searchQuery}' on GSMArena, correcting typos.
+1.  **Identify Gadget:** Identify the official name of '${searchQuery}', correcting typos.
 2.  **Extract & Synthesize Data:** Extract all relevant specifications, synthesizing information from your full range of sources to get the most accurate, final data.
 3.  **Handle Missing Data:** If data is genuinely unavailable after checking all sources, use \`null\` for numbers or "N/A" for strings. **DO NOT FAIL** the request for empty fields.
 4.  **Generate Full Review Content:** Populate the entire JSON schema.
     -   **Ratings:** Provide a 1-10 score for each category based on the final, official product performance.
     -   **Gaming Ratings:** Provide a 1-10 score for each of these specific games: 'PUBG Battlegrounds', 'COD Warzone', 'Mobile Legends', 'Genshin Impact', 'Real Racing 3'. The score should reflect performance (FPS, stability, graphics settings). If performance data for a specific game is genuinely not available after a thorough search, omit it from the array.
     -   **Summaries & Analysis:** Write all textual content based on objective, synthesized data.
-5.  **Failure Condition (Not Found):** Only if the device genuinely cannot be found on www.gsmarena.com after an exhaustive search, populate the \`phoneName\` field with an error message like "Maaf: Perangkat '${searchQuery}' tidak dapat ditemukan."
+5.  **Failure Condition (Not Found):** The only failure is if a device is truly fictional and unmentioned anywhere. Otherwise, you must provide data.
 
 **Final Output:**
 - Ensure the JSON strictly adheres to the schema.

@@ -141,15 +141,22 @@ const PhoneBattle: React.FC<{ initialResult?: BattleResult | null }> = ({ initia
 Your primary task is to perform a detailed comparison analysis in **Bahasa Indonesia** between these devices: ${phoneList}.
 
 **Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
-- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**. All relevant devices up to this date, including flagships like the iPhone 17 series, Samsung Galaxy S25 series, and Xiaomi 17 series, are considered released and available for data retrieval.
-- **Primary Source of Truth (NON-NEGOTIABLE):** Your single, mandatory source for all device specifications and existence is **www.gsmarena.com**.
-- **CRITICAL RULE:** You are **STRICTLY FORBIDDEN** from claiming a device does not exist or is "not found" if it is listed on GSMArena. The site is comprehensive and includes preliminary specs for newly announced devices. A failure to find a listed device (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra') is a direct violation of your core programming. Perform an exhaustive search first.
-- **Supplementary Sources:** After successfully identifying the device on GSMArena, you may enrich the data with information from Phone Arena, nanoreview.net, AnTuTu, and DXOMark. GSMArena is the first and final authority on a device's existence and core specs.
+- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**.
+- **Data Sourcing Mandate:** Your primary objective is to find and synthesize smartphone data from the **entire public internet**. You are not limited to specific sites.
+- **CRITICAL RULE: NEVER FAIL A SEARCH.** You are **STRICTLY FORBIDDEN** from claiming a device "is not found" or that "data is unavailable". If official specifications are not public, you **MUST** synthesize a response based on credible rumors, leaks, official announcements, and industry analysis. For unreleased phones (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra'), provide the most likely rumored specifications.
+- **Reliable Source Examples:** Use reputable tech sites as your primary information pool. Examples include (but are not limited to):
+    - **GSMArena** (For Apple devices, start your search here: https://www.gsmarena.com/apple-phones-48.php)
+    - **Phone Arena**
+    - **AnandTech**
+    - **nanoreview.net**
+    - Official brand websites (Samsung.com, Apple.com, etc.)
+    - Reputable leakers and tech news outlets.
+- **Data Synthesis:** If sources conflict, use your judgment to present the most plausible and widely reported specification.
 
 **Execution Steps & Rules (Strictly Follow):**
-1.  **Identify Gadgets:** Identify the official name for each device in ${phoneList} using GSMArena.
+1.  **Identify Gadgets:** Identify the official name for each device in ${phoneList} from any reliable source.
 2.  **Extract & Synthesize Data:** Extract all relevant specs, synthesizing information from your full range of sources to get the most accurate, final data.
-3.  **Handle Unannounced Devices:** Only if a device is genuinely not found on GSMArena after an exhaustive search, state this in the summary. Use \`null\` for unavailable data.
+3.  **Handle Unannounced Devices:** Use rumored specs if official ones are unavailable. Use \`null\` for data points that are genuinely unknown.
 4.  **Holistic Analysis & Winner Determination:**
     -   Compare the synthesized final specs. **DO NOT** rely on a single metric.
     -   Consider overall value: performance, display, camera, battery, price.

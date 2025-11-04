@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo, FC, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GoogleGenAI, Type } from "@google/genai";
@@ -521,10 +522,10 @@ const JagoCardArena: React.FC = () => {
 **Tugas:** Buat **SATU KARTU** smartphone acak yang kompetitif dan belum ada di deck ini: ${currentDeckNames}.
         
 **Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
-- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**.
-- **Primary Source of Truth (NON-NEGOTIABLE):** Your single, mandatory source for all device specifications and existence is **www.gsmarena.com**.
-- **CRITICAL RULE:** You are **STRICTLY FORBIDDEN** from claiming a device does not exist. The site is comprehensive and includes preliminary specs for newly announced devices like the 'iPhone 17 Pro Max'.
-- **Supplementary Sources:** Phone Arena, nanoreview.net, etc.
+- **Knowledge Date:** Your information is up-to-date as of **November 4, 2025**.
+- **Data Sourcing Mandate:** Find smartphone data from the **entire public internet**. You are not limited to specific sites.
+- **CRITICAL RULE: NEVER FAIL A SEARCH.** You **MUST** find data for any requested phone, even if it means using credible rumors or leaks for unreleased models (e.g., 'iPhone 17 Pro Max').
+- **Reliable Source Examples:** GSMArena (especially https://www.gsmarena.com/apple-phones-48.php for Apple), Phone Arena, nanoreview.net, etc.
 
 **Data yang Diperlukan:** id, name, specs (processorName, cpuScore, batteryMah, ramGb, refreshRate, cameraScore).
 **Aturan Penting:** \`cameraScore\` tidak boleh 100, targetkan di atas 80.
@@ -600,10 +601,10 @@ const JagoCardArena: React.FC = () => {
 **Tugas:** Buat sebuah "card pool" berisi **10 kartu** smartphone yang **BERBEDA SATU SAMA LAIN**, sangat beragam, dan menarik. Pastikan ada campuran dari berbagai merek (Samsung, Xiaomi, Apple, Google, dll.) dan segmen (flagship, mid-ranger, pilihan unik).
 
 **Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
-- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**.
-- **Primary Source of Truth (NON-NEGOTIABLE):** Your single, mandatory source for all device specifications and existence is **www.gsmarena.com**.
-- **CRITICAL RULE:** You are **STRICTLY FORBIDDEN** from claiming a device does not exist. The site is comprehensive and includes preliminary specs for newly announced devices like the 'iPhone 17 Pro Max'.
-- **Supplementary Sources:** Phone Arena, nanoreview.net, etc.
+- **Knowledge Date:** Your information is up-to-date as of **November 4, 2025**.
+- **Data Sourcing Mandate:** Find smartphone data from the **entire public internet**. You are not limited to specific sites.
+- **CRITICAL RULE: NEVER FAIL A SEARCH.** You **MUST** find data for any requested phone, even if it means using credible rumors or leaks for unreleased models (e.g., 'iPhone 17 Pro Max').
+- **Reliable Source Examples:** GSMArena (especially https://www.gsmarena.com/apple-phones-48.php for Apple), Phone Arena, nanoreview.net, etc.
     
 **Data yang Diperlukan per HP:**
 - \`id\`: ID unik (misal: "s25u").
