@@ -6,9 +6,10 @@ interface HeaderProps {
     onLogoClick: () => void;
     isAdminAuthenticated: boolean;
     onAdminLogout: () => void;
+    onOpenDonationModal: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuthenticated, onAdminLogout }) => {
+const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuthenticated, onAdminLogout, onOpenDonationModal }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const baseNavItems = [
@@ -85,12 +86,20 @@ const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuth
                 Keluar
             </button>
         ) : (
-            <button 
-                onClick={() => setPage('leaderboard')} 
-                className={`hidden md:inline-block px-3 py-1.5 rounded-md text-sm border transition-colors ${leaderboardBtnClasses}`}
-            >
-                Top Brand
-            </button>
+            <>
+              <button 
+                  onClick={() => setPage('leaderboard')} 
+                  className={`hidden md:inline-block px-3 py-1.5 rounded-md text-sm border transition-colors ${leaderboardBtnClasses}`}
+              >
+                  Top Brand
+              </button>
+              <button 
+                  onClick={onOpenDonationModal}
+                  className={`hidden md:inline-block px-3 py-1.5 rounded-md text-sm border transition-colors border-yellow-400 text-yellow-400 hover:bg-yellow-400/20`}
+              >
+                  Donasi
+              </button>
+            </>
         )}
         
         <div className="md:hidden">

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -13,6 +11,7 @@ import SparklesIcon from './icons/SparklesIcon';
 import SignalIcon from './icons/SignalIcon';
 import BatteryIcon from './icons/BatteryIcon';
 import InstagramIcon from './icons/InstagramIcon';
+import HeartIcon from './icons/HeartIcon';
 
 interface QuickMatchResult {
   phoneName: string;
@@ -48,6 +47,7 @@ interface HeroProps {
   navigateToBlogPost: (post: BlogPost) => void;
   persistentQuickReviewResult: ReviewResult | null;
   onSetPersistentQuickReviewResult: (result: ReviewResult | null) => void;
+  onOpenDonationModal: () => void;
 }
 
 const HorizontalBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, navigateToBlogPost }) => (
@@ -90,7 +90,7 @@ const HorizontalBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPo
     </div>
 );
 
-const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, navigateToReviewWithQuery, navigateToBlogPost, persistentQuickReviewResult, onSetPersistentQuickReviewResult }) => {
+const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, navigateToReviewWithQuery, navigateToBlogPost, persistentQuickReviewResult, onSetPersistentQuickReviewResult, onOpenDonationModal }) => {
   const [reviewQuery, setReviewQuery] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
@@ -571,8 +571,19 @@ ${basePrompt}
         </section>
       )}
 
+      {/* Mobile Donation Button */}
+      <div className="md:hidden px-4 mt-8">
+        <button
+            onClick={onOpenDonationModal}
+            className="w-full px-5 py-3 rounded-xl bg-yellow-400/10 border border-yellow-500 text-yellow-600 font-semibold transition-colors hover:bg-yellow-400/20 flex items-center justify-center gap-2"
+        >
+            <HeartIcon className="w-5 h-5" />
+            <span>Dukung JAGO-HP (Donasi)</span>
+        </button>
+      </div>
+
       {/* Mobile Quick Links Footer */}
-      <div className="md:hidden px-6 mt-8">
+      <div className="md:hidden px-6 mt-6">
         <div className="border-t border-slate-200 pt-5 flex justify-center items-center gap-x-6 gap-y-2 flex-wrap">
           <a href="#faq" onClick={(e) => {e.preventDefault(); setPage('faq')}} className="text-xs text-slate-500 hover:text-slate-800 transition-colors">FAQ</a>
           <a href="#partnership" onClick={(e) => {e.preventDefault(); setPage('partnership')}} className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Partnership</a>

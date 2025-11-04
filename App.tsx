@@ -17,10 +17,13 @@ import Blog from './components/Blog';
 import AdminLoginModal from './components/AdminLoginModal';
 import AdminDashboard from './components/AdminDashboard';
 import BlogPost from './components/BlogPost';
+import DonationModal from './components/DonationModal';
 
 const App: React.FC = () => {
   const [path, setPath] = useState(window.location.hash.substring(1) || 'home');
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
+
 
   // State to hold full results for detail pages
   const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
@@ -149,6 +152,7 @@ const App: React.FC = () => {
                             navigateToBlogPost={navigateToBlogPost}
                             persistentQuickReviewResult={persistentQuickReviewResult}
                             onSetPersistentQuickReviewResult={handleSetPersistentQuickReview}
+                            onOpenDonationModal={() => setIsDonationModalOpen(true)}
                            />;
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
       case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} clearGlobalResult={clearGlobalReviewResult} />;
@@ -191,6 +195,7 @@ const App: React.FC = () => {
         onLogoClick={handleLogoClick}
         isAdminAuthenticated={isAdminAuthenticated}
         onAdminLogout={handleAdminLogout}
+        onOpenDonationModal={() => setIsDonationModalOpen(true)}
       />
       
       <main className="flex-grow pt-6 md:pt-28 pb-20 md:pb-0">
@@ -216,6 +221,12 @@ const App: React.FC = () => {
         <AdminLoginModal 
             onClose={() => setShowAdminLogin(false)}
             onSubmit={handleAdminLogin}
+        />
+      )}
+
+      {isDonationModalOpen && (
+        <DonationModal 
+            onClose={() => setIsDonationModalOpen(false)}
         />
       )}
     </div>
