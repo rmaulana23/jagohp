@@ -71,8 +71,6 @@ const App: React.FC = () => {
       } catch (error) {
         console.error("Gagal menyimpan review cepat ke localStorage:", error);
       }
-    } else {
-      localStorage.removeItem('lastQuickReviewResult');
     }
   };
   
