@@ -12,6 +12,8 @@ import SignalIcon from './icons/SignalIcon';
 import BatteryIcon from './icons/BatteryIcon';
 import InstagramIcon from './icons/InstagramIcon';
 import HeartIcon from './icons/HeartIcon';
+import EyeIcon from './icons/EyeIcon';
+import ChatBubbleLeftEllipsisIcon from './icons/ChatBubbleLeftEllipsisIcon';
 
 interface QuickMatchResult {
   phoneName: string;
@@ -35,6 +37,8 @@ interface BlogPost {
   image_url: string;
   status: 'published' | 'draft' | 'trashed';
   blog_categories: { name: string }[];
+  view_count: number;
+  comments: { count: number }[];
 }
 
 
@@ -77,7 +81,7 @@ const HorizontalBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPo
                 <h4 className="font-bold text-xl text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">{post.title}</h4>
                 <p className="text-sm text-slate-500 mt-2 line-clamp-3">{post.excerpt}</p>
             </div>
-            <div className="mt-4 pt-4">
+            <div className="mt-4 pt-4 border-t border-slate-200/60 flex items-center justify-between">
                 <button
                     type="button"
                     onClick={() => navigateToBlogPost(post)}
@@ -85,6 +89,16 @@ const HorizontalBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPo
                 >
                     Baca Selengkapnya
                 </button>
+                 <div className="flex items-center gap-3 text-xs text-slate-500">
+                    <div className="flex items-center gap-1" title="Dilihat">
+                        <EyeIcon className="w-4 h-4" />
+                        <span>{post.view_count?.toLocaleString('id-ID') || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1" title="Komentar">
+                        <ChatBubbleLeftEllipsisIcon className="w-4 h-4" />
+                        <span>{post.comments?.[0]?.count ?? 0}</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -116,7 +130,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
       try {
         const { data, error } = await supabase
           .from('blog_posts')
-          .select('*, blog_categories(name)')
+          .select('*, blog_categories(name), comments(count)')
           .eq('status', 'published') // Only fetch published posts
           .order('published_at', { ascending: false })
           .limit(5); // Fetch 5 latest posts
@@ -620,7 +634,7 @@ const BlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPost) => voi
                 <p className="text-sm text-slate-500 mt-2 line-clamp-2">{post.excerpt}</p>
             </div>
         </div>
-        <div className="p-4 pt-0">
+        <div className="p-4 pt-2 border-t border-slate-200/60 flex items-center justify-between">
             <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); navigateToBlogPost(post); }}
@@ -628,6 +642,16 @@ const BlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPost) => voi
             >
                 Baca Selengkapnya
             </button>
+            <div className="flex items-center gap-3 text-xs text-slate-500">
+                <div className="flex items-center gap-1" title="Dilihat">
+                    <EyeIcon className="w-4 h-4" />
+                    <span>{post.view_count?.toLocaleString('id-ID') || 0}</span>
+                </div>
+                <div className="flex items-center gap-1" title="Komentar">
+                    <ChatBubbleLeftEllipsisIcon className="w-4 h-4" />
+                    <span>{post.comments?.[0]?.count ?? 0}</span>
+                </div>
+            </div>
         </div>
     </div>
 );
