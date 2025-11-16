@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -106,7 +105,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
             },
             targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
             accessoryAvailability: { type: Type.STRING },
-            marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } } },
+            marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING, description: "Harga pasaran terbaru di Indonesia (Format: Rp X.XXX.XXX). Cari harga real-time/marketplace." }, global: { type: Type.STRING } } },
             performance: {
                 type: Type.OBJECT,
                 properties: {
@@ -191,6 +190,7 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
 3.  **Handle Missing Data:** If data is genuinely unavailable after checking all sources, use \`null\` for numbers or "N/A" for strings. **DO NOT FAIL** the request for empty fields.
 4.  **Generate Full Review Content:** Populate the entire JSON schema.
     -   **Ratings:** Provide a 1-10 score for each category based on the final, official product performance.
+    -   **Market Price:** YOU MUST PROVIDE THE LATEST MARKET PRICE IN INDONESIA. Do not output 'TBA' if the phone is already released. Estimate based on launch price or current marketplace listings.
     -   **Gaming Ratings:** Provide a 1-10 score for each of these specific games: 'PUBG Battlegrounds', 'COD Warzone', 'Mobile Legends', 'Genshin Impact', 'Real Racing 3'. The score should reflect performance (FPS, stability, graphics settings). If performance data for a specific game is genuinely not available after a thorough search, omit it from the array.
     -   **Summaries & Analysis:** Write all textual content based on objective, synthesized data.
 5.  **Failure Condition (Not Found):** The only failure is if a device is truly fictional and unmentioned anywhere. Otherwise, you must provide data.
@@ -269,7 +269,7 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
                                 {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <SearchIcon className="w-5 h-5" />}
                             </button>
                         </form>
-                        {loading && <p className="text-sm text-slate-500 text-center -mt-8 mb-8 animate-pulse">Kami coba review, mohon jangan pindah menu..</p>}
+                        {loading && <p className="text-sm text-slate-500 text-center -mt-8 mb-8 animate-pulse">Kami coba review, mohon tunggu..</p>}
                     </>
                 )}
 
@@ -321,7 +321,16 @@ const ReviewResultDisplay: FC<{
     return (
         <div className="glass p-4 md:p-6 text-left animate-fade-in">
             <h2 className="text-xl md:text-2xl font-bold text-center mb-1 text-slate-900">{review.phoneName}</h2>
-            <p className="text-center text-sm small-muted mb-4">{review.specs.rilis ? `Rilis: ${review.specs.rilis}` : ''}</p>
+            <p className="text-center text-sm small-muted mb-2">{review.specs.rilis ? `Rilis: ${review.specs.rilis}` : ''}</p>
+            
+            {review.marketPrice?.indonesia && (
+                <div className="mb-6 flex justify-center">
+                    <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-sm font-bold border border-emerald-200 shadow-sm">
+                        🏷️ {review.marketPrice.indonesia}
+                    </span>
+                </div>
+            )}
+
             {review.ratings && <RatingsDisplay ratings={review.ratings} />}
             <div className="mt-6 flex space-x-2 sm:space-x-4 justify-center bg-slate-100 p-1 rounded-lg">
                 {tabs.map(tab => (
@@ -337,7 +346,7 @@ const ReviewResultDisplay: FC<{
             <ShareButtons shareText={shareText} shareUrl={shareUrl} />
 
             <div className="mt-6 text-center text-xs text-slate-500 bg-slate-100 p-3 rounded-lg border border-slate-200">
-                <strong>Disclaimer:</strong> Review dibuat seakurat mungkin, namun pastikan juga Anda juga mengecek ke website resmi.
+                <strong>Disclaimer:</strong> Review dibuat seakurat mungkin, namun pastikan juga Anda juga mengecek ke website resmi. Harga yang tertera adalah estimasi pasar dan dapat berubah sewaktu-waktu.
             </div>
 
             <div className="mt-6 text-center">

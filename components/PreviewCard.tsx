@@ -1,3 +1,4 @@
+
 import React, { FC } from 'react';
 import { ReviewResult } from './SmartReview';
 
@@ -7,7 +8,7 @@ interface PreviewCardProps {
 }
 
 const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
-    const { phoneName, ratings, quickReview, specs, performance } = result;
+    const { phoneName, ratings, quickReview, specs, performance, marketPrice } = result;
 
     const calculateOverallScore = () => {
         if (!ratings) {
@@ -51,7 +52,14 @@ const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
                     <div className="text-sm font-semibold text-white flex-shrink-0 ml-2">Score {overallScore}</div>
                 </div>
 
-                <div className="mt-3 text-sm">
+                {/* Price Display */}
+                <div className="mt-3 mb-1">
+                    <span className="inline-block bg-white/15 backdrop-blur-sm border border-white/20 rounded-lg px-3 py-1 text-sm font-bold text-yellow-300 shadow-sm">
+                        {marketPrice?.indonesia ? `🏷️ ${marketPrice.indonesia}` : 'Cek Harga'}
+                    </span>
+                </div>
+
+                <div className="mt-2 text-sm">
                     <div className="font-medium text-white">Quick Review</div>
                     <p className="text-slate-200 text-sm mt-1 leading-relaxed">{quickReview?.summary}</p>
                 </div>
