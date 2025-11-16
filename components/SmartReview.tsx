@@ -105,7 +105,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
             },
             targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
             accessoryAvailability: { type: Type.STRING },
-            marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING, description: "Harga pasaran terbaru di Indonesia (Format: Rp X.XXX.XXX). Cari harga real-time/marketplace." }, global: { type: Type.STRING } } },
+            marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING, description: "CRITICAL: HARGA RUPIAH WAJIB ADA. JANGAN KOSONG/TBA. Jika HP belum rilis resmi, WAJIB ESTIMASI konversi kurs + pajak (Format: Rp X.XXX.XXX)." }, global: { type: Type.STRING } }, required: ["indonesia"] },
             performance: {
                 type: Type.OBJECT,
                 properties: {
@@ -190,7 +190,12 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
 3.  **Handle Missing Data:** If data is genuinely unavailable after checking all sources, use \`null\` for numbers or "N/A" for strings. **DO NOT FAIL** the request for empty fields.
 4.  **Generate Full Review Content:** Populate the entire JSON schema.
     -   **Ratings:** Provide a 1-10 score for each category based on the final, official product performance.
-    -   **Market Price:** YOU MUST PROVIDE THE LATEST MARKET PRICE IN INDONESIA. Do not output 'TBA' if the phone is already released. Estimate based on launch price or current marketplace listings.
+    -   **Market Price:** **MANDATORY FIELD (CRITICAL).** 
+        - **YOU MUST PROVIDE A PRICE IN IDR (Rupiah).**
+        - **ABSOLUTELY NO "TBA", "Unknown", "Menunggu rilis", or null.**
+        - If the phone is available, use the current marketplace average.
+        - If unreleased or not officially in Indonesia: **YOU MUST ESTIMATE.** Take the Global/USD/CNY price, convert to IDR, and add ~30% for tax/margins. 
+        - **Format:** 'Rp X.XXX.XXX'.
     -   **Gaming Ratings:** Provide a 1-10 score for each of these specific games: 'PUBG Battlegrounds', 'COD Warzone', 'Mobile Legends', 'Genshin Impact', 'Real Racing 3'. The score should reflect performance (FPS, stability, graphics settings). If performance data for a specific game is genuinely not available after a thorough search, omit it from the array.
     -   **Summaries & Analysis:** Write all textual content based on objective, synthesized data.
 5.  **Failure Condition (Not Found):** The only failure is if a device is truly fictional and unmentioned anywhere. Otherwise, you must provide data.
@@ -317,19 +322,24 @@ const ReviewResultDisplay: FC<{
     const tabs = [{ id: 'ringkasan', label: 'Ringkasan' }, { id: 'performa', label: 'Performa' }, { id: 'foto-video', label: 'Kamera' }];
     const shareText = `Cek review AI untuk ${review.phoneName} di JAGO-HP!\n\nRingkasan: ${review.quickReview.summary}`;
     const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    
+    // Force display price
+    const priceDisplay = review.marketPrice?.indonesia || 'Rp -';
 
     return (
         <div className="glass p-4 md:p-6 text-left animate-fade-in">
             <h2 className="text-xl md:text-2xl font-bold text-center mb-1 text-slate-900">{review.phoneName}</h2>
-            <p className="text-center text-sm small-muted mb-2">{review.specs.rilis ? `Rilis: ${review.specs.rilis}` : ''}</p>
+            <p className="text-center text-sm small-muted mb-4">{review.specs.rilis ? `Rilis: ${review.specs.rilis}` : ''}</p>
             
-            {review.marketPrice?.indonesia && (
-                <div className="mb-6 flex justify-center">
-                    <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-sm font-bold border border-emerald-200 shadow-sm">
-                        🏷️ {review.marketPrice.indonesia}
+            {/* Price Badge prominent in header */}
+            <div className="mb-6 flex justify-center">
+                <span className="inline-flex flex-col items-center px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100 border border-emerald-200 shadow-sm">
+                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-0.5">Estimasi Harga</span>
+                    <span className="text-lg font-bold text-emerald-800">
+                        {priceDisplay}
                     </span>
-                </div>
-            )}
+                </span>
+            </div>
 
             {review.ratings && <RatingsDisplay ratings={review.ratings} />}
             <div className="mt-6 flex space-x-2 sm:space-x-4 justify-center bg-slate-100 p-1 rounded-lg">

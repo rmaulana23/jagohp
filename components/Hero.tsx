@@ -180,7 +180,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
             specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
             targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
             accessoryAvailability: { type: Type.STRING },
-            marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING, description: "Harga pasaran terbaru di Indonesia (Format: Rp X.XXX.XXX). Cari harga real-time/marketplace." }, global: { type: Type.STRING } } },
+            marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING, description: "CRITICAL: HARGA RUPIAH WAJIB ADA. JANGAN KOSONG/TBA. Jika HP belum rilis resmi, WAJIB ESTIMASI konversi kurs + pajak (Format: Rp X.XXX.XXX)." }, global: { type: Type.STRING } }, required: ["indonesia"] },
             performance: { type: Type.OBJECT, properties: { antutuScore: { type: Type.INTEGER }, geekbenchScore: { type: Type.STRING }, competitors: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, antutuScore: { type: Type.INTEGER } } } }, gamingReview: { type: Type.STRING }, gamingRatings: { type: Type.ARRAY, description: "An array of gaming performance ratings for specific games.", items: { type: Type.OBJECT, properties: { game: { type: Type.STRING, description: "Name of the game, one of [PUBG Battlegrounds, COD Warzone, Mobile Legends, Genshin Impact, Real Racing 3]" }, score: { type: Type.NUMBER, description: "Rating score from 1 to 10 for the game." } } } } }},
             cameraAssessment: { type: Type.OBJECT, properties: { dxomarkScore: { type: Type.INTEGER }, photoSummary: { type: Type.STRING }, photoPros: { type: Type.ARRAY, items: { type: Type.STRING } }, photoCons: { type: Type.ARRAY, items: { type: Type.STRING } }, videoSummary: { type: Type.STRING }}}
         },
@@ -211,7 +211,12 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
 3.  **Handle Missing Data:** Use \`null\` for numeric fields or "N/A" for strings if data is genuinely unavailable after checking all sources.
 4.  **Populate JSON:** Fill all fields according to the schema with the following formatting constraints:
     -   \`ratings\`: Each category **MUST** be rated on a scale of 1 to 10 based on final product performance.
-    -   \`marketPrice\`: YOU MUST PROVIDE THE LATEST MARKET PRICE IN INDONESIA. Do not output 'TBA' if the phone is already released. Estimate based on launch price or current marketplace listings.
+    -   \`marketPrice\`: **MANDATORY FIELD (CRITICAL).** 
+        - **YOU MUST PROVIDE A PRICE IN IDR (Rupiah).**
+        - **ABSOLUTELY NO "TBA", "Unknown", "Menunggu rilis", or null.**
+        - If the phone is available, use the current marketplace average.
+        - If unreleased or not officially in Indonesia: **YOU MUST ESTIMATE.** Take the Global/USD/CNY price, convert to IDR, and add ~30% for tax/margins. 
+        - **Format:** 'Rp X.XXX.XXX'.
     -   \`gamingRatings\`: Provide a 1-10 score for each of these specific games: 'PUBG Battlegrounds', 'COD Warzone', 'Mobile Legends', 'Genshin Impact', 'Real Racing 3'. The score should reflect performance (FPS, stability, graphics settings). If performance data for a specific game is genuinely not available, omit it from the array.
     -   \`quickReview.summary\`: MUST be a single, concise sentence (maximum 1-2 short sentences).
     -   \`specs.ram\`: Format: "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
