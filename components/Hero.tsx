@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, FC, useEffect } from 'react';
+import React, { useState, useMemo, FC, useEffect, useRef } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
 import { ReviewResult } from './SmartReview';
@@ -15,6 +15,7 @@ import InstagramIcon from './icons/InstagramIcon';
 import HeartIcon from './icons/HeartIcon';
 import EyeIcon from './icons/EyeIcon';
 import ChatBubbleLeftEllipsisIcon from './icons/ChatBubbleLeftEllipsisIcon';
+import ShareIcon from './icons/ShareIcon';
 
 interface QuickMatchResult {
   phoneName: string;
@@ -55,42 +56,207 @@ interface HeroProps {
   onOpenDonationModal: () => void;
 }
 
-const HorizontalBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, navigateToBlogPost }) => (
-    <div className="glass flex flex-col md:flex-row overflow-hidden group transition-shadow duration-300 hover:shadow-xl animate-fade-in">
-        <div className="md:w-2/5 xl:w-1/3 flex-shrink-0">
-            <img 
-                src={post.image_url} 
-                alt={post.title} 
-                className="w-full h-48 md:h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-            />
-        </div>
-        <div className="p-6 flex flex-col flex-grow">
-            <div className="flex-grow">
-                <div className="flex flex-wrap gap-2 mb-2">
-                    {post.blog_categories && post.blog_categories.length > 0 ? (
-                        post.blog_categories.map(cat => (
-                            <div key={cat.name} className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
-                                {cat.name}
-                            </div>
-                        ))
-                    ) : (
-                        <div className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
-                            Umum
-                        </div>
-                    )}
+// --- Share Popup Component ---
+const CardSharePopup: FC<{ post: BlogPost; onClose: () => void }> = ({ post, onClose }) => {
+    const [copyStatus, setCopyStatus] = useState('');
+    const popupRef = useRef<HTMLDivElement>(null);
+    
+    const postUrl = `${window.location.origin}/#blog/${post.slug}`;
+    const shareTextWhatsapp = `*${post.title}*\n\nBaca selengkapnya di JAGO-HP:\n${postUrl}`;
+    const shareTextSocial = `Postingan keren dari JAGO-HP: "${post.title}"\n\n#jagohp #rekomendasihp #gadget #reviewhp\n\nBaca selengkapnya di ${postUrl}`;
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [onClose]);
+
+    const copyToClipboard = (text: string, label: string) => {
+        navigator.clipboard.writeText(text).then(() => {
+            setCopyStatus(`${label} disalin!`);
+            setTimeout(() => {
+                setCopyStatus('');
+                onClose();
+            }, 1500);
+        });
+    };
+
+    return (
+        <div ref={popupRef} className="absolute bottom-full mb-3 right-0 w-48 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] border border-slate-200 p-2 z-[60] animate-fade-in-up">
+            {copyStatus ? (
+                <div className="py-8 text-center text-sm font-bold text-green-600 animate-pulse">
+                    {copyStatus}
                 </div>
-                <h4 className="font-bold text-xl text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">{post.title}</h4>
-                <p className="text-sm text-slate-500 mt-2 line-clamp-3">{post.excerpt}</p>
+            ) : (
+                <div className="flex flex-col gap-1">
+                    <p className="text-[10px] font-bold text-slate-400 px-2 py-1 uppercase tracking-wider">Bagikan Ke:</p>
+                    <a 
+                        href={`https://wa.me/?text=${encodeURIComponent(shareTextWhatsapp)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-green-50 text-slate-700 transition-colors"
+                    >
+                        <div className="w-6 h-6 bg-green-500 rounded-md flex items-center justify-center text-white">
+                           <span className="text-[10px] font-bold">WA</span>
+                        </div>
+                        <span className="text-xs font-semibold">WhatsApp</span>
+                    </a>
+                    <button 
+                        onClick={() => copyToClipboard(shareTextSocial, 'Teks IG')}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-rose-50 text-slate-700 transition-colors text-left"
+                    >
+                        <div className="w-6 h-6 bg-gradient-to-tr from-yellow-400 via-rose-500 to-purple-600 rounded-md flex items-center justify-center text-white">
+                           <span className="text-[10px] font-bold">IG</span>
+                        </div>
+                        <span className="text-xs font-semibold">Instagram</span>
+                    </button>
+                    <button 
+                        onClick={() => copyToClipboard(shareTextSocial, 'Teks TikTok')}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-700 transition-colors text-left"
+                    >
+                        <div className="w-6 h-6 bg-black rounded-md flex items-center justify-center text-white">
+                           <span className="text-[10px] font-bold">TT</span>
+                        </div>
+                        <span className="text-xs font-semibold">TikTok</span>
+                    </button>
+                    <button 
+                        onClick={() => copyToClipboard(postUrl, 'Tautan')}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-50 text-slate-700 transition-colors text-left border-t border-slate-100 mt-1"
+                    >
+                        <div className="w-6 h-6 bg-slate-400 rounded-md flex items-center justify-center text-white">
+                           <span className="text-[10px]">🔗</span>
+                        </div>
+                        <span className="text-xs font-semibold">Salin Tautan</span>
+                    </button>
+                </div>
+            )}
+            <style>{`
+                @keyframes fade-in-up {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in-up { animation: fade-in-up 0.2s ease-out forwards; }
+            `}</style>
+        </div>
+    );
+};
+
+const HorizontalBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, navigateToBlogPost }) => {
+    const [showShare, setShowShare] = useState(false);
+
+    return (
+        <div className="glass flex flex-col md:flex-row group transition-shadow duration-300 hover:shadow-xl animate-fade-in relative">
+            <div className="md:w-2/5 xl:w-1/3 flex-shrink-0">
+                <img 
+                    src={post.image_url} 
+                    alt={post.title} 
+                    className="w-full h-48 md:h-full object-cover rounded-t-2xl md:rounded-tr-none md:rounded-l-2xl group-hover:scale-105 transition-transform duration-300" 
+                />
             </div>
-            <div className="mt-4 pt-4 border-t border-slate-200/60 flex items-center justify-between">
-                <button
-                    type="button"
-                    onClick={() => navigateToBlogPost(post)}
-                    className="inline-block px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md"
-                >
-                    Baca Selengkapnya
-                </button>
-                 <div className="flex items-center gap-3 text-xs text-slate-500">
+            <div className="p-6 flex flex-col flex-grow">
+                <div className="flex-grow">
+                    <div className="flex flex-wrap gap-2 mb-2">
+                        {post.blog_categories && post.blog_categories.length > 0 ? (
+                            post.blog_categories.map(cat => (
+                                <div key={cat.name} className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                                    {cat.name}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                                Umum
+                            </div>
+                        )}
+                    </div>
+                    <h4 className="font-bold text-xl text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">{post.title}</h4>
+                    <p className="text-sm text-slate-500 mt-2 line-clamp-3">{post.excerpt}</p>
+                </div>
+                <div className="mt-4 pt-4 border-t border-slate-200/60 flex items-center justify-between">
+                    <div className="flex items-center gap-2 relative">
+                        <button
+                            type="button"
+                            onClick={() => navigateToBlogPost(post)}
+                            className="inline-block px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md"
+                        >
+                            Baca Selengkapnya
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowShare(!showShare)}
+                            className={`p-2 rounded-lg transition-all duration-200 ${showShare ? 'bg-[color:var(--accent1)] text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800'}`}
+                            title="Bagikan postingan"
+                        >
+                            <ShareIcon className="w-5 h-5" />
+                        </button>
+                        {showShare && <CardSharePopup post={post} onClose={() => setShowShare(false)} />}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                        <div className="flex items-center gap-1" title="Dilihat">
+                            <EyeIcon className="w-4 h-4" />
+                            <span>{post.view_count?.toLocaleString('id-ID') || 0}</span>
+                        </div>
+                        <div className="flex items-center gap-1" title="Komentar">
+                            <ChatBubbleLeftEllipsisIcon className="w-4 h-4" />
+                            <span>{post.comments?.[0]?.count ?? 0}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const BlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, navigateToBlogPost }) => {
+    const [showShare, setShowShare] = useState(false);
+
+    return (
+        <div className="w-full text-left glass animate-fade-in group transition-shadow duration-300 hover:shadow-xl flex flex-col relative">
+            <div className="flex-grow">
+                <div className="relative">
+                    <img src={post.image_url} alt={post.title} className="w-full h-40 object-cover rounded-t-2xl group-hover:scale-105 transition-transform duration-300" />
+                    <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+                        {post.blog_categories && post.blog_categories.length > 0 ? (
+                            post.blog_categories.map(cat => (
+                                <div key={cat.name} className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                                    {cat.name}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
+                                Umum
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div className="p-4">
+                    <h4 className="font-bold text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">{post.title}</h4>
+                    <p className="text-sm text-slate-500 mt-2 line-clamp-2">{post.excerpt}</p>
+                </div>
+            </div>
+            <div className="p-4 pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                <div className="flex items-center gap-2 relative">
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); navigateToBlogPost(post); }}
+                        className="inline-block px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md"
+                    >
+                        Baca Selengkapnya
+                    </button>
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setShowShare(!showShare); }}
+                        className={`p-2 rounded-lg transition-all duration-200 ${showShare ? 'bg-[color:var(--accent1)] text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800'}`}
+                        title="Bagikan postingan"
+                    >
+                        <ShareIcon className="w-5 h-5" />
+                    </button>
+                    {showShare && <CardSharePopup post={post} onClose={() => setShowShare(false)} />}
+                </div>
+                <div className="flex items-center gap-3 text-xs text-slate-500">
                     <div className="flex items-center gap-1" title="Dilihat">
                         <EyeIcon className="w-4 h-4" />
                         <span>{post.view_count?.toLocaleString('id-ID') || 0}</span>
@@ -102,8 +268,8 @@ const HorizontalBlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPo
                 </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, navigateToFullBattle, navigateToReviewWithQuery, navigateToBlogPost, persistentQuickReviewResult, onSetPersistentQuickReviewResult, onOpenDonationModal }) => {
   const [reviewQuery, setReviewQuery] = useState('');
@@ -211,12 +377,6 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
 3.  **Handle Missing Data:** Use \`null\` for numeric fields or "N/A" for strings if data is genuinely unavailable after checking all sources.
 4.  **Populate JSON:** Fill all fields according to the schema with the following formatting constraints:
     -   \`ratings\`: Each category **MUST** be rated on a scale of 1 to 10 based on final product performance.
-    -   \`marketPrice\`: **MANDATORY FIELD (CRITICAL).** 
-        - **YOU MUST PROVIDE A PRICE IN IDR (Rupiah).**
-        - **ABSOLUTELY NO "TBA", "Unknown", "Menunggu rilis", or null.**
-        - If the phone is available, use the current marketplace average.
-        - If unreleased or not officially in Indonesia: **YOU MUST ESTIMATE.** Take the Global/USD/CNY price, convert to IDR, and add ~30% for tax/margins. 
-        - **Format:** 'Rp X.XXX.XXX'.
     -   \`gamingRatings\`: Provide a 1-10 score for each of these specific games: 'PUBG Battlegrounds', 'COD Warzone', 'Mobile Legends', 'Genshin Impact', 'Real Racing 3'. The score should reflect performance (FPS, stability, graphics settings). If performance data for a specific game is genuinely not available, omit it from the array.
     -   \`quickReview.summary\`: MUST be a single, concise sentence (maximum 1-2 short sentences).
     -   \`specs.ram\`: Format: "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
@@ -321,7 +481,7 @@ ${basePrompt}
 **Execution:**
 1. **Identify & Verify:** Find the official devices from any reliable source.
 2. **Synthesize Data:** Extract and synthesize the final specification data.
-3. **Analyze & Decide:** Perform a holistic analysis to determine a clear winner.
+3. **Analyze & Decide:** Perform a holistic analysis to determine a winner.
 4. **Summarize:** Write a brief, insightful summary of the battle.
 **Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`;
 
@@ -616,53 +776,6 @@ ${basePrompt}
 };
 
 // --- Snippet Components ---
-
-const BlogCard: FC<{ post: BlogPost; navigateToBlogPost: (post: BlogPost) => void; }> = ({ post, navigateToBlogPost }) => (
-    <div className="w-full text-left glass overflow-hidden animate-fade-in group transition-shadow duration-300 hover:shadow-xl flex flex-col">
-        <div className="flex-grow">
-            <div className="relative">
-                <img src={post.image_url} alt={post.title} className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" />
-                <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-                    {post.blog_categories && post.blog_categories.length > 0 ? (
-                        post.blog_categories.map(cat => (
-                            <div key={cat.name} className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
-                                {cat.name}
-                            </div>
-                        ))
-                    ) : (
-                        <div className="inline-block bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
-                            Umum
-                        </div>
-                    )}
-                </div>
-            </div>
-            <div className="p-4">
-                <h4 className="font-bold text-slate-800 leading-tight group-hover:text-[color:var(--accent1)] transition-colors">{post.title}</h4>
-                <p className="text-sm text-slate-500 mt-2 line-clamp-2">{post.excerpt}</p>
-            </div>
-        </div>
-        <div className="p-4 pt-2 border-t border-slate-200/60 flex items-center justify-between">
-            <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); navigateToBlogPost(post); }}
-                className="inline-block px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md"
-            >
-                Baca Selengkapnya
-            </button>
-            <div className="flex items-center gap-3 text-xs text-slate-500">
-                <div className="flex items-center gap-1" title="Dilihat">
-                    <EyeIcon className="w-4 h-4" />
-                    <span>{post.view_count?.toLocaleString('id-ID') || 0}</span>
-                </div>
-                <div className="flex items-center gap-1" title="Komentar">
-                    <ChatBubbleLeftEllipsisIcon className="w-4 h-4" />
-                    <span>{post.comments?.[0]?.count ?? 0}</span>
-                </div>
-            </div>
-        </div>
-    </div>
-);
-
 
 const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ result, onSeeFull }) => (
     <div className="glass p-4 animate-fade-in space-y-4">
