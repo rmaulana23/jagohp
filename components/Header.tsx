@@ -13,11 +13,11 @@ const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuth
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const baseNavItems = [
-    { label: 'Home', key: 'home' },
+    { label: 'Beranda', key: 'home' },
     { label: 'Smart Review', key: 'review' },
     { label: 'Compare', key: 'battle' },
     { label: 'Phone Match', key: 'finder' },
-    { label: 'About', key: 'about' }
+    { label: 'Tentang', key: 'about' }
   ];
 
   const adminNavItems = [
