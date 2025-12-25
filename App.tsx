@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -18,6 +19,7 @@ import AdminLoginModal from './components/AdminLoginModal';
 import AdminDashboard from './components/AdminDashboard';
 import BlogPost from './components/BlogPost';
 import DonationModal from './components/DonationModal';
+import ChatBubbleLeftEllipsisIcon from './components/icons/ChatBubbleLeftEllipsisIcon';
 
 const App: React.FC = () => {
   const [path, setPath] = useState(window.location.hash.substring(1) || 'home');
@@ -185,6 +187,8 @@ const App: React.FC = () => {
     }
   }
 
+  const isHomePage = path.split('/')[0] === 'home';
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header 
@@ -208,6 +212,23 @@ const App: React.FC = () => {
         isAdminAuthenticated={isAdminAuthenticated}
         onAdminLogout={handleAdminLogout}
       />
+
+      {/* Floating AI Chat Bot Trigger - Hidden on Home Page */}
+      {!isHomePage && (
+        <button
+          onClick={openChat}
+          className="fixed z-50 right-5 bottom-20 md:bottom-8 w-14 h-14 bg-[color:var(--accent1)] rounded-full flex items-center justify-center text-white shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group border border-white/20"
+          aria-label="JAGOBOT - Tanya AI JAGO-HP"
+        >
+          <div className="relative">
+            <ChatBubbleLeftEllipsisIcon className="w-7 h-7" />
+          </div>
+          {/* Tooltip on hover */}
+          <span className="absolute right-16 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            JAGOBOT
+          </span>
+        </button>
+      )}
 
       <TanyaAI 
         isOpen={isChatModalOpen} 
