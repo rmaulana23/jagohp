@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, FC } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { ReviewResult } from './SmartReview';
@@ -352,19 +353,27 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPos
             setError(null);
             
             try {
-                // Fetch post by slug
+                // Fetch post by slug with transformed categories
                 const { data, error: dbError } = await supabase
                     .from('blog_posts')
-                    .select('*, blog_categories(name)')
+                    .select('*, blog_post_categories(blog_categories(name))')
                     .eq('slug', slug)
                     .single();
 
                 // Handle not found or not published
-                if (dbError || !data || data.status !== 'published') {
+                if (dbError) {
+                    throw new Error(dbError.message);
+                }
+                
+                if (!data || data.status !== 'published') {
                     throw new Error('Postingan tidak ditemukan atau belum dipublikasikan.');
                 }
                 
-                const fetchedPost = data as any;
+                const fetchedPost = {
+                    ...data,
+                    blog_categories: (data as any).blog_post_categories?.map((bpc: any) => bpc.blog_categories) || []
+                } as any;
+
                 window.scrollTo(0, 0);
                 setPostData(fetchedPost);
                 setSelectedPost(fetchedPost);
@@ -372,11 +381,11 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPos
                 // Increment view count
                 supabase.rpc('increment_view_count', { post_slug: slug })
                     .then(({ error: viewError }) => {
-                        if(viewError) console.warn("Failed to increment view count", viewError);
+                        if(viewError) console.warn("Failed to increment view count", viewError.message);
                     });
 
             } catch (err: any) {
-                console.error('Error fetching blog post:', err);
+                console.error('Error fetching blog post:', err.message || err);
                 setError(err.message || 'Gagal memuat postingan.');
                 setPostData(null);
             } finally {
@@ -411,10 +420,10 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPos
                     .order('published_at', { ascending: false })
                     .limit(4);
 
-                if (error) throw error;
+                if (error) throw new Error(error.message);
                 setOtherPosts(data || []);
-            } catch (err) {
-                console.error("Failed to fetch other posts:", err);
+            } catch (err: any) {
+                console.error("Failed to fetch other posts:", err.message || err);
             }
         };
 
@@ -473,7 +482,11 @@ const BlogPost: React.FC<BlogPostProps> = ({ post, slug, setPage, setSelectedPos
                     <div className="glass p-6 md:p-8">
                         <article>
                             <div className="flex flex-wrap gap-2">
-                                {postData.blog_categories.map(cat => <span key={cat.name} className="text-sm font-bold text-[color:var(--accent1)]">{cat.name}</span>)}
+                                {postData.blog_categories && postData.blog_categories.length > 0 ? (
+                                    postData.blog_categories.map(cat => <span key={cat.name} className="text-sm font-bold text-[color:var(--accent1)]">{cat.name}</span>)
+                                ) : (
+                                    <span className="text-sm font-bold text-[color:var(--accent1)]">Umum</span>
+                                )}
                             </div>
                             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">{postData.title}</h1>
                             <div className="mt-4 text-xs text-slate-400 flex items-center gap-4">
