@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import EyeIcon from './icons/EyeIcon';
@@ -15,6 +16,7 @@ interface BlogPost {
   view_count: number;
   status: 'published' | 'draft' | 'trashed';
   blog_categories: { name: string }[];
+  sort_order?: number;
 }
 
 interface BlogProps {
@@ -38,17 +40,25 @@ const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
       try {
         const { data, error: dbError } = await supabase
           .from('blog_posts')
-          .select('*, blog_categories(name)')
+          .select('*, blog_post_categories(blog_categories(name))')
           .eq('status', 'published') // Only fetch published posts
-          .order('published_at', { ascending: false });
+          .order('sort_order', { ascending: true }) // Primary sort by admin preference
+          .order('published_at', { ascending: false }); // Secondary sort by date
 
         if (dbError) {
-          throw dbError;
+          throw new Error(dbError.message);
         }
         
-        setPosts((data as any) || []);
+        if (data) {
+          // Transform junction table structure to flattened blog_categories for UI
+          const transformed = data.map((p: any) => ({
+            ...p,
+            blog_categories: p.blog_post_categories?.map((bpc: any) => bpc.blog_categories) || []
+          }));
+          setPosts(transformed as any);
+        }
       } catch (err: any) {
-        console.error('Error fetching blog posts:', err);
+        console.error('Error fetching blog posts:', err.message || err);
         setError('Gagal memuat postingan. Coba lagi nanti.');
       } finally {
         setLoading(false);
@@ -80,9 +90,13 @@ const Blog: React.FC<BlogProps> = ({ setPage, navigateToBlogPost }) => {
                 <div className="relative md:w-2/5">
                     <img src={post.image_url} alt={post.title} className="w-full h-56 md:h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-                        {post.blog_categories.map(cat => (
-                             <span key={cat.name} className="bg-[color:var(--accent1)] text-white text-xs font-semibold px-2 py-1 rounded-md">{cat.name}</span>
-                        ))}
+                        {post.blog_categories && post.blog_categories.length > 0 ? (
+                            post.blog_categories.map(cat => (
+                                <span key={cat.name} className="bg-[color:var(--accent1)] text-white text-xs font-semibold px-2 py-1 rounded-md">{cat.name}</span>
+                            ))
+                        ) : (
+                            <span className="bg-[color:var(--accent1)] text-white text-xs font-semibold px-2 py-1 rounded-md">Umum</span>
+                        )}
                     </div>
                 </div>
                 <div className="p-6 flex flex-col flex-grow md:w-3/5">
