@@ -167,9 +167,9 @@ const PhoneFinder: React.FC = () => {
                           <div className="pt-1">
                               <input type="range" min="1" max="5" value={cameraPriority} onChange={e => setCameraPriority(parseInt(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer range-lg accent-[color:var(--accent1)]"/>
                               <div className="flex justify-between mt-2 px-1">
-                                <span className="text-[10px] text-slate-400 font-bold uppercase">Basic</span>
+                                <span className="text-[10px] text-slate-400 font-bold uppercase">Biasa Saja</span>
                                 <span className="text-center text-[color:var(--accent1)] font-bold text-sm">{["Tidak Penting", "Kurang Penting", "Cukup Penting", "Penting", "Sangat Penting"][cameraPriority - 1]}</span>
-                                <span className="text-[10px] text-slate-400 font-bold uppercase">Pro</span>
+                                <span className="text-[10px] text-slate-400 font-bold uppercase">Penting Banget</span>
                               </div>
                           </div>
                       </QuestionSection>
