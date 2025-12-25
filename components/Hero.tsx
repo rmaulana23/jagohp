@@ -41,6 +41,7 @@ interface BlogPost {
   blog_categories: { name: string }[];
   view_count: number;
   comments: { count: number }[];
+  sort_order?: number;
 }
 
 
@@ -297,16 +298,27 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
       try {
         const { data, error } = await supabase
           .from('blog_posts')
-          .select('*, blog_categories(name), comments(count)')
+          .select('*, blog_post_categories(blog_categories(name)), comments(count)')
           .eq('status', 'published') // Only fetch published posts
-          .order('published_at', { ascending: false })
+          .order('sort_order', { ascending: true }) // Manual sort first
+          .order('published_at', { ascending: false }) // Then latest
           .limit(5); // Fetch 5 latest posts
-        if (error) throw error;
-        if (data) {
-          setRecentPosts(data as any);
+
+        if (error) {
+            console.error("Supabase error fetching posts:", error.message || error);
+            return;
         }
-      } catch (err) {
-        console.error("Failed to fetch recent posts:", err);
+
+        if (data) {
+          // Transform junction table structure to flattened blog_categories for UI
+          const transformed = data.map((p: any) => ({
+            ...p,
+            blog_categories: p.blog_post_categories?.map((bpc: any) => bpc.blog_categories) || []
+          }));
+          setRecentPosts(transformed as any);
+        }
+      } catch (err: any) {
+        console.error("Unexpected error fetching recent posts:", err.message || err);
       }
     };
     fetchRecentPosts();
@@ -404,8 +416,8 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
               }
             }
         }
-    } catch (e) {
-        console.error(e);
+    } catch (e: any) {
+        console.error(e.message || e);
         setReviewError('An AI error occurred. Please try again.');
     } finally {
         setReviewLoading(false);
@@ -513,8 +525,8 @@ ${basePrompt}
             console.warn("Supabase quick compare cache write failed:", cacheError);
           }
         }
-    } catch (e) {
-        console.error(e);
+    } catch (e: any) {
+        console.error(e.message || e);
         setBattleError('An AI error occurred during comparison. Please try again.');
     } finally {
         setBattleModeLoading(null);
@@ -601,8 +613,8 @@ ${basePrompt}
                 console.warn("Supabase quick match cache write failed:", cacheError);
             }
         }
-    } catch (e) {
-        console.error(e);
+    } catch (e: any) {
+        console.error(e.message || e);
         setQuickMatchError("Gagal mendapatkan rekomendasi. Coba lagi.");
     } finally {
         setQuickMatchLoading(false);
