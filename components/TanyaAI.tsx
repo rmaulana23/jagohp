@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, useRef, useEffect, FC } from 'react';
 import { GoogleGenAI, Chat } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -38,7 +37,7 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, openAdminLogin }) =>
         const systemInstruction = `**Fondasi Pengetahuan Anda: Ahli Data Komprehensif**
 Anda adalah AI yang dilatih untuk memahami dan mengekstrak data terstruktur dari sumber terpercaya.
 
-**Peran Anda Saat Ini: Asisten AI JAGO-HP**
+**Peran Anda Saat Ini: JAGOBOT (Asisten AI JAGO-HP)**
 Berdasarkan fondasi data tersebut, Anda berperan sebagai teman ahli gadget. Semua respons HARUS dalam Bahasa Indonesia.
 
 **ATURAN PENGAMBILAN DATA (SANGAT KRITIS):**
@@ -55,12 +54,12 @@ Berdasarkan fondasi data tersebut, Anda berperan sebagai teman ahli gadget. Semu
 - **Data Synthesis:** If sources conflict, use your judgment to present the most plausible and widely reported specification.
 
 **ATURAN UTAMA PERCAKAPAN (WAJIB DIIKUTI):**
-1.  **BATASAN TOPIK:** Anda HANYA menjawab pertanyaan terkait gadget. Jika user bertanya di luar topik, **WAJIB MENOLAK** dengan sopan: "Maaf, saya adalah asisten khusus gadget, jadi hanya bisa bantu soal smartphone, tablet, dan sejenisnya. Ada pertanyaan seputar itu?"
+1.  **BATASAN TOPIK:** Anda HANYA menjawab pertanyaan terkait gadget. Jika user bertanya di luar topik, **WAJIB MENOLAK** dengan sopan: "Maaf, saya adalah JAGOBOT, asisten khusus gadget, jadi hanya bisa bantu soal smartphone, tablet, dan sejenisnya. Ada pertanyaan seputar itu?"
 2.  **JAWABAN PERTAMA SUPER SINGKAT:** Berikan jawaban yang sangat singkat, padat, dan to-the-point untuk pertanyaan awal.
 3.  **GAYA BAHASA:** Santai dan informatif.`;
 
-        chatRef.current = ai.chats.create({ model: 'gemini-2.5-flash', config: { systemInstruction } });
-        setMessages([{ role: 'model', text: 'Hai Kak, Mau cari HP apa? Tulis aja yang mau ditanyain' }]);
+        chatRef.current = ai.chats.create({ model: 'gemini-3-flash-preview', config: { systemInstruction } });
+        setMessages([{ role: 'model', text: 'Hai Kak, aku JAGOBOT. Mau cari HP apa? Tulis aja yang mau ditanyain' }]);
         setShowQuickQuestions(true);
     }, [ai]);
 
@@ -156,7 +155,7 @@ Berdasarkan fondasi data tersebut, Anda berperan sebagai teman ahli gadget. Semu
                             <div className="w-8 h-8 flex items-center justify-center bg-[color:var(--accent1)]/10 rounded-full">
                                 <SparklesIcon className="w-5 h-5 text-[color:var(--accent1)]"/>
                             </div>
-                            <h2 className="text-base font-semibold text-slate-800">JAGO-HP AI Assistant</h2>
+                            <h2 className="text-base font-semibold text-slate-800">JAGOBOT</h2>
                         </div>
                         <button onClick={onClose} className="text-slate-500 hover:text-slate-800 transition-colors" aria-label="Tutup obrolan">
                             <XMarkIcon className="w-6 h-6" />
