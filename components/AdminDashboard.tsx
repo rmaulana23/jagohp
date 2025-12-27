@@ -444,8 +444,8 @@ const Overview: React.FC<{
     
     const getStatusChip = (status: string) => {
         switch (status) {
-            case 'published': return <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Published</span>;
-            case 'draft': return <span className="text-xs font-semibold bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Draft</span>;
+            case 'published': return <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full uppercase tracking-tight">Published</span>;
+            case 'draft': return <span className="text-[10px] font-bold bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full uppercase tracking-tight">Draft</span>;
             default: return null;
         }
     };
@@ -456,17 +456,17 @@ const Overview: React.FC<{
                  <div><h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron text-left">Admin Dashboard</h1><p className="text-base text-slate-500 mt-2 text-left">Manajemen Konten Blog</p></div>
             </div>
             <div className="flex justify-end mb-4 gap-3"><button onClick={onNewPost} className="px-5 py-2 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity">Buat Postingan Baru</button></div>
-            <div className="border-b border-slate-300 mb-4 flex">
-                <button onClick={() => setActiveTab('posts')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'posts' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>Postingan ({posts.length})</button>
-                <button onClick={handleCommentsTabClick} className={`relative px-4 py-2 text-sm font-semibold ${activeTab === 'comments' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>Komentar {hasNewComments && <span className="absolute top-1.5 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-50"></span>}</button>
-                <button onClick={() => setActiveTab('categories')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'categories' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>Kategori</button>
-                <button onClick={() => setActiveTab('trash')} className={`px-4 py-2 text-sm font-semibold ${activeTab === 'trash' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>Sampah</button>
+            <div className="border-b border-slate-300 mb-4 flex overflow-x-auto whitespace-nowrap scrollbar-hide">
+                <button onClick={() => setActiveTab('posts')} className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'posts' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>Postingan ({posts.length})</button>
+                <button onClick={handleCommentsTabClick} className={`relative px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'comments' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>Komentar {hasNewComments && <span className="absolute top-1.5 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-50"></span>}</button>
+                <button onClick={() => setActiveTab('categories')} className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'categories' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>Kategori</button>
+                <button onClick={() => setActiveTab('trash')} className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'trash' ? 'border-b-2 border-[color:var(--accent1)] text-[color:var(--accent1)]' : 'text-slate-500'}`}>Sampah</button>
             </div>
-            <div className="glass p-6 md:p-8">
+            <div className="glass p-4 md:p-8">
                 {activeTab === 'posts' && (
                     <>
-                        {loading && <p>Memuat postingan...</p>}
-                        {error && <p className="text-red-500">{error}</p>}
+                        {loading && <p className="text-center py-10 text-slate-500">Memuat postingan...</p>}
+                        {error && <p className="text-red-500 text-center py-10">{error}</p>}
                         {!loading && !error && (
                             <div className="space-y-4">
                                 <p className="text-xs text-slate-400 mb-2">* Gunakan handle di sebelah kiri untuk geser urutan blog.</p>
@@ -477,44 +477,53 @@ const Overview: React.FC<{
                                             <Reorder.Item 
                                                 key={post.id} 
                                                 value={post} 
-                                                className="grid grid-cols-12 items-center gap-4 p-3 bg-white border border-slate-200 rounded-lg shadow-sm cursor-grab active:cursor-grabbing hover:bg-slate-50 transition-colors"
+                                                className="flex items-center gap-3 md:gap-4 p-3 md:p-4 bg-white border border-slate-200 rounded-xl shadow-sm cursor-grab active:cursor-grabbing hover:bg-slate-50 transition-colors"
                                                 whileDrag={{ scale: 1.02, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)" }}
                                             >
-                                                <div className="col-span-1 flex justify-center items-center">
+                                                <div className="flex-shrink-0 flex items-center justify-center w-6">
                                                     <DragHandleIcon />
                                                 </div>
-                                                <div className="col-span-5">
-                                                    <h3 className="font-semibold text-slate-800 line-clamp-1">{post.title}</h3>
-                                                    <p className="text-xs text-slate-500">{new Date(post.published_at!).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                                                </div>
-                                                <div className="col-span-2 text-center">{getStatusChip(post.status)}</div>
-                                                <div className="col-span-2">
-                                                    <select 
-                                                        value={postCategory?.id || ''}
-                                                        onChange={(e) => handleQuickCategoryChange(post.id!, e.target.value)}
-                                                        className="w-full px-2 py-1 text-xs border border-slate-300 rounded-md bg-white cursor-pointer"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        title="Ganti kategori dengan cepat"
-                                                    >
-                                                        <option value="" disabled>Pilih Kategori</option>
-                                                        {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                                                    </select>
-                                                </div>
-                                                <div className="col-span-2 flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                                                    <button onClick={() => onEditPost(post)} className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">Edit</button>
-                                                    <button onClick={() => handleTrashPost(post.id!)} className="px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200">Trash</button>
+                                                <div className="flex-1 min-w-0 flex flex-col md:grid md:grid-cols-11 md:items-center gap-2 md:gap-4">
+                                                    {/* Post Info Section */}
+                                                    <div className="md:col-span-5 min-w-0">
+                                                        <h3 className="font-bold text-slate-800 line-clamp-1 text-sm md:text-base">{post.title}</h3>
+                                                        <p className="text-[10px] md:text-xs text-slate-400 mt-0.5">{new Date(post.published_at!).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                                    </div>
+                                                    
+                                                    {/* Meta/Actions Section - Dynamic for Mobile */}
+                                                    <div className="flex flex-wrap items-center gap-2 md:contents">
+                                                        <div className="md:col-span-2 flex items-center md:justify-center">
+                                                            {getStatusChip(post.status)}
+                                                        </div>
+                                                        <div className="md:col-span-2 flex-grow md:flex-grow-0 min-w-[110px]">
+                                                            <select 
+                                                                value={postCategory?.id || ''}
+                                                                onChange={(e) => handleQuickCategoryChange(post.id!, e.target.value)}
+                                                                className="w-full px-2 py-1 text-[10px] md:text-xs border border-slate-300 rounded-md bg-white cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                title="Ganti kategori dengan cepat"
+                                                            >
+                                                                <option value="" disabled>Kategori</option>
+                                                                {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                                                            </select>
+                                                        </div>
+                                                        <div className="md:col-span-2 flex justify-end gap-1.5 md:gap-2 ml-auto md:ml-0" onClick={(e) => e.stopPropagation()}>
+                                                            <button onClick={() => onEditPost(post)} className="px-2.5 py-1 text-[10px] md:text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100 rounded-lg hover:bg-blue-100 transition-colors uppercase">Edit</button>
+                                                            <button onClick={() => handleTrashPost(post.id!)} className="px-2.5 py-1 text-[10px] md:text-xs font-bold bg-red-50 text-red-600 border border-red-100 rounded-lg hover:bg-red-100 transition-colors uppercase">Trash</button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </Reorder.Item>
                                         )
-                                    }) : <p className="text-slate-500 text-center">Belum ada postingan.</p>}
+                                    }) : <p className="text-slate-500 text-center py-10">Belum ada postingan.</p>}
                                 </Reorder.Group>
                             </div>
                         )}
                     </>
                 )}
-                {activeTab === 'comments' && (<>{loadingComments && <p>Memuat komentar...</p>}{errorComments && <p className="text-red-500">{errorComments}</p>}{!loadingComments && !errorComments && (<div className="space-y-4">{comments.length > 0 ? comments.map(comment => (<div key={comment.id} className="p-3 bg-slate-100 rounded-lg"><div className="flex justify-between items-start"><div><p className="text-sm text-slate-600">"{comment.content}"</p><p className="text-xs text-slate-500 mt-2"><strong>{comment.author_name}</strong> &bull; {new Date(comment.created_at).toLocaleString('id-ID')}</p><p className="text-xs text-slate-500 mt-1">Di postingan: <a href={`#blog/${comment.blog_posts?.slug}`} onClick={(e) => { e.preventDefault(); setPage(`blog/${comment.blog_posts?.slug}`)}} className="text-blue-600 hover:underline">{comment.blog_posts?.title}</a></p>{comment.parent_comment && <div className="mt-2 pl-3 text-xs text-slate-500 border-l-2 border-slate-300">Membalas komentar dari <strong>{comment.parent_comment.author_name}</strong></div>}</div><div className="flex gap-2 flex-shrink-0 ml-2">{comment.blog_posts && (<button onClick={() => setReplyingToComment(comment.id === replyingToComment?.id ? null : comment)} className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">{replyingToComment?.id === comment.id ? 'Batal' : 'Balas'}</button>)}<button onClick={() => handleDeleteComment(comment.id)} className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-md hover:bg-red-200">Hapus</button></div></div>{replyingToComment?.id === comment.id && <AdminCommentForm comment={replyingToComment} onSuccess={() => { setReplyingToComment(null); fetchComments(commentsCurrentPage); }} onCancel={() => setReplyingToComment(null)} />}</div>)) : <p className="text-slate-500 text-center py-4">Belum ada komentar terbaru saat ini.</p>}{<PaginationControls currentPage={commentsCurrentPage} totalPages={totalCommentPages} onPageChange={fetchComments} />}</div>)}</>)}
-                {activeTab === 'categories' && (<div><form onSubmit={handleAddCategory} className="flex gap-2 mb-4 pb-4 border-b border-slate-200"><input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder="Nama kategori baru" className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" /><button type="submit" className="px-4 py-2 rounded-md bg-green-600 text-white font-semibold text-sm hover:bg-green-700">Tambah</button></form>{loadingCategories && <p>Memuat kategori...</p>}{errorCategories && <p className="text-red-500">{errorCategories}</p>}<div className="space-y-2">{categories.map(cat => (<div key={cat.id} className="flex justify-between items-center p-2 bg-slate-50 rounded-md">{editingCategory?.id === cat.id ? (<input type="text" value={editingCategory.name} onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value})} className="flex-1 px-2 py-1 bg-white border border-slate-300 rounded-md sm:text-sm"/>) : (<span className="font-medium text-slate-700">{cat.name}</span>)}<div className="flex gap-2 ml-2">{editingCategory?.id === cat.id ? (<><button onClick={() => handleUpdateCategory(editingCategory)} className="px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-md hover:bg-green-200">Simpan</button><button onClick={() => setEditingCategory(null)} className="px-3 py-1 text-xs font-semibold bg-slate-200 text-slate-600 rounded-md hover:bg-slate-300">Batal</button></>) : (<><button onClick={() => setEditingCategory(cat)} className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">Edit</button><button onClick={() => handleDeleteCategory(cat.id)} className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-md hover:bg-red-200">Hapus</button></>)}</div></div>))}</div></div>)}
-                {activeTab === 'trash' && (<>{loadingTrash && <p>Memuat sampah...</p>}{errorTrash && <p className="text-red-500">{errorTrash}</p>}{!loadingTrash && !errorTrash && (<div className="space-y-3">{trashedPosts.length > 0 ? trashedPosts.map((post) => (<div key={post.id} className="flex items-center gap-4 p-3 bg-slate-100 rounded-lg"><div className="flex-grow"><h3 className="font-semibold text-slate-800">{post.title}</h3></div><div className="flex gap-2 flex-shrink-0"><button onClick={() => handleRestorePost(post.id!)} className="px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-md hover:bg-green-200">Restore</button><button onClick={() => handlePermanentDeletePost(post.id!)} className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-md hover:bg-red-200">Hapus Permanen</button></div></div>)) : <p className="text-slate-500 text-center">Tempat sampah kosong.</p>}</div>)}</>)}
+                {activeTab === 'comments' && (<>{loadingComments && <p className="text-center py-10 text-slate-500">Memuat komentar...</p>}{errorComments && <p className="text-red-500 text-center py-10">{errorComments}</p>}{!loadingComments && !errorComments && (<div className="space-y-4">{comments.length > 0 ? comments.map(comment => (<div key={comment.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl"><div className="flex justify-between items-start gap-3"><div><p className="text-sm text-slate-700 italic font-medium">"{comment.content}"</p><p className="text-[10px] md:text-xs text-slate-500 mt-2"><strong>{comment.author_name}</strong> &bull; {new Date(comment.created_at).toLocaleString('id-ID')}</p><p className="text-[10px] text-slate-400 mt-1">Di postingan: <a href={`#blog/${comment.blog_posts?.slug}`} onClick={(e) => { e.preventDefault(); setPage(`blog/${comment.blog_posts?.slug}`)}} className="text-indigo-600 hover:underline">{comment.blog_posts?.title}</a></p>{comment.parent_comment && <div className="mt-2 pl-3 text-[10px] text-slate-500 border-l-2 border-slate-300">Membalas <strong>{comment.parent_comment.author_name}</strong></div>}</div><div className="flex flex-col md:flex-row gap-1.5 flex-shrink-0">{comment.blog_posts && (<button onClick={() => setReplyingToComment(comment.id === replyingToComment?.id ? null : comment)} className="px-2.5 py-1 text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100 rounded-lg hover:bg-blue-100 uppercase">{replyingToComment?.id === comment.id ? 'Batal' : 'Balas'}</button>)}<button onClick={() => handleDeleteComment(comment.id)} className="px-2.5 py-1 text-[10px] font-bold bg-red-50 text-red-600 border border-red-100 rounded-lg hover:bg-red-100 uppercase">Hapus</button></div></div>{replyingToComment?.id === comment.id && <AdminCommentForm comment={replyingToComment} onSuccess={() => { setReplyingToComment(null); fetchComments(commentsCurrentPage); }} onCancel={() => setReplyingToComment(null)} />}</div>)) : <p className="text-slate-500 text-center py-10">Belum ada komentar terbaru saat ini.</p>}{<PaginationControls currentPage={commentsCurrentPage} totalPages={totalCommentPages} onPageChange={fetchComments} />}</div>)}</>)}
+                {activeTab === 'categories' && (<div><form onSubmit={handleAddCategory} className="flex gap-2 mb-6 pb-6 border-b border-slate-100"><input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder="Nama kategori baru" className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm" /><button type="submit" className="px-5 py-2 rounded-lg bg-green-600 text-white font-bold text-xs md:text-sm hover:bg-green-700 transition-colors">TAMBAH</button></form>{loadingCategories && <p className="text-center py-5 text-slate-500">Memuat kategori...</p>}{errorCategories && <p className="text-red-500 text-center py-5">{errorCategories}</p>}<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{categories.map(cat => (<div key={cat.id} className="flex flex-col md:flex-row md:items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl gap-2">{editingCategory?.id === cat.id ? (<input type="text" value={editingCategory.name} onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value})} className="flex-1 px-2 py-1 bg-white border border-slate-300 rounded-md sm:text-sm focus:ring-1 focus:ring-indigo-500"/>) : (<span className="font-bold text-slate-700 text-sm md:text-base">{cat.name}</span>)}<div className="flex gap-2 justify-end">{editingCategory?.id === cat.id ? (<><button onClick={() => handleUpdateCategory(editingCategory)} className="px-3 py-1 text-[10px] font-bold bg-green-50 text-green-600 border border-green-100 rounded-lg hover:bg-green-100 uppercase">Simpan</button><button onClick={() => setEditingCategory(null)} className="px-3 py-1 text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-200 uppercase">Batal</button></>) : (<><button onClick={() => setEditingCategory(cat)} className="px-3 py-1 text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100 rounded-lg hover:bg-blue-100 uppercase">Edit</button><button onClick={() => handleDeleteCategory(cat.id)} className="px-3 py-1 text-[10px] font-bold bg-red-50 text-red-600 border border-red-100 rounded-lg hover:bg-red-100 uppercase">Hapus</button></>)}</div></div>))}</div></div>)}
+                {activeTab === 'trash' && (<>{loadingTrash && <p className="text-center py-10 text-slate-500">Memuat sampah...</p>}{errorTrash && <p className="text-red-500 text-center py-10">{errorTrash}</p>}{!loadingTrash && !errorTrash && (<div className="space-y-3">{trashedPosts.length > 0 ? trashedPosts.map((post) => (<div key={post.id} className="flex flex-col md:flex-row md:items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-xl"><div className="flex-grow min-w-0"><h3 className="font-bold text-slate-800 truncate text-sm md:text-base">{post.title}</h3></div><div className="flex gap-2 justify-end"><button onClick={() => handleRestorePost(post.id!)} className="px-3 py-1 text-[10px] font-bold bg-green-50 text-green-600 border border-green-100 rounded-lg hover:bg-green-100 uppercase">Restore</button><button onClick={() => handlePermanentDeletePost(post.id!)} className="px-3 py-1 text-[10px] font-bold bg-red-50 text-red-600 border border-red-100 rounded-lg hover:bg-red-100 uppercase">Hapus Permanen</button></div></div>)) : <p className="text-slate-500 text-center py-10">Tempat sampah kosong.</p>}</div>)}</>)}
             </div>
         </div>
     );
@@ -739,7 +748,7 @@ const PostPreview: React.FC<{ post: Omit<BlogPost, 'blog_post_categories'> & { c
     <>
         <div className="p-6 md:p-8">
             <article>
-                <div className="flex flex-wrap gap-2">{post.categories.map(cat => (<span key={cat.id} className="text-sm font-bold text-[color:var(--accent1)]">{cat.name}</span>))}</div>
+                <div className="flex flex-wrap gap-2">{post.categories.map(cat => (<span key={cat.id} className="text-[10px] font-bold text-white bg-indigo-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">{cat.name}</span>))}</div>
                 <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">{post.title || "Judul Blog Anda"}</h1>
                 <div className="mt-4 text-xs text-slate-400 flex items-center gap-4"><span>Oleh <strong>{post.author}</strong></span><span>{new Date(post.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
                 {post.image_url && <img src={post.image_url} alt={post.title} className="w-full h-auto max-h-80 object-cover rounded-lg my-6" />}
