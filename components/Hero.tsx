@@ -15,6 +15,7 @@ import HeartIcon from './icons/HeartIcon';
 import EyeIcon from './icons/EyeIcon';
 import ChatBubbleLeftEllipsisIcon from './icons/ChatBubbleLeftEllipsisIcon';
 import ShareIcon from './icons/ShareIcon';
+import ChartBarIcon from './icons/ChartBarIcon';
 
 interface QuickMatchResult {
   phoneName: string;
@@ -765,19 +766,28 @@ ${basePrompt}
         </section>
       )}
 
-      {/* Mobile Donation Button */}
+      {/* Mobile Sticky Buttons: Top Brand & Donation */}
       <div className="md:hidden px-4 mt-8">
-        <button
-            onClick={onOpenDonationModal}
-            className="w-full px-5 py-3 rounded-xl bg-yellow-400/10 border border-yellow-500 text-yellow-600 font-semibold transition-colors hover:bg-yellow-400/20 flex items-center justify-center gap-2"
-        >
-            <HeartIcon className="w-5 h-5" />
-            <span>Dukung JAGO-HP (Donasi)</span>
-        </button>
+        <div className="grid grid-cols-2 gap-3">
+            <button
+                onClick={() => setPage('leaderboard')}
+                className="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg"
+            >
+                <ChartBarIcon className="w-4 h-4" />
+                <span>Top Brand</span>
+            </button>
+            <button
+                onClick={onOpenDonationModal}
+                className="px-4 py-2.5 rounded-xl bg-yellow-400/10 border border-yellow-500 text-yellow-600 font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+                <HeartIcon className="w-4 h-4" />
+                <span>Donasi</span>
+            </button>
+        </div>
       </div>
 
       {/* Mobile Quick Links Footer */}
-      <div className="md:hidden px-6 mt-6">
+      <div className="md:hidden px-6 mt-6 pb-4">
         <div className="border-t border-slate-200 pt-5 flex justify-center items-center gap-x-6 gap-y-2 flex-wrap">
           <a href="#faq" onClick={(e) => {e.preventDefault(); setPage('faq')}} className="text-xs text-slate-500 hover:text-slate-800 transition-colors">FAQ</a>
           <a href="#partnership" onClick={(e) => {e.preventDefault(); setPage('partnership')}} className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Partnership</a>
