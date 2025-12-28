@@ -135,7 +135,14 @@ const App: React.FC = () => {
     navigate(`blog/${post.slug}`);
   };
 
-  const openChat = () => setIsChatModalOpen(true);
+  const openChat = () => {
+    // If mobile width, navigate to dedicated chat page
+    if (window.innerWidth < 768) {
+      navigate('chat');
+    } else {
+      setIsChatModalOpen(true);
+    }
+  };
 
   const mainContent = () => {
     const pathParts = path.split('/');
@@ -157,6 +164,7 @@ const App: React.FC = () => {
       case 'battle': return <PhoneBattle initialResult={battleResult} />;
       case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} clearGlobalResult={clearGlobalReviewResult} />;
       case 'finder': return <PhoneFinder />;
+      case 'chat': return <TanyaAI isOpen={true} isPage={true} onClose={() => navigate('home')} openAdminLogin={openAdminLogin} />;
       case 'blog': 
         if (param) {
           return <BlogPost 
@@ -188,53 +196,60 @@ const App: React.FC = () => {
   }
 
   const isHomePage = path.split('/')[0] === 'home';
+  const isChatPage = path.split('/')[0] === 'chat';
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header 
-        page={path} 
-        setPage={navigate} 
-        onLogoClick={handleLogoClick}
-        isAdminAuthenticated={isAdminAuthenticated}
-        onAdminLogout={handleAdminLogout}
-        onOpenDonationModal={() => setIsDonationModalOpen(true)}
-      />
+      {!isChatPage && (
+        <Header 
+          page={path} 
+          setPage={navigate} 
+          onLogoClick={handleLogoClick}
+          isAdminAuthenticated={isAdminAuthenticated}
+          onAdminLogout={handleAdminLogout}
+          onOpenDonationModal={() => setIsDonationModalOpen(true)}
+        />
+      )}
       
-      <main className="flex-grow pt-6 md:pt-28 pb-20 md:pb-0">
+      <main className={`flex-grow ${isChatPage ? 'pt-0 pb-0' : 'pt-6 md:pt-28 pb-20 md:pb-0'}`}>
         {mainContent()}
       </main>
 
-      <Footer setPage={navigate} page={path} />
+      {!isChatPage && <Footer setPage={navigate} page={path} />}
       
-      <BottomNav 
-        page={path} 
-        setPage={navigate} 
-        isAdminAuthenticated={isAdminAuthenticated}
-        onAdminLogout={handleAdminLogout}
-      />
+      {!isChatPage && (
+        <BottomNav 
+          page={path} 
+          setPage={navigate} 
+          isAdminAuthenticated={isAdminAuthenticated}
+          onAdminLogout={handleAdminLogout}
+        />
+      )}
 
-      {/* Floating AI Chat Bot Trigger - Hidden on Home Page */}
-      {!isHomePage && (
+      {/* Floating AI Chat Bot Trigger - Hidden on Home Page and Chat Page */}
+      {!isHomePage && !isChatPage && (
         <button
           onClick={openChat}
           className="fixed z-50 right-5 bottom-20 md:bottom-8 w-14 h-14 bg-[color:var(--accent1)] rounded-full flex items-center justify-center text-white shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group border border-white/20"
-          aria-label="JAGOBOT - Tanya AI JAGO-HP"
+          aria-label="JagoBot AI - Tanya AI JAGO-HP"
         >
           <div className="relative">
             <ChatBubbleLeftEllipsisIcon className="w-7 h-7" />
           </div>
-          {/* Tooltip on hover */}
           <span className="absolute right-16 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-            JAGOBOT
+            JagoBot AI
           </span>
         </button>
       )}
 
-      <TanyaAI 
-        isOpen={isChatModalOpen} 
-        onClose={() => setIsChatModalOpen(false)} 
-        openAdminLogin={openAdminLogin}
-      />
+      {/* Modal version for desktop */}
+      {!isChatPage && (
+        <TanyaAI 
+          isOpen={isChatModalOpen} 
+          onClose={() => setIsChatModalOpen(false)} 
+          openAdminLogin={openAdminLogin}
+        />
+      )}
 
       {showAdminLogin && (
         <AdminLoginModal 
