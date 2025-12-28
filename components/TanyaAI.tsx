@@ -15,6 +15,7 @@ interface TanyaAIProps {
     isOpen: boolean;
     onClose: () => void;
     openAdminLogin: () => void;
+    isPage?: boolean;
 }
 
 const quickQuestions = [
@@ -23,7 +24,7 @@ const quickQuestions = [
     'HP daily driver yang oke tahun 2025'
 ];
 
-const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, openAdminLogin }) => {
+const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, openAdminLogin, isPage = false }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -99,7 +100,7 @@ Berikan jawaban awal yang singkat dan padat.`;
             setMessages(prev => {
                 const newMessages = [...prev];
                 if(newMessages[newMessages.length - 1].text === ""){
-                    newMessages[newMessages.length - 1] = { role: 'model', text: "Maaf kak, ada gangguan teknis. Coba lagi ya." };
+                    newMessages[newMessages.length - 1] = { role: 'model', text: "Maaf kak, ada gangguan teknis. Coba tanya lagi ya." };
                 }
                 return newMessages;
             });
@@ -119,41 +120,64 @@ Berikan jawaban awal yang singkat dan padat.`;
         setInput('');
     };
     
-    if (!isOpen) return null;
+    if (!isOpen && !isPage) return null;
+
+    const containerClasses = isPage 
+        ? "fixed inset-0 z-[100] flex flex-col bg-white" 
+        : "fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-6 overflow-hidden";
+
+    const modalClasses = isPage
+        ? "w-full h-full flex flex-col"
+        : "relative w-full max-w-lg h-full max-h-[85vh] flex flex-col bg-white rounded-3xl shadow-2xl overflow-hidden animate-fade-in";
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-6 overflow-hidden">
-            {/* Backdrop dengan blur yang lebih ringan untuk APK */}
-            <div 
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-[4px]" 
-                onClick={onClose}
-            />
+        <div className={containerClasses}>
+            {/* Modal Backdrop (Desktop only) */}
+            {!isPage && (
+                <div 
+                    className="absolute inset-0 bg-slate-900/60 backdrop-blur-[4px]" 
+                    onClick={onClose}
+                />
+            )}
 
-            {/* Modal - Bukan Full Screen untuk Mobile */}
-            <div className="relative w-full max-w-lg h-full max-h-[85vh] flex flex-col bg-white rounded-3xl shadow-2xl overflow-hidden animate-fade-in">
-                
-                {/* Header - Fixed Height */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-white flex-shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 flex items-center justify-center bg-slate-900 rounded-2xl">
-                            <SparklesIcon className="w-6 h-6 text-white"/>
-                        </div>
-                        <div>
-                            <h2 className="text-sm font-bold text-slate-900">JagoBot AI</h2>
-                            <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> AKTIF
-                            </p>
+            <div className={modalClasses}>
+                {/* Header */}
+                <div className={`flex items-center justify-between p-4 border-b border-slate-100 bg-white flex-shrink-0 ${isPage ? 'shadow-sm' : ''}`}>
+                    <div className="flex items-center gap-2">
+                        {isPage && (
+                            <button 
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }} 
+                                className="p-3 -ml-3 text-slate-700 hover:bg-slate-50 rounded-full active:scale-90 transition-all z-10" 
+                                aria-label="Kembali"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                                </svg>
+                            </button>
+                        )}
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 flex items-center justify-center bg-slate-900 rounded-2xl">
+                                <SparklesIcon className="w-6 h-6 text-white"/>
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-bold text-slate-900">JagoBot AI</h2>
+                                <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> AKTIF
+                                </p>
+                            </div>
                         </div>
                     </div>
-                    <button 
-                        onClick={onClose} 
-                        className="p-2 bg-slate-50 rounded-xl text-slate-400 hover:text-slate-800 transition-all active:scale-90"
-                    >
-                        <XMarkIcon className="w-6 h-6" />
-                    </button>
+                    {!isPage && (
+                        <button 
+                            onClick={onClose} 
+                            className="p-2 bg-slate-50 rounded-xl text-slate-400 hover:text-slate-800 transition-all active:scale-90"
+                        >
+                            <XMarkIcon className="w-6 h-6" />
+                        </button>
+                    )}
                 </div>
                 
-                {/* Chat Area - Scrollable */}
+                {/* Chat Area */}
                 <div className="flex-1 overflow-y-auto bg-slate-50/30 p-4 space-y-6 scrollbar-hide">
                     {messages.map((msg, index) => (
                         <ChatMessage key={index} message={msg} />
@@ -176,8 +200,8 @@ Berikan jawaban awal yang singkat dan padat.`;
                     <div ref={messagesEndRef} className="h-4" />
                 </div>
                 
-                {/* Footer Input - Fixed at Bottom */}
-                <div className="p-4 bg-white border-t border-slate-100 flex-shrink-0">
+                {/* Footer Input */}
+                <div className={`p-4 bg-white border-t border-slate-100 flex-shrink-0 ${isPage ? 'pb-8' : ''}`}>
                     <form onSubmit={handleFormSubmit} className="flex items-center gap-2">
                         <div className="relative flex-1">
                             <input
