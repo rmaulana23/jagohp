@@ -9,7 +9,6 @@ import CrownIcon from './icons/CrownIcon';
 import PreviewCard from './PreviewCard';
 import EcommerceButtons from './EcommerceButtons';
 import SparklesIcon from './icons/SparklesIcon';
-import SignalIcon from './icons/SignalIcon';
 import BatteryIcon from './icons/BatteryIcon';
 import InstagramIcon from './icons/InstagramIcon';
 import HeartIcon from './icons/HeartIcon';
@@ -522,7 +521,7 @@ ${basePrompt}
               compare_data: parsedResult,
             });
           } catch (cacheError) {
-            console.warn("Supabase quick compare cache write failed:", cacheError);
+            console.warn("Supabase quick compare cache check failed:", cacheError);
           }
         }
     } catch (e: any) {
@@ -630,7 +629,7 @@ ${basePrompt}
         <div className="max-w-6xl mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
                 {/* LEFT: CONTENT & INTERACTION */}
-                <div className="md:col-span-7 space-y-8 flex flex-col">
+                <div className="md:col-span-7 space-y-8 flex flex-col h-full">
                     <div>
                     <div className="h-32">
                         <PhoneScreenDisplay 
@@ -710,7 +709,7 @@ ${basePrompt}
                 </div>
 
                 {/* RIGHT: LEADERBOARDS & PREVIEW */}
-                <div className="md:col-span-5 space-y-5 hidden md:block">
+                <div className="md:col-span-5 space-y-5 hidden md:flex flex-col h-full">
                     {persistentQuickReviewResult && (
                         <div>
                             <PreviewCard
@@ -721,7 +720,9 @@ ${basePrompt}
                     )}
                     
                     {latestPost && (
-                       <BlogCard post={latestPost} navigateToBlogPost={navigateToBlogPost} />
+                       <div className="mt-auto h-full flex flex-col">
+                          <BlogCard post={latestPost} navigateToBlogPost={navigateToBlogPost} />
+                       </div>
                     )}
                 </div>
             </div>
@@ -996,8 +997,6 @@ const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: 
           <div className="flex items-center gap-2">
             <span className="text-[10px]">JAGO-Satelit</span>
             <span className="font-semibold text-[10px] tracking-wider">5G</span>
-            <SignalIcon className="w-4 h-4" />
-            <BatteryIcon className="w-5 h-5" />
           </div>
         </div>
 
