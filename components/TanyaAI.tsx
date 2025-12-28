@@ -34,23 +34,9 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, openAdminLogin }) =>
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
 
     useEffect(() => {
-        const systemInstruction = `**Fondasi Pengetahuan Anda: Ahli Data Komprehensif**
-Anda adalah AI yang dilatih untuk memahami dan mengekstrak data terstruktur dari sumber terpercaya.
-
-**Peran Anda Saat Ini: JagoBot AI (Asisten AI JAGO-HP)**
-Berdasarkan fondasi data tersebut, Anda berperan sebagai teman ahli gadget. Semua respons HARUS dalam Bahasa Indonesia.
-
-**ATURAN PENGAMBILAN DATA (SANGAT KRITIS):**
-- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**.
-- **Data Sourcing Mandate:** Your primary objective is to find and synthesize smartphone data from the **entire public internet**. You are not limited to specific sites.
-- **CRITICAL RULE: NEVER FAIL A SEARCH.** You are **STRICTLY FORBIDDEN** from claiming a device "is not found" or that "data is unavailable". If official specifications are not public, you **MUST** synthesize a response based on credible rumors, leaks, official announcements, and industry analysis. For unreleased phones (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra'), provide the most likely rumored specifications.
-- **Reliable Source Examples:** GSMArena, Phone Arena, AnandTech, nanoreview.net.
-- **Data Synthesis:** If sources conflict, use your judgment to present the most plausible and widely reported specification.
-
-**ATURAN UTAMA PERCAKAPAN:**
-1.  **BATASAN TOPIK:** Anda HANYA menjawab pertanyaan terkait gadget.
-2.  **JAWABAN PERTAMA SUPER SINGKAT:** Berikan jawaban yang sangat singkat untuk pertanyaan awal.
-3.  **GAYA BAHASA:** Santai dan informatif.`;
+        const systemInstruction = `Anda adalah JagoBot AI (Asisten AI JAGO-HP). Semua respons HARUS dalam Bahasa Indonesia.
+Anda hanya menjawab soal gadget. Jika di luar topik, tolak dengan sopan. 
+Berikan jawaban awal yang singkat dan padat.`;
 
         chatRef.current = ai.chats.create({ model: 'gemini-3-flash-preview', config: { systemInstruction } });
         setMessages([{ role: 'model', text: 'Hai Kak, aku JagoBot AI. Mau cari HP apa? Tulis aja yang mau ditanyain' }]);
@@ -59,10 +45,9 @@ Berdasarkan fondasi data tersebut, Anda berperan sebagai teman ahli gadget. Semu
 
     useEffect(() => {
         if (isOpen) {
-            // Berikan sedikit delay agar scroll terjadi setelah render selesai
             const timer = setTimeout(() => {
                 messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-            }, 100);
+            }, 300);
             return () => clearTimeout(timer);
         }
     }, [messages, loading, isOpen]);
@@ -111,11 +96,10 @@ Berdasarkan fondasi data tersebut, Anda berperan sebagai teman ahli gadget. Semu
             }
         } catch (err) {
             console.error(err);
-            const errorMessage = "Maaf kak, ada gangguan teknis. Coba tanya lagi ya.";
             setMessages(prev => {
                 const newMessages = [...prev];
                 if(newMessages[newMessages.length - 1].text === ""){
-                    newMessages[newMessages.length - 1] = { role: 'model', text: errorMessage };
+                    newMessages[newMessages.length - 1] = { role: 'model', text: "Maaf kak, ada gangguan teknis. Coba lagi ya." };
                 }
                 return newMessages;
             });
@@ -126,119 +110,102 @@ Berdasarkan fondasi data tersebut, Anda berperan sebagai teman ahli gadget. Semu
     
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const trimmedInput = input.trim();
-        if (trimmedInput === '#admindash') {
+        if (input.trim() === '#admindash') {
             openAdminLogin();
             setInput('');
             return;
         }
-        sendMessage(trimmedInput);
+        sendMessage(input.trim());
         setInput('');
     };
     
     if (!isOpen) return null;
 
     return (
-        <>
-            {/* Overlay - Background Blur */}
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-6 overflow-hidden">
+            {/* Backdrop dengan blur yang lebih ringan untuk APK */}
             <div 
-                className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] transition-opacity duration-300"
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-[4px]" 
                 onClick={onClose}
-            ></div>
+            />
 
-            {/* Modal Container */}
-            <section 
-                className="fixed inset-0 z-[110] flex items-end md:items-center justify-center pointer-events-none"
-                role="dialog"
-                aria-modal="true"
-            >
-                <div 
-                    className={`
-                        pointer-events-auto
-                        w-full md:max-w-2xl 
-                        h-[100dvh] md:h-[80vh] md:max-h-[700px] 
-                        flex flex-col bg-white 
-                        shadow-2xl md:rounded-2xl overflow-hidden
-                        transition-transform duration-300 ease-out
-                        ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}
-                    `}
-                >
-                    {/* Header - Sticky Top */}
-                    <div className="flex items-center justify-between p-4 md:p-5 border-b border-slate-100 flex-shrink-0 bg-white z-10">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 flex items-center justify-center bg-slate-900 rounded-full">
-                                <SparklesIcon className="w-6 h-6 text-white"/>
-                            </div>
-                            <div>
-                                <h2 className="text-base font-bold text-slate-800 leading-none">JagoBot AI</h2>
-                                <div className="text-[10px] text-green-600 font-medium mt-1 flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Online
-                                </div>
-                            </div>
+            {/* Modal - Bukan Full Screen untuk Mobile */}
+            <div className="relative w-full max-w-lg h-full max-h-[85vh] flex flex-col bg-white rounded-3xl shadow-2xl overflow-hidden animate-fade-in">
+                
+                {/* Header - Fixed Height */}
+                <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-white flex-shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 flex items-center justify-center bg-slate-900 rounded-2xl">
+                            <SparklesIcon className="w-6 h-6 text-white"/>
                         </div>
-                        <button 
-                            onClick={onClose} 
-                            className="p-2 -mr-2 text-slate-400 hover:text-slate-800 transition-colors active:scale-90"
-                            aria-label="Tutup"
-                        >
-                            <XMarkIcon className="w-8 h-8" />
-                        </button>
+                        <div>
+                            <h2 className="text-sm font-bold text-slate-900">JagoBot AI</h2>
+                            <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> AKTIF
+                            </p>
+                        </div>
                     </div>
+                    <button 
+                        onClick={onClose} 
+                        className="p-2 bg-slate-50 rounded-xl text-slate-400 hover:text-slate-800 transition-all active:scale-90"
+                    >
+                        <XMarkIcon className="w-6 h-6" />
+                    </button>
+                </div>
+                
+                {/* Chat Area - Scrollable */}
+                <div className="flex-1 overflow-y-auto bg-slate-50/30 p-4 space-y-6 scrollbar-hide">
+                    {messages.map((msg, index) => (
+                        <ChatMessage key={index} message={msg} />
+                    ))}
                     
-                    {/* Chat Area - Scrollable */}
-                    <div className="flex-1 overflow-y-auto bg-slate-50 p-4 space-y-6 scroll-smooth pb-10">
-                        {messages.map((msg, index) => (
-                            <ChatMessage key={index} message={msg} />
-                        ))}
-                        
-                        {showQuickQuestions && !loading && (
-                            <div className="flex flex-col items-start gap-2 animate-fade-in pl-11">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Coba tanya ini:</p>
-                                {quickQuestions.map((q, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => sendMessage(q)}
-                                        className="text-left text-xs font-semibold text-slate-700 bg-white border border-slate-200 px-4 py-2.5 rounded-xl hover:border-slate-400 transition-all shadow-sm active:bg-slate-50 active:scale-95"
-                                    >
-                                        {q}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                        <div ref={messagesEndRef} className="h-4" />
-                    </div>
-                    
-                    {/* Footer - Sticky Bottom */}
-                    <div className="p-4 md:p-5 border-t border-slate-100 flex-shrink-0 bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
-                         <form onSubmit={handleFormSubmit} className="relative flex items-center gap-2">
-                            <div className="relative flex-1">
-                                <input
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFormSubmit(e); } }}
-                                    placeholder="Tanya apa saja tentang HP..."
-                                    className="w-full bg-slate-100 border-none rounded-2xl py-4 pl-5 pr-14 text-sm md:text-base text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-slate-900 transition-all"
-                                />
+                    {showQuickQuestions && !loading && (
+                        <div className="flex flex-col items-start gap-2 pt-2 pb-4">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Saran Pertanyaan:</p>
+                            {quickQuestions.map((q, i) => (
                                 <button
-                                    type="submit"
-                                    disabled={loading || !input.trim()}
-                                    className={`absolute right-1.5 top-1.5 w-12 h-12 rounded-xl flex items-center justify-center transition-all ${loading || !input.trim() ? 'bg-slate-200 text-slate-400' : 'bg-slate-900 text-white shadow-lg active:scale-90'}`}
+                                    key={i}
+                                    onClick={() => sendMessage(q)}
+                                    className="text-left text-xs font-semibold text-slate-700 bg-white border border-slate-200 px-4 py-2.5 rounded-2xl hover:border-slate-400 transition-all shadow-sm active:bg-slate-50"
                                 >
-                                    {loading ? (
-                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    ) : (
-                                        <SendIcon className="w-5 h-5"/>
-                                    )}
+                                    {q}
                                 </button>
-                            </div>
-                        </form>
-                        <p className="text-[9px] text-slate-400 text-center mt-3 uppercase tracking-tighter">
-                            Didukung oleh Gemini AI • JAGO-HP 2025
-                        </p>
-                    </div>
-                 </div>
-            </section>
-        </>
+                            ))}
+                        </div>
+                    )}
+                    <div ref={messagesEndRef} className="h-4" />
+                </div>
+                
+                {/* Footer Input - Fixed at Bottom */}
+                <div className="p-4 bg-white border-t border-slate-100 flex-shrink-0">
+                    <form onSubmit={handleFormSubmit} className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                            <input
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFormSubmit(e); } }}
+                                placeholder="Tulis sesuatu..."
+                                className="w-full bg-slate-100 border-none rounded-2xl py-3.5 pl-5 pr-12 text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-slate-900 transition-all"
+                            />
+                            <button
+                                type="submit"
+                                disabled={loading || !input.trim()}
+                                className={`absolute right-1.5 top-1.5 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${loading || !input.trim() ? 'bg-slate-200 text-slate-400' : 'bg-slate-900 text-white shadow-md active:scale-90'}`}
+                            >
+                                {loading ? (
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                ) : (
+                                    <SendIcon className="w-5 h-5"/>
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                    <p className="text-[9px] text-slate-400 text-center mt-3 font-medium uppercase tracking-widest">
+                        AI Gemini • JAGO-HP 2025
+                    </p>
+                </div>
+            </div>
+        </div>
     );
 };
 
@@ -248,15 +215,15 @@ const ChatMessage: FC<{ message: Message }> = ({ message }) => {
 
     if (!hasContent && !isUser) {
         return (
-            <div className="flex justify-start items-center gap-3 animate-fade-in">
-                <div className="bg-slate-200 p-2 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
-                    <SparklesIcon className="w-4 h-4 text-slate-500"/>
+            <div className="flex justify-start items-center gap-3">
+                <div className="bg-slate-100 p-2 rounded-xl h-8 w-8 flex items-center justify-center flex-shrink-0">
+                    <SparklesIcon className="w-4 h-4 text-slate-400"/>
                 </div>
                 <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm">
                     <div className="flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-bounce"></span>
-                        <span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                        <span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                        <span className="h-1.5 w-1.5 bg-slate-300 rounded-full animate-bounce"></span>
+                        <span className="h-1.5 w-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                        <span className="h-1.5 w-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:0.4s]"></span>
                     </div>
                 </div>
             </div>
@@ -273,20 +240,20 @@ const ChatMessage: FC<{ message: Message }> = ({ message }) => {
     };
 
     return (
-        <div className={`flex items-start gap-2.5 ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+        <div className={`flex items-start gap-2.5 ${isUser ? 'justify-end' : 'justify-start'}`}>
             {!isUser && (
-                <div className="bg-slate-900 p-2 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0 mt-1 shadow-md">
+                <div className="bg-slate-900 p-2 rounded-xl h-8 w-8 flex items-center justify-center flex-shrink-0 mt-1">
                      <SparklesIcon className="w-4 h-4 text-white"/>
                 </div>
             )}
             <div
-                className={`rounded-2xl p-3.5 max-w-[85%] break-words text-sm leading-relaxed shadow-sm ${
+                className={`rounded-2xl p-3 max-w-[88%] text-sm leading-relaxed shadow-sm ${
                     isUser
                         ? 'bg-slate-900 text-white rounded-br-none'
                         : 'bg-white text-slate-800 border border-slate-100 rounded-bl-none'
                 }`}
             >
-                <div className="prose prose-sm prose-invert" dangerouslySetInnerHTML={formatText(message.text)}></div>
+                <div className="prose prose-sm prose-slate" dangerouslySetInnerHTML={formatText(message.text)}></div>
             </div>
         </div>
     );
