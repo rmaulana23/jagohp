@@ -162,7 +162,7 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
                 {/* Banner Image */}
                 <div className="w-full mb-8 rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white">
                     <img 
-                        src="https://imgur.com/ms4Btaa.jpg" 
+                        src="https://imgur.com/7FkszM5.jpg" 
                         alt="JAGO-HP Compare Banner" 
                         className="w-full h-auto object-cover max-h-[350px] block"
                     />
