@@ -5,6 +5,7 @@ import { supabase } from '../utils/supabaseClient';
 import SearchIcon from './icons/SearchIcon';
 import ShareButtons from './ShareButtons';
 import EcommerceButtons from './EcommerceButtons';
+import CrownIcon from './icons/CrownIcon';
 
 // --- INTERFACES ---
 interface Ratings {
@@ -70,15 +71,43 @@ interface SmartReviewProps {
     initialQuery?: string;
     initialResult?: ReviewResult | null;
     clearGlobalResult: () => void;
+    onCompare?: (phoneName: string) => void;
 }
 
-const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialResult = null, clearGlobalResult }) => {
+const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialResult = null, clearGlobalResult, onCompare }) => {
     const [query, setQuery] = useState(initialQuery);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [review, setReview] = useState<ReviewResult | null>(initialResult);
+    const [showFullReview, setShowFullReview] = useState(false);
+    const [recentReviews, setRecentReviews] = useState<ReviewResult[]>([]);
+    const [loadingRecent, setLoadingRecent] = useState(false);
+    const [visibleCount, setVisibleCount] = useState(6);
 
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
+
+    // Fetch recent reviews from DB
+    useEffect(() => {
+        const fetchRecent = async () => {
+            if (!supabase) return;
+            setLoadingRecent(true);
+            try {
+                const { data } = await supabase
+                    .from('smart_reviews')
+                    .select('review_data')
+                    .order('created_at', { ascending: false })
+                    .limit(50); // Fetch up to 50 to support Load More
+                if (data) {
+                    setRecentReviews(data.map(d => d.review_data as ReviewResult));
+                }
+            } catch (err) {
+                console.error("Failed to fetch recent reviews", err);
+            } finally {
+                setLoadingRecent(false);
+            }
+        };
+        fetchRecent();
+    }, []);
 
     const schema = {
         type: Type.OBJECT,
@@ -147,6 +176,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         setLoading(true);
         setError(null);
         setReview(null);
+        setShowFullReview(false);
 
         const cacheKey = searchQuery.trim().toLowerCase();
 
@@ -157,6 +187,9 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     const cachedReview = data.review_data as ReviewResult;
                     setReview(cachedReview);
                     setLoading(false);
+                    
+                    // Add to recent if not already at the top
+                    updateRecentList(cachedReview);
                     return;
                 }
             } catch (cacheError) {
@@ -205,7 +238,7 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
 - The \`phoneName\` field must contain the official, full device name.`;
 
         try {
-            const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema } });
+            const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any } });
             const resultText = response.text.trim();
             const parsedResult: ReviewResult = JSON.parse(resultText);
 
@@ -214,6 +247,7 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
                 setReview(null);
             } else {
                 setReview(parsedResult);
+                updateRecentList(parsedResult);
                 if (supabase) {
                     try {
                         await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: parsedResult });
@@ -229,6 +263,13 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
             setLoading(false);
         }
     };
+
+    const updateRecentList = (newReview: ReviewResult) => {
+        setRecentReviews(prev => {
+            const filtered = prev.filter(r => r.phoneName !== newReview.phoneName);
+            return [newReview, ...filtered];
+        });
+    };
     
     useEffect(() => {
         if(initialQuery && !initialResult) {
@@ -239,6 +280,17 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         performSearch(query);
+    };
+
+    const selectFromRecent = (rev: ReviewResult) => {
+        setReview(rev);
+        setShowFullReview(false);
+        setQuery(rev.phoneName);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleLoadMore = () => {
+        setVisibleCount(prev => prev + 6);
     };
 
     return (
@@ -282,14 +334,59 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
                 <div aria-live="polite">
                     {loading && !review && <ReviewSkeleton />}
                     {error && <div className="text-center text-red-500 border border-red-500/30 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
-                    {review && <ReviewResultDisplay 
-                                review={review} 
-                                onReset={() => { 
-                                    setReview(null); 
-                                    setQuery(''); 
-                                    clearGlobalResult();
-                                }} 
-                               />}
+                    
+                    {review && !showFullReview && (
+                        <div className="animate-fade-in max-w-2xl mx-auto">
+                            <ReviewSummaryCard 
+                                result={review} 
+                                onSeeFull={() => setShowFullReview(true)} 
+                                onReset={() => { setReview(null); setQuery(''); clearGlobalResult(); }}
+                                onCompare={onCompare}
+                            />
+                        </div>
+                    )}
+
+                    {review && showFullReview && (
+                        <ReviewResultDisplay 
+                            review={review} 
+                            onReset={() => { 
+                                setReview(null); 
+                                setQuery(''); 
+                                clearGlobalResult();
+                                setShowFullReview(false);
+                            }} 
+                        />
+                    )}
+
+                    {/* Recently Reviewed Section */}
+                    { !review && !loading && recentReviews.length > 0 && (
+                        <div className="mt-16 animate-fade-in">
+                            <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
+                                <h2 className="text-xl font-bold text-slate-900 font-orbitron">Review Terbaru</h2>
+                                <p className="text-sm text-slate-400">Database JAGO-HP</p>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {recentReviews.slice(0, visibleCount).map((rev, idx) => (
+                                    <RecentReviewCard 
+                                        key={idx} 
+                                        result={rev} 
+                                        onSelect={() => selectFromRecent(rev)}
+                                        onCompare={onCompare}
+                                    />
+                                ))}
+                            </div>
+                            {recentReviews.length > visibleCount && (
+                                <div className="mt-10 text-center">
+                                    <button
+                                        onClick={handleLoadMore}
+                                        className="px-8 py-3 rounded-xl border-2 border-slate-300 text-slate-600 font-bold hover:bg-slate-100 transition-colors"
+                                    >
+                                        Load More
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
             </div>
@@ -313,6 +410,152 @@ const ReviewSkeleton: FC = () => (
         <div className="space-y-3 pt-3"><div className="h-5 bg-slate-200 rounded-md w-1/3 mb-2"></div><div className="h-4 bg-slate-200 rounded-md w-full"></div><div className="h-4 bg-slate-200 rounded-md w-5/6"></div></div>
     </div>
 );
+
+// --- Recent Review Card Component ---
+const RecentReviewCard: FC<{ result: ReviewResult; onSelect: () => void; onCompare?: (name: string) => void }> = ({ result, onSelect, onCompare }) => {
+    return (
+        <div className="bg-[#141426] rounded-2xl p-5 shadow-lg border border-white/5 flex flex-col h-full hover:scale-[1.02] transition-transform duration-300 group">
+            <div className="mb-4">
+                <h3 className="text-lg font-bold text-white leading-tight group-hover:text-yellow-400 transition-colors truncate">{result.phoneName}</h3>
+                <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Rilis: {result.specs?.rilis || 'N/A'}</p>
+            </div>
+            
+            <div className="mb-6 grid grid-cols-2 gap-3">
+                <SpecItemSmall label="Jaringan" value={result.specs?.jaringan} />
+                <SpecItemSmall label="CPU" value={result.specs?.processor} />
+                <SpecItemSmall label="RAM" value={result.specs?.ram} />
+                <SpecItemSmall label="Baterai" value={result.specs?.battery} />
+                <SpecItemSmall label="Charging" value={result.specs?.charging} />
+                <SpecItemSmall label="Koneksi" value={result.specs?.koneksi} />
+            </div>
+            
+            <div className="mb-4 mt-auto">
+                <div className="inline-block px-3 py-1 bg-white/5 rounded-lg border border-white/10 w-full text-center">
+                    <span className="text-yellow-400 font-black text-sm">{result.marketPrice?.indonesia || 'Rp -'}</span>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+                <button
+                    onClick={onSelect}
+                    className="px-3 py-2.5 rounded-xl bg-white text-[#141426] font-black text-[10px] uppercase tracking-wider hover:bg-slate-100 transition-all flex items-center justify-center"
+                >
+                    Lihat Detail
+                </button>
+                <button
+                    onClick={() => onCompare ? onCompare(result.phoneName) : (window.location.hash = 'battle')}
+                    className="px-3 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-black text-[10px] uppercase tracking-wider hover:bg-white/20 transition-all flex items-center justify-center"
+                >
+                    Compare
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const SpecItemSmall: FC<{ label: string; value: string | undefined | null }> = ({ label, value }) => {
+    if (!value) return null;
+    return (
+        <div className="flex flex-col text-left">
+            <span className="text-[9px] text-slate-500 uppercase font-black tracking-tighter">{label}</span>
+            <span className="text-[11px] text-slate-300 font-bold truncate leading-tight" title={value}>{value}</span>
+        </div>
+    );
+};
+
+// --- New Review Summary Card Bergaya Dark (Sesuai Gambar) ---
+const ReviewSummaryCard: FC<{ result: ReviewResult; onSeeFull: () => void; onReset: () => void; onCompare?: (name: string) => void }> = ({ result, onSeeFull, onReset, onCompare }) => {
+    const calculateOverallScore = () => {
+        if (!result.ratings) return 'N/A';
+        const scores = [result.ratings.gaming, result.ratings.kamera, result.ratings.baterai, result.ratings.layarDesain, result.ratings.performa, result.ratings.storageRam];
+        const validScores = scores.filter(s => typeof s === 'number' && s > 0);
+        if (validScores.length === 0) return 'N/A';
+        const sum = validScores.reduce((acc, score) => acc + score, 0);
+        return (sum / validScores.length).toFixed(1);
+    };
+
+    const overallScore = calculateOverallScore();
+    const brand = result.phoneName.split(' ')[0] || 'N/A';
+
+    return (
+        <div className="bg-[#141426] rounded-3xl p-6 md:p-8 shadow-2xl border border-white/5 relative overflow-hidden">
+            {/* Header */}
+            <div className="flex justify-between items-start mb-6">
+                <div className="text-left">
+                    <h2 className="text-3xl font-bold text-white font-orbitron tracking-tight">{result.phoneName}</h2>
+                    <p className="text-sm text-slate-400 mt-1 font-medium">
+                        Rilis: {result.specs?.rilis || 'N/A'} • {brand}
+                    </p>
+                </div>
+                <div className="bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/10">
+                    <span className="text-slate-300 text-xs font-bold uppercase tracking-widest block mb-0.5">Score</span>
+                    <span className="text-2xl font-black text-yellow-400">{overallScore}</span>
+                </div>
+            </div>
+
+            {/* Price Badge */}
+            <div className="mb-8">
+                <div className="inline-flex items-center px-5 py-3 rounded-2xl bg-white/5 border border-white/10">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-3 border-r border-white/10 pr-3">Harga Pasar:</span>
+                    <span className="text-xl font-black text-yellow-400 tracking-tight">
+                        {result.marketPrice?.indonesia || 'Rp -'}
+                    </span>
+                </div>
+            </div>
+
+            {/* Quick Review */}
+            <div className="text-left mb-8">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Quick Review</h3>
+                <p className="text-slate-200 text-lg leading-relaxed font-medium">
+                    {result.quickReview?.summary}
+                </p>
+            </div>
+
+            {/* Specs Grid */}
+            <div className="grid grid-cols-2 gap-y-6 gap-x-4 pt-8 border-t border-white/10">
+                <SpecItemDark label="CPU" value={result.specs?.processor} />
+                <SpecItemDark label="RAM" value={result.specs?.ram} />
+                <SpecItemDark label="Kamera" value={result.specs?.camera} />
+                <SpecItemDark label="Baterai" value={result.specs?.battery} />
+                <SpecItemDark label="Antutu" value={result.performance?.antutuScore?.toLocaleString('id-ID')} />
+            </div>
+
+            {/* Buttons */}
+            <div className="mt-10 space-y-3">
+                <button
+                    onClick={onSeeFull}
+                    className="w-full py-4 rounded-2xl bg-white text-[#141426] font-black text-sm uppercase tracking-widest hover:bg-slate-100 transition-all active:scale-95 shadow-xl"
+                >
+                    Lihat Review Lengkap
+                </button>
+                <div className="grid grid-cols-2 gap-3">
+                     <button
+                        onClick={() => onCompare ? onCompare(result.phoneName) : (window.location.hash = 'battle')}
+                        className="py-3 rounded-2xl bg-white/10 border border-white/20 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+                    >
+                        Compare HP Ini
+                    </button>
+                    <button
+                        onClick={onReset}
+                        className="py-3 rounded-2xl bg-white/5 text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-white/10 transition-all"
+                    >
+                        Cari HP Lain
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const SpecItemDark: FC<{ label: string; value: string | undefined | null }> = ({ label, value }) => {
+    if (!value) return null;
+    return (
+        <div className="text-left">
+            <dt className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</dt>
+            <dd className="text-white font-bold text-sm leading-tight line-clamp-1">{value}</dd>
+        </div>
+    )
+};
 
 const ReviewResultDisplay: FC<{ 
     review: ReviewResult; 
@@ -364,7 +607,7 @@ const ReviewResultDisplay: FC<{
                     onClick={onReset}
                     className="px-6 py-2 rounded-lg text-sm bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors"
                 >
-                    Cari Review Lain
+                    Kembali Ke Pencarian
                 </button>
             </div>
         </div>
