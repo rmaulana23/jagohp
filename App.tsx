@@ -31,6 +31,7 @@ const App: React.FC = () => {
   const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
   const [reviewQuery, setReviewQuery] = useState('');
+  const [battleQueryA, setBattleQueryA] = useState('');
 
   // Admin state
   const [showAdminLogin, setShowAdminLogin] = useState(false);
@@ -125,6 +126,12 @@ const App: React.FC = () => {
     setReviewQuery(phoneName);
     navigate('review');
   };
+
+  const navigateToBattleWithPhone = (phoneName: string) => {
+    setBattleQueryA(phoneName);
+    setBattleResult(null);
+    navigate('battle');
+  };
   
   const clearGlobalReviewResult = () => {
     setReviewResult(null);
@@ -161,8 +168,17 @@ const App: React.FC = () => {
                             onSetPersistentQuickReviewResult={handleSetPersistentQuickReview}
                             onOpenDonationModal={() => setIsDonationModalOpen(true)}
                            />;
-      case 'battle': return <PhoneBattle initialResult={battleResult} />;
-      case 'review': return <SmartReview initialResult={reviewResult} initialQuery={reviewQuery} clearGlobalResult={clearGlobalReviewResult} />;
+      case 'battle': return <PhoneBattle 
+                                initialResult={battleResult} 
+                                initialPhoneA={battleQueryA} 
+                                clearInitialPhoneA={() => setBattleQueryA('')} 
+                             />;
+      case 'review': return <SmartReview 
+                                initialResult={reviewResult} 
+                                initialQuery={reviewQuery} 
+                                clearGlobalResult={clearGlobalReviewResult} 
+                                onCompare={navigateToBattleWithPhone}
+                             />;
       case 'finder': return <PhoneFinder />;
       case 'chat': return <TanyaAI isOpen={true} isPage={true} onClose={() => navigate('home')} openAdminLogin={openAdminLogin} />;
       case 'blog': 
