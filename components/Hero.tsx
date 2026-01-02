@@ -790,7 +790,6 @@ ${basePrompt}
       <div className="md:hidden px-6 mt-6 pb-4">
         <div className="border-t border-slate-200 pt-5 flex justify-center items-center gap-x-6 gap-y-2 flex-wrap">
           <a href="#faq" onClick={(e) => {e.preventDefault(); setPage('faq')}} className="text-xs text-slate-500 hover:text-slate-800 transition-colors">FAQ</a>
-          <a href="#partnership" onClick={(e) => {e.preventDefault(); setPage('partnership')}} className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Partnership</a>
           <a href="#privacy" onClick={(e) => {e.preventDefault(); setPage('privacy')}} className="text-xs text-slate-500 hover:text-slate-800 transition-colors">Privacy Policy</a>
         </div>
       </div>
@@ -1020,7 +1019,7 @@ const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: 
                  <div className="mt-1 marquee-container">
                     <button 
                       onClick={() => isClickable && navigateToBlogPost(latestPost!)} 
-                      className={`text-left w-full ${isClickable ? 'cursor-pointer group' : 'cursor-default'}`}
+                      className={`text-left <span class="math-inline">\{isClickable ? 'cursor\-pointer group' \: 'cursor\-default'\}</span>`}
                       disabled={!isClickable}
                     >
                         <div className="marquee-wrapper">
