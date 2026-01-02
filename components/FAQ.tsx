@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 const faqItems = [
@@ -5,7 +6,7 @@ const faqItems = [
     { q: 'Bagaimana cara kerja AI Review di sini?', a: 'AI kami menganalisis data spesifikasi HP, benchmark, serta insight publik. Hasilnya berupa rating per kategori dan ringkasan singkat yang mudah dipahami.' },
     { q: 'Apakah review ini bisa dipercaya?', a: 'Ya, review AI menggunakan data nyata dan analisis objektif. AI lebih konsisten dan cepat menampilkan hasil berdasarkan data terstruktur.' },
     { q: 'Apakah data harga HP selalu terbaru?', a: 'Kami berusaha memperbarui harga HP secara rutin. Namun, harga bisa berbeda tergantung toko dan promo yang berlaku.' },
-    { q: 'Apakah JAGO-HP menerima iklan atau kerja sama?', a: 'Ya, kami membuka peluang kerja sama & investor. Info lengkap ada di halaman Partnership.' },
+    { q: 'Apakah JAGO-HP menerima iklan atau kerja sama?', a: 'Saat ini kami sedang berfokus pada pengembangan fitur AI untuk pengguna. Namun, Anda tetap dapat menghubungi tim kami untuk diskusi potensi kolaborasi di masa depan melalui email.' },
     { q: 'Bagaimana cara menghubungi tim JAGO-HP?', a: 'Anda dapat menghubungi kami melalui email di: timjagohp@gmail.com' }
 ];
 
