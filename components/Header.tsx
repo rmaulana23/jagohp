@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import ArrowDownTrayIcon from './icons/ArrowDownTrayIcon';
 
 interface HeaderProps {
     page: string;
@@ -93,6 +94,15 @@ const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuth
               >
                   Top Brand
               </button>
+              <a 
+                  href="https://github.com/rmaulana23/jagohp/raw/main/com.jagohp.app.v1.5.apk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-md text-sm bg-white text-[color:var(--accent1)] font-bold hover:bg-slate-100 transition-colors shadow-sm"
+              >
+                  <ArrowDownTrayIcon className="w-4 h-4" />
+                  <span>JAGO-HP App</span>
+              </a>
             </>
         )}
         </div>
