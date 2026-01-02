@@ -16,6 +16,7 @@ import EyeIcon from './icons/EyeIcon';
 import ChatBubbleLeftEllipsisIcon from './icons/ChatBubbleLeftEllipsisIcon';
 import ShareIcon from './icons/ShareIcon';
 import ChartBarIcon from './icons/ChartBarIcon';
+import ArrowDownTrayIcon from './icons/ArrowDownTrayIcon';
 
 interface QuickMatchResult {
   phoneName: string;
@@ -639,8 +640,19 @@ ${basePrompt}
                         setPage={setPage}
                         />
                     </div>
-                    <div className="mt-6">
+                    <div className="mt-6 flex flex-col gap-3">
                         <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
+                        
+                        {/* Mobile-only download button */}
+                        <a 
+                            href="https://github.com/rmaulana23/jagohp/raw/main/com.jagohp.app.v1.5.apk"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="md:hidden w-full flex items-center justify-center gap-3 px-5 py-3 rounded-xl bg-white border-2 border-slate-200 text-slate-800 font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
+                        >
+                            <ArrowDownTrayIcon className="w-5 h-5 text-[color:var(--accent1)]" />
+                            <span>Download JAGO-HP App</span>
+                        </a>
                     </div>
                     </div>
 
@@ -1019,7 +1031,7 @@ const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: 
                  <div className="mt-1 marquee-container">
                     <button 
                       onClick={() => isClickable && navigateToBlogPost(latestPost!)} 
-                      className={`text-left <span class="math-inline">\{isClickable ? 'cursor\-pointer group' \: 'cursor\-default'\}</span>`}
+                      className={`text-left w-full ${isClickable ? 'cursor-pointer group' : 'cursor-default'}`}
                       disabled={!isClickable}
                     >
                         <div className="marquee-wrapper">
