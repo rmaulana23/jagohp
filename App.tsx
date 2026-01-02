@@ -8,7 +8,6 @@ import TanyaAI from './components/TanyaAI';
 import Leaderboard from './components/Leaderboard';
 import About from './components/About';
 import Footer from './components/Footer';
-import Partnership from './components/Partnership';
 import FAQ from './components/FAQ';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import PhoneFinder from './components/PhoneFinder';
@@ -133,7 +132,7 @@ const App: React.FC = () => {
     navigate('battle');
   };
   
-  const clearGlobalReviewResult = () => {
+  const clearGlobalResult = () => {
     setReviewResult(null);
   };
 
@@ -176,7 +175,7 @@ const App: React.FC = () => {
       case 'review': return <SmartReview 
                                 initialResult={reviewResult} 
                                 initialQuery={reviewQuery} 
-                                clearGlobalResult={clearGlobalReviewResult} 
+                                clearGlobalResult={clearGlobalResult} 
                                 onCompare={navigateToBattleWithPhone}
                              />;
       case 'finder': return <PhoneFinder />;
@@ -195,7 +194,6 @@ const App: React.FC = () => {
         return <Blog setPage={navigate} navigateToBlogPost={navigateToBlogPost} />;
       case 'leaderboard': return <Leaderboard />;
       case 'about': return <About />;
-      case 'partnership': return <Partnership />;
       case 'faq': return <FAQ />;
       case 'privacy': return <PrivacyPolicy />;
       case 'saran': return <Saran />;
@@ -231,7 +229,7 @@ const App: React.FC = () => {
         {mainContent()}
       </main>
 
-      {!isChatPage && <Footer setPage={navigate} page={path} />}
+      {!isChatPage && <Footer setPage={navigate} page={path} onOpenDonationModal={() => setIsDonationModalOpen(true)} />}
       
       {!isChatPage && (
         <BottomNav 
