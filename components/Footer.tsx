@@ -1,20 +1,26 @@
+
 import React from 'react';
 
 interface FooterProps {
   setPage: (page: string) => void;
   page: string;
+  onOpenDonationModal: () => void;
 }
 
-const Footer: React.FC<FooterProps> = ({ setPage, page }) => {
+const Footer: React.FC<FooterProps> = ({ setPage, page, onOpenDonationModal }) => {
   const footerLinks = [
+    { label: 'Donasi', key: 'donation', isModal: true },
     { label: 'FAQ', key: 'faq' },
-    { label: 'Partnership', key: 'partnership' },
     { label: 'Privacy Policy', key: 'privacy' },
   ];
 
-  const handleNavClick = (e: React.MouseEvent, pageKey: string) => {
+  const handleNavClick = (e: React.MouseEvent, link: any) => {
     e.preventDefault();
-    setPage(pageKey);
+    if (link.isModal) {
+      onOpenDonationModal();
+    } else {
+      setPage(link.key);
+    }
   };
 
   return (
@@ -28,7 +34,7 @@ const Footer: React.FC<FooterProps> = ({ setPage, page }) => {
             <a
               key={link.key}
               href={`#${link.key}`}
-              onClick={(e) => handleNavClick(e, link.key)}
+              onClick={(e) => handleNavClick(e, link)}
               className={`text-sm ${page === 'jcc' ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-800'} transition-colors`}
             >
               {link.label}
