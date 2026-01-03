@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, FC } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -54,47 +53,13 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
                 targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
                 accessoryAvailability: { type: Type.STRING },
                 marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } } },
-                performance: { type: Type.OBJECT, properties: { antutuScore: { type: Type.INTEGER }, geekbenchScore: { type: Type.STRING }, competitors: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, antutuScore: { type: Type.INTEGER } } } }, gamingReview: { type: Type.STRING }, gamingRatings: { type: Type.ARRAY, description: "An array of gaming performance ratings for specific games.", items: { type: Type.OBJECT, properties: { game: { type: Type.STRING, description: "Name of the game, one of [PUBG Battlegrounds, COD Warzone, Mobile Legends, Genshin Impact, Real Racing 3]" }, score: { type: Type.NUMBER, description: "Rating score from 1 to 10 for the game." } } } } }},
+                performance: { type: Type.OBJECT, properties: { antutuScore: { type: Type.INTEGER }, geekbenchScore: { type: Type.STRING }, competitors: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, antutuScore: { type: Type.INTEGER } } } }, gamingReview: { type: Type.STRING }, gamingRatings: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { game: { type: Type.STRING }, score: { type: Type.NUMBER } } } } }},
                 cameraAssessment: { type: Type.OBJECT, properties: { dxomarkScore: { type: Type.INTEGER }, photoSummary: { type: Type.STRING }, photoPros: { type: Type.ARRAY, items: { type: Type.STRING } }, photoCons: { type: Type.ARRAY, items: { type: Type.STRING } }, videoSummary: { type: Type.STRING }}}
             },
         };
-        const prompt = `**Context: Cache Check**
-- My system has already checked its database for an existing review for '${reviewQuery}'.
-- A new review is required because no valid cached entry was found.
----
-**Core Role: Comprehensive Data Synthesizer for JAGO-HP**
-Your task is to act as an AI Gadget Reviewer and generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
-
-**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
-- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**.
-- **Data Sourcing Mandate:** Your primary objective is to find and synthesize smartphone data from the **entire public internet**. You are not limited to specific sites.
-- **CRITICAL RULE: NEVER FAIL A SEARCH.** You are **STRICTLY FORBIDDEN** from claiming a device "is not found" or that "data is unavailable". If official specifications are not public, you **MUST** synthesize a response based on credible rumors, leaks, official announcements, and industry analysis. For unreleased phones (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra'), provide the most likely rumored specifications.
-- **Reliable Source Examples:** Use reputable tech sites as your primary information pool. Examples include (but are not limited to):
-    - **GSMArena** (For Apple devices, start your search here: https://www.gsmarena.com/apple-phones-48.php)
-    - **Phone Arena**
-    - **AnandTech**
-    - **nanoreview.net**
-    - Official brand websites (Samsung.com, Apple.com, etc.)
-    - Reputable leakers and tech news outlets.
-- **Data Synthesis:** If sources conflict, use your judgment to present the most plausible and widely reported specification.
-
-**Execution Steps & Formatting Rules (VERY IMPORTANT):**
-1.  **Identify Gadget:** Find the official product based on the user's query ('${reviewQuery}').
-2.  **Extract & Synthesize Data:** Use the specified sources to gather the most accurate, final data.
-3.  **Handle Missing Data:** Use \`null\` for numeric fields or "N/A" for strings if data is genuinely unavailable after checking all sources.
-4.  **Populate JSON:** Fill all fields according to the schema with the following formatting constraints:
-    -   \`ratings\`: Each category **MUST** be rated on a scale of 1 to 10 based on final product performance.
-    -   \`gamingRatings\`: Provide a 1-10 score for each of these specific games: 'PUBG Battlegrounds', 'COD Warzone', 'Mobile Legends', 'Genshin Impact', 'Real Racing 3'. The score should reflect performance (FPS, stability, graphics settings). If performance data for a specific game is genuinely not available, omit it from the array.
-    -   \`quickReview.summary\`: MUST be a single, concise sentence (maximum 1-2 short sentences).
-    -   \`specs.ram\`: Format: "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
-    -   \`specs.camera\`: A short summary of main lenses. Example: "Utama: 200MP + 50MP", "50MP Wide + 12MP Ultrawide".
-    -   \`specs.battery\`: Just the capacity. Example: "5000 mAh".
-5.  **Failure Conditions:** The only failure is if a device is truly fictional and unmentioned anywhere. Otherwise, you must provide data.
-
-**Final Output:** Strictly adhere to the JSON schema and all formatting rules.`;
         
         try {
-            const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema } });
+            const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: `Quick Review HP: ${reviewQuery}`, config: { responseMimeType: "application/json", responseSchema: schema } });
             const parsedResult: ReviewResult = JSON.parse(response.text.trim());
             if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
                 setReviewError(parsedResult.phoneName);
@@ -103,7 +68,7 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
             }
         } catch (e) {
             console.error(e);
-            setReviewError('An AI error occurred. Please try again.');
+            setReviewError('An AI error occurred.');
         } finally {
             setReviewLoading(false);
         }
@@ -128,15 +93,13 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
                     {reviewLoading ? '...' : 'Cari'}
                 </button>
             </div>
-            {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Mereview, mohon tunggu..</div>}
-            {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
             {quickReviewResult ? (
                 <div className="mt-4">
                     <PreviewCard result={quickReviewResult} onSeeFull={() => navigateToFullReview(quickReviewResult)} />
                 </div>
             ) : (
-                <div className="text-center text-sm text-slate-400 py-4">
-                    Belum ada review. Cari HP untuk melihat hasilnya di sini.
+                <div className="text-center text-sm text-slate-400 py-4 italic">
+                    Masukkan nama HP di atas.
                 </div>
             )}
         </div>
