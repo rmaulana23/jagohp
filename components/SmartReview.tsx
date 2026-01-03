@@ -88,25 +88,26 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
 
     // Fetch recent reviews from DB
-    useEffect(() => {
-        const fetchRecent = async () => {
-            if (!supabase) return;
-            setLoadingRecent(true);
-            try {
-                const { data } = await supabase
-                    .from('smart_reviews')
-                    .select('review_data')
-                    .order('created_at', { ascending: false })
-                    .limit(100); // Fetch more for pagination
-                if (data) {
-                    setRecentReviews(data.map(d => d.review_data as ReviewResult));
-                }
-            } catch (err) {
-                console.error("Failed to fetch recent reviews", err);
-            } finally {
-                setLoadingRecent(false);
+    const fetchRecent = async () => {
+        if (!supabase) return;
+        setLoadingRecent(true);
+        try {
+            const { data } = await supabase
+                .from('smart_reviews')
+                .select('review_data')
+                .order('created_at', { ascending: false })
+                .limit(100); // Fetch more for pagination
+            if (data) {
+                setRecentReviews(data.map(d => d.review_data as ReviewResult));
             }
-        };
+        } catch (err) {
+            console.error("Failed to fetch recent reviews", err);
+        } finally {
+            setLoadingRecent(false);
+        }
+    };
+
+    useEffect(() => {
         fetchRecent();
     }, []);
 
@@ -189,6 +190,9 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     setReview(cachedReview);
                     setLoading(false);
                     updateRecentList(cachedReview);
+                    
+                    // Refresh timestamp in DB to persistent move to top
+                    await supabase.from('smart_reviews').update({ created_at: new Date().toISOString() }).eq('cache_key', cacheKey);
                     return;
                 }
             } catch (cacheError) {
@@ -227,7 +231,8 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 
     const updateRecentList = (newReview: ReviewResult) => {
         setRecentReviews(prev => {
-            const filtered = prev.filter(r => r.phoneName !== newReview.phoneName);
+            // Remove existing review if present to prevent duplicates and always move to top (index 0)
+            const filtered = prev.filter(r => r.phoneName.toLowerCase() !== newReview.phoneName.toLowerCase());
             return [newReview, ...filtered];
         });
     };
@@ -238,6 +243,8 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         } else if (initialResult) {
             setReview(initialResult);
             setQuery(initialResult.phoneName);
+            // Bubbling locally
+            updateRecentList(initialResult);
         }
     }, [initialQuery, initialResult]);
 
@@ -250,6 +257,18 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         setReview(rev);
         setShowFullReview(false);
         setQuery(rev.phoneName);
+        
+        // Move to top locally
+        updateRecentList(rev);
+        
+        // Update timestamp in DB so it stays top on refresh
+        if (supabase) {
+            supabase.from('smart_reviews')
+                .update({ created_at: new Date().toISOString() })
+                .eq('cache_key', rev.phoneName.toLowerCase())
+                .then();
+        }
+
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
