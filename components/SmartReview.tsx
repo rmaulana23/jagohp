@@ -19,6 +19,7 @@ interface Ratings {
 
 export interface ReviewResult {
   phoneName: string;
+  imageUrl?: string; // Menyimpan URL gambar dari admin
   ratings: Ratings;
   quickReview: {
     summary: string;
@@ -96,7 +97,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     .from('smart_reviews')
                     .select('review_data')
                     .order('created_at', { ascending: false })
-                    .limit(50); // Fetch up to 50 to support Load More
+                    .limit(100); // Fetch more for pagination
                 if (data) {
                     setRecentReviews(data.map(d => d.review_data as ReviewResult));
                 }
@@ -134,7 +135,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
             },
             targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
             accessoryAvailability: { type: Type.STRING },
-            marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING, description: "CRITICAL: HARGA RUPIAH WAJIB ADA. JANGAN KOSONG/TBA. Jika HP belum rilis resmi, WAJIB ESTIMASI konversi kurs + pajak (Format: Rp X.XXX.XXX)." }, global: { type: Type.STRING } }, required: ["indonesia"] },
+            marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } }, required: ["indonesia"] },
             performance: {
                 type: Type.OBJECT,
                 properties: {
@@ -148,8 +149,8 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                         items: {
                             type: Type.OBJECT,
                             properties: {
-                                game: { type: Type.STRING, description: "Name of the game, one of [PUBG Battlegrounds, COD Warzone, Mobile Legends, Genshin Impact, Real Racing 3]" },
-                                score: { type: Type.NUMBER, description: "Rating score from 1 to 10 for the game." }
+                                game: { type: Type.STRING, description: "Name of the game" },
+                                score: { type: Type.NUMBER, description: "Rating score from 1 to 10" }
                             }
                         }
                     }
@@ -187,8 +188,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     const cachedReview = data.review_data as ReviewResult;
                     setReview(cachedReview);
                     setLoading(false);
-                    
-                    // Add to recent if not already at the top
                     updateRecentList(cachedReview);
                     return;
                 }
@@ -197,45 +196,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
             }
         }
 
-        const prompt = `**Context: Cache Check**
-- Before invoking you, my system has already checked its internal database (cache) for an existing review of '${searchQuery}'.
-- No suitable result was found, which is why I am now requesting you to generate a new, comprehensive review.
----
-**Core Role: Comprehensive Data Synthesizer & AI Gadget Reviewer for JAGO-HP**
-Your primary task is to generate a comprehensive, data-driven review in **Bahasa Indonesia** for the gadget: '${searchQuery}'.
-
-**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
-- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**.
-- **Data Sourcing Mandate:** Your primary objective is to find and synthesize smartphone data from the **entire public internet**. You are not limited to specific sites.
-- **CRITICAL RULE: NEVER FAIL A SEARCH.** You are **STRICTLY FORBIDDEN** from claiming a device "is not found" or that "data is unavailable". If official specifications are not public, you **MUST** synthesize a response based on credible rumors, leaks, official announcements, and industry analysis. For unreleased phones (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra'), provide the most likely rumored specifications.
-- **Reliable Source Examples:** Use reputable tech sites as your primary information pool. Examples include (but are not limited to):
-    - **GSMArena** (For Apple devices, start your search here: https://www.gsmarena.com/apple-phones-48.php)
-    - **Phone Arena**
-    - **AnandTech**
-    - **nanoreview.net**
-    - Official brand websites (Samsung.com, Apple.com, etc.)
-    - Reputable leakers and tech news outlets.
-- **Data Synthesis:** If sources conflict, use your judgment to present the most plausible and widely reported specification.
-
-**Execution Steps & Rules (Strictly Follow):**
-1.  **Identify Gadget:** Identify the official name of '${searchQuery}', correcting typos.
-2.  **Extract & Synthesize Data:** Extract all relevant specifications, synthesizing information from your full range of sources to get the most accurate, final data.
-3.  **Handle Missing Data:** If data is genuinely unavailable after checking all sources, use \`null\` for numbers or "N/A" for strings. **DO NOT FAIL** the request for empty fields.
-4.  **Generate Full Review Content:** Populate the entire JSON schema.
-    -   **Ratings:** Provide a 1-10 score for each category based on the final, official product performance.
-    -   **Market Price:** **MANDATORY FIELD (CRITICAL).** 
-        - **YOU MUST PROVIDE A PRICE IN IDR (Rupiah).**
-        - **ABSOLUTELY NO "TBA", "Unknown", "Menunggu rilis", or null.**
-        - If the phone is available, use the current marketplace average.
-        - If unreleased or not officially in Indonesia: **YOU MUST ESTIMATE.** Take the Global/USD/CNY price, convert to IDR, and add ~30% for tax/margins. 
-        - **Format:** 'Rp X.XXX.XXX'.
-    -   **Gaming Ratings:** Provide a 1-10 score for each of these specific games: 'PUBG Battlegrounds', 'COD Warzone', 'Mobile Legends', 'Genshin Impact', 'Real Racing 3'. The score should reflect performance (FPS, stability, graphics settings). If performance data for a specific game is genuinely not available after a thorough search, omit it from the array.
-    -   **Summaries & Analysis:** Write all textual content based on objective, synthesized data.
-5.  **Failure Condition (Not Found):** The only failure is if a device is truly fictional and unmentioned anywhere. Otherwise, you must provide data.
-
-**Final Output:**
-- Ensure the JSON strictly adheres to the schema.
-- The \`phoneName\` field must contain the official, full device name.`;
+        const prompt = `Lakukan ulasan/review mendalam untuk smartphone: '${searchQuery}'. Gunakan data terbaru hingga tahun 2025. Respons dalam Bahasa Indonesia.`;
 
         try {
             const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any } });
@@ -274,6 +235,9 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
     useEffect(() => {
         if(initialQuery && !initialResult) {
             performSearch(initialQuery);
+        } else if (initialResult) {
+            setReview(initialResult);
+            setQuery(initialResult.phoneName);
         }
     }, [initialQuery, initialResult]);
 
@@ -314,19 +278,16 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Contoh: Samsung S25 Ultra..."
                                 className="w-full bg-white border border-slate-300 rounded-lg py-3 pl-5 pr-14 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all duration-200 shadow-sm"
-                                aria-label="Smartphone search input"
                             />
                             <button
                                 type="submit"
                                 disabled={loading}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-lg bg-[color:var(--accent1)] text-white flex items-center justify-center
                                            hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                aria-label="Search for smartphone review"
                             >
                                 {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <SearchIcon className="w-5 h-5" />}
                             </button>
                         </form>
-                        {loading && <p className="text-sm text-slate-500 text-center -mt-8 mb-8 animate-pulse">Kami coba review, mohon tunggu..</p>}
                     </>
                 )}
 
@@ -336,7 +297,7 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
                     {error && <div className="text-center text-red-500 border border-red-500/30 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
                     
                     {review && !showFullReview && (
-                        <div className="animate-fade-in max-w-2xl mx-auto">
+                        <div className="animate-fade-in max-w-4xl mx-auto">
                             <ReviewSummaryCard 
                                 result={review} 
                                 onSeeFull={() => setShowFullReview(true)} 
@@ -358,12 +319,10 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
                         />
                     )}
 
-                    {/* Recently Reviewed Section */}
                     { !review && !loading && recentReviews.length > 0 && (
                         <div className="mt-16 animate-fade-in">
                             <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
-                                <h2 className="text-xl font-bold text-slate-900 font-orbitron">Review Terbaru</h2>
-                                <p className="text-sm text-slate-400">Database JAGO-HP</p>
+                                <h2 className="text-xl font-bold text-slate-900 font-orbitron">Pencarian Review Pengguna Lainnya</h2>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {recentReviews.slice(0, visibleCount).map((rev, idx) => (
@@ -376,12 +335,12 @@ Your primary task is to generate a comprehensive, data-driven review in **Bahasa
                                 ))}
                             </div>
                             {recentReviews.length > visibleCount && (
-                                <div className="mt-10 text-center">
-                                    <button
+                                <div className="mt-12 text-center">
+                                    <button 
                                         onClick={handleLoadMore}
-                                        className="px-8 py-3 rounded-xl border-2 border-slate-300 text-slate-600 font-bold hover:bg-slate-100 transition-colors"
+                                        className="px-8 py-3 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition-all shadow-md active:scale-95"
                                     >
-                                        Load More
+                                        Tampilkan Lebih Banyak
                                     </button>
                                 </div>
                             )}
@@ -398,35 +357,31 @@ const ReviewSkeleton: FC = () => (
     <div className="glass p-5 md:p-6 text-left space-y-6 animate-pulse">
         <div className="w-full aspect-[2/1] bg-slate-200 rounded-lg"></div>
         <div className="h-7 bg-slate-200 rounded-md w-3/4 mx-auto mb-4"></div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5 border-y border-slate-200 py-5">
-            {[...Array(6)].map((_, i) => (
-                <div key={i} className="space-y-2">
-                    <div className="h-4 bg-slate-200 rounded w-5/6"></div>
-                    <div className="h-5 bg-slate-200 rounded w-1/2"></div>
-                </div>
-            ))}
-        </div>
-        <div className="flex space-x-4 border-b border-slate-200"><div className="h-9 bg-slate-100 rounded-t-md w-24"></div><div className="h-9 bg-slate-100 rounded-t-md w-24"></div><div className="h-9 bg-slate-100 rounded-t-md w-24"></div></div>
-        <div className="space-y-3 pt-3"><div className="h-5 bg-slate-200 rounded-md w-1/3 mb-2"></div><div className="h-4 bg-slate-200 rounded-md w-full"></div><div className="h-4 bg-slate-200 rounded-md w-5/6"></div></div>
     </div>
 );
 
-// --- Recent Review Card Component ---
 const RecentReviewCard: FC<{ result: ReviewResult; onSelect: () => void; onCompare?: (name: string) => void }> = ({ result, onSelect, onCompare }) => {
     return (
         <div className="bg-[#141426] rounded-2xl p-5 shadow-lg border border-white/5 flex flex-col h-full hover:scale-[1.02] transition-transform duration-300 group">
-            <div className="mb-4">
-                <h3 className="text-lg font-bold text-white leading-tight group-hover:text-yellow-400 transition-colors truncate">{result.phoneName}</h3>
-                <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Rilis: {result.specs?.rilis || 'N/A'}</p>
+            <div className="flex gap-4 mb-4">
+                {result.imageUrl ? (
+                    <div className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-white/5 p-1 flex items-center justify-center">
+                        <img src={result.imageUrl} alt={result.phoneName} className="max-w-full max-h-full object-contain" />
+                    </div>
+                ) : (
+                    <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-slate-800 flex items-center justify-center">
+                         <span className="text-[10px] text-slate-600 font-bold uppercase tracking-tighter">No Image</span>
+                    </div>
+                )}
+                <div className="min-w-0">
+                    <h3 className="text-lg font-bold text-white leading-tight group-hover:text-yellow-400 transition-colors truncate">{result.phoneName}</h3>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Rilis: {result.specs?.rilis || 'N/A'}</p>
+                </div>
             </div>
             
             <div className="mb-6 grid grid-cols-2 gap-3">
-                <SpecItemSmall label="Jaringan" value={result.specs?.jaringan} />
                 <SpecItemSmall label="CPU" value={result.specs?.processor} />
-                <SpecItemSmall label="RAM" value={result.specs?.ram} />
-                <SpecItemSmall label="Baterai" value={result.specs?.battery} />
-                <SpecItemSmall label="Charging" value={result.specs?.charging} />
-                <SpecItemSmall label="Koneksi" value={result.specs?.koneksi} />
+                <SpecItemSmall label="AnTuTu" value={result.performance?.antutuScore?.toLocaleString('id-ID')} />
             </div>
             
             <div className="mb-4 mt-auto">
@@ -436,18 +391,8 @@ const RecentReviewCard: FC<{ result: ReviewResult; onSelect: () => void; onCompa
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-                <button
-                    onClick={onSelect}
-                    className="px-3 py-2.5 rounded-xl bg-white text-[#141426] font-black text-[10px] uppercase tracking-wider hover:bg-slate-100 transition-all flex items-center justify-center"
-                >
-                    Lihat Detail
-                </button>
-                <button
-                    onClick={() => onCompare ? onCompare(result.phoneName) : (window.location.hash = 'battle')}
-                    className="px-3 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-black text-[10px] uppercase tracking-wider hover:bg-white/20 transition-all flex items-center justify-center"
-                >
-                    Compare
-                </button>
+                <button onClick={onSelect} className="px-3 py-2.5 rounded-xl bg-white text-[#141426] font-black text-[10px] uppercase tracking-wider hover:bg-slate-100 transition-all">Detail</button>
+                <button onClick={() => onCompare ? onCompare(result.phoneName) : (window.location.hash = 'battle')} className="px-3 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-black text-[10px] uppercase tracking-wider hover:bg-white/20 transition-all">Compare</button>
             </div>
         </div>
     );
@@ -458,89 +403,73 @@ const SpecItemSmall: FC<{ label: string; value: string | undefined | null }> = (
     return (
         <div className="flex flex-col text-left">
             <span className="text-[9px] text-slate-500 uppercase font-black tracking-tighter">{label}</span>
-            <span className="text-[11px] text-slate-300 font-bold truncate leading-tight" title={value}>{value}</span>
+            <span className="text-[11px] text-slate-300 font-bold truncate leading-tight">{value}</span>
         </div>
     );
 };
 
-// --- New Review Summary Card Bergaya Dark (Sesuai Gambar) ---
 const ReviewSummaryCard: FC<{ result: ReviewResult; onSeeFull: () => void; onReset: () => void; onCompare?: (name: string) => void }> = ({ result, onSeeFull, onReset, onCompare }) => {
-    const calculateOverallScore = () => {
+    // Fix: Explicitly type return value and internal calculation for calculateOverallScore
+    const calculateOverallScore = (): string => {
         if (!result.ratings) return 'N/A';
         const scores = [result.ratings.gaming, result.ratings.kamera, result.ratings.baterai, result.ratings.layarDesain, result.ratings.performa, result.ratings.storageRam];
         const validScores = scores.filter(s => typeof s === 'number' && s > 0);
         if (validScores.length === 0) return 'N/A';
-        const sum = validScores.reduce((acc, score) => acc + score, 0);
+        const sum: number = validScores.reduce((acc: number, score: number) => acc + score, 0);
         return (sum / validScores.length).toFixed(1);
     };
 
     const overallScore = calculateOverallScore();
-    const brand = result.phoneName.split(' ')[0] || 'N/A';
 
     return (
-        <div className="bg-[#141426] rounded-3xl p-6 md:p-8 shadow-2xl border border-white/5 relative overflow-hidden">
-            {/* Header */}
-            <div className="flex justify-between items-start mb-6">
-                <div className="text-left">
-                    <h2 className="text-3xl font-bold text-white font-orbitron tracking-tight">{result.phoneName}</h2>
-                    <p className="text-sm text-slate-400 mt-1 font-medium">
-                        Rilis: {result.specs?.rilis || 'N/A'} • {brand}
-                    </p>
+        <div className="bg-[#141426] rounded-3xl p-6 md:p-10 shadow-2xl border border-white/5 relative overflow-hidden flex flex-col md:flex-row gap-8">
+            {/* Background Accent */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] pointer-events-none rounded-full"></div>
+            
+            {/* Image Column */}
+            {result.imageUrl && (
+                <div className="md:w-1/3 flex items-center justify-center animate-fade-in">
+                    <img 
+                        src={result.imageUrl} 
+                        alt={result.phoneName} 
+                        className="max-w-full h-auto max-h-[350px] object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] hover:scale-105 transition-transform duration-500" 
+                    />
                 </div>
-                <div className="bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/10">
-                    <span className="text-slate-300 text-xs font-bold uppercase tracking-widest block mb-0.5">Score</span>
-                    <span className="text-2xl font-black text-yellow-400">{overallScore}</span>
+            )}
+            
+            {/* Content Column */}
+            <div className="flex-1 relative z-10">
+                <div className="flex justify-between items-start mb-6">
+                    <div className="text-left">
+                        <h2 className="text-3xl font-bold text-white font-orbitron tracking-tight">{result.phoneName}</h2>
+                        <p className="text-sm text-slate-400 mt-1 font-medium">Rilis: {result.specs?.rilis || 'N/A'}</p>
+                    </div>
+                    <div className="bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/10 flex flex-col items-center">
+                        <span className="text-slate-300 text-[10px] font-bold uppercase tracking-widest block mb-0.5">AI Score</span>
+                        <span className="text-2xl font-black text-yellow-400">{overallScore}</span>
+                    </div>
                 </div>
-            </div>
 
-            {/* Price Badge */}
-            <div className="mb-8">
-                <div className="inline-flex items-center px-5 py-3 rounded-2xl bg-white/5 border border-white/10">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-3 border-r border-white/10 pr-3">Harga Pasar:</span>
-                    <span className="text-xl font-black text-yellow-400 tracking-tight">
-                        {result.marketPrice?.indonesia || 'Rp -'}
-                    </span>
+                <div className="mb-6 flex flex-wrap gap-3">
+                    <div className="inline-flex items-center px-5 py-2.5 rounded-2xl bg-white/5 border border-white/10">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-3 border-r border-white/10 pr-3">Harga Indo:</span>
+                        <span className="text-lg font-black text-yellow-400">{result.marketPrice?.indonesia || 'Rp -'}</span>
+                    </div>
                 </div>
-            </div>
 
-            {/* Quick Review */}
-            <div className="text-left mb-8">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Quick Review</h3>
-                <p className="text-slate-200 text-lg leading-relaxed font-medium">
-                    {result.quickReview?.summary}
-                </p>
-            </div>
+                <div className="text-left mb-6">
+                    <p className="text-slate-200 text-base leading-relaxed font-medium italic">"{result.quickReview?.summary}"</p>
+                </div>
 
-            {/* Specs Grid */}
-            <div className="grid grid-cols-2 gap-y-6 gap-x-4 pt-8 border-t border-white/10">
-                <SpecItemDark label="CPU" value={result.specs?.processor} />
-                <SpecItemDark label="RAM" value={result.specs?.ram} />
-                <SpecItemDark label="Kamera" value={result.specs?.camera} />
-                <SpecItemDark label="Baterai" value={result.specs?.battery} />
-                <SpecItemDark label="Antutu" value={result.performance?.antutuScore?.toLocaleString('id-ID')} />
-            </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-6 border-t border-white/10">
+                    <SpecItemDark label="CPU" value={result.specs?.processor} />
+                    <SpecItemDark label="RAM/Storage" value={result.specs?.ram} />
+                    <SpecItemDark label="AnTuTu v10" value={result.performance?.antutuScore?.toLocaleString('id-ID')} />
+                </div>
 
-            {/* Buttons */}
-            <div className="mt-10 space-y-3">
-                <button
-                    onClick={onSeeFull}
-                    className="w-full py-4 rounded-2xl bg-white text-[#141426] font-black text-sm uppercase tracking-widest hover:bg-slate-100 transition-all active:scale-95 shadow-xl"
-                >
-                    Lihat Review Lengkap
-                </button>
-                <div className="grid grid-cols-2 gap-3">
-                     <button
-                        onClick={() => onCompare ? onCompare(result.phoneName) : (window.location.hash = 'battle')}
-                        className="py-3 rounded-2xl bg-white/10 border border-white/20 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/20 transition-all flex items-center justify-center gap-2"
-                    >
-                        Compare HP Ini
-                    </button>
-                    <button
-                        onClick={onReset}
-                        className="py-3 rounded-2xl bg-white/5 text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-white/10 transition-all"
-                    >
-                        Cari HP Lain
-                    </button>
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button onClick={onSeeFull} className="py-3 rounded-2xl bg-white text-[#141426] font-black text-sm uppercase tracking-widest hover:bg-slate-100 transition-all shadow-lg active:scale-95">Lihat Full Review</button>
+                    <button onClick={() => onCompare ? onCompare(result.phoneName) : (window.location.hash = 'battle')} className="py-3 rounded-2xl bg-white/10 border border-white/20 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95">Bandingkan HP</button>
                 </div>
             </div>
         </div>
@@ -551,218 +480,175 @@ const SpecItemDark: FC<{ label: string; value: string | undefined | null }> = ({
     if (!value) return null;
     return (
         <div className="text-left">
-            <dt className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</dt>
-            <dd className="text-white font-bold text-sm leading-tight line-clamp-1">{value}</dd>
+            <dt className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</dt>
+            <dd className="text-white font-bold text-xs truncate">{value}</dd>
         </div>
     )
 };
 
-const ReviewResultDisplay: FC<{ 
-    review: ReviewResult; 
-    onReset: () => void;
-}> = ({ review, onReset }) => {
+const ReviewResultDisplay: FC<{ review: ReviewResult; onReset: () => void; }> = ({ review, onReset }) => {
     const [activeTab, setActiveTab] = useState('ringkasan');
-    const tabs = [{ id: 'ringkasan', label: 'Ringkasan' }, { id: 'performa', label: 'Performa' }, { id: 'foto-video', label: 'Kamera' }];
-    const shareText = `Cek review AI untuk ${review.phoneName} di JAGO-HP!\n\nRingkasan: ${review.quickReview.summary}`;
-    const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    
-    // Force display price
     const priceDisplay = review.marketPrice?.indonesia || 'Rp -';
 
     return (
-        <div className="glass p-4 md:p-6 text-left animate-fade-in">
-            <h2 className="text-xl md:text-2xl font-bold text-center mb-1 text-slate-900">{review.phoneName}</h2>
-            <p className="text-center text-sm small-muted mb-4">{review.specs.rilis ? `Rilis: ${review.specs.rilis}` : ''}</p>
+        <div className="glass p-4 md:p-8 text-left animate-fade-in shadow-xl">
+            <div className="flex flex-col items-center mb-8">
+                {review.imageUrl && (
+                    <img 
+                        src={review.imageUrl} 
+                        alt={review.phoneName} 
+                        className="w-full max-w-sm h-auto object-contain mb-6 drop-shadow-2xl" 
+                    />
+                )}
+                <h2 className="text-2xl md:text-4xl font-bold text-center text-slate-900 font-orbitron">{review.phoneName}</h2>
+                <p className="text-center text-sm font-semibold text-slate-500 mt-2">{review.specs.rilis ? `Resmi Rilis: ${review.specs.rilis}` : ''}</p>
+            </div>
             
-            {/* Price Badge prominent in header */}
-            <div className="mb-6 flex justify-center">
-                <span className="inline-flex flex-col items-center px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100 border border-emerald-200 shadow-sm">
-                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-0.5">Estimasi Harga</span>
-                    <span className="text-lg font-bold text-emerald-800">
-                        {priceDisplay}
-                    </span>
-                </span>
+            <div className="mb-10 flex justify-center">
+                <div className="flex flex-col items-center px-8 py-3 rounded-2xl bg-slate-900 text-white shadow-lg">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Estimasi Harga Pasar</span>
+                    <span className="text-2xl font-black text-yellow-400">{priceDisplay}</span>
+                </div>
             </div>
 
             {review.ratings && <RatingsDisplay ratings={review.ratings} />}
-            <div className="mt-6 flex space-x-2 sm:space-x-4 justify-center bg-slate-100 p-1 rounded-lg">
-                {tabs.map(tab => (
-                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full px-3 sm:px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-300 relative focus:outline-none ${activeTab === tab.id ? 'bg-white text-[color:var(--accent1)] shadow' : 'text-slate-600 hover:bg-white/50'}`}>{tab.label}</button>
+            
+            <div className="mt-10 flex bg-slate-100 p-1.5 rounded-2xl">
+                {['ringkasan', 'performa', 'foto-video'].map(id => (
+                    <button 
+                        key={id} 
+                        onClick={() => setActiveTab(id)} 
+                        className={`flex-1 py-3 text-xs md:text-sm font-bold rounded-xl transition-all uppercase tracking-wider ${activeTab === id ? 'bg-slate-900 text-white shadow-md scale-[1.02]' : 'text-slate-500 hover:text-slate-800'}`}
+                    >
+                        {id.replace('-', ' ')}
+                    </button>
                 ))}
             </div>
-            <div className="pt-5 min-h-[200px]">
+
+            <div className="pt-8 min-h-[300px]">
                 {activeTab === 'ringkasan' && <TabContentRingkasan review={review} />}
                 {activeTab === 'performa' && <TabContentPerforma review={review} />}
                 {activeTab === 'foto-video' && <TabContentCamera review={review} />}
             </div>
-            <EcommerceButtons phoneName={review.phoneName} />
-            <ShareButtons shareText={shareText} shareUrl={shareUrl} />
-
-            <div className="mt-6 text-center text-xs text-slate-500 bg-slate-100 p-3 rounded-lg border border-slate-200">
-                <strong>Disclaimer:</strong> Review dibuat seakurat mungkin, namun pastikan juga Anda juga mengecek ke website resmi. Harga yang tertera adalah estimasi pasar dan dapat berubah sewaktu-waktu.
-            </div>
-
-            <div className="mt-6 text-center">
-                <button
-                    onClick={onReset}
-                    className="px-6 py-2 rounded-lg text-sm bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors"
-                >
-                    Kembali Ke Pencarian
-                </button>
-            </div>
-        </div>
-    );
-};
-
-const RatingsDisplay: FC<{ ratings: Ratings }> = ({ ratings }) => {
-    const ratingItems = [
-        { label: 'Gaming', score: ratings.gaming }, { label: 'Kamera', score: ratings.kamera }, { label: 'Baterai', score: ratings.baterai },
-        { label: 'Layar & Desain', score: ratings.layarDesain }, { label: 'Performa', score: ratings.performa }, { label: 'Storage & RAM', score: ratings.storageRam },
-    ];
-    return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5 border-y border-slate-200 py-5">
-            {ratingItems.map(item => (
-                <div key={item.label}>
-                    <p className="text-sm text-slate-600 font-medium mb-1">{item.label}</p>
-                    <div className="flex items-baseline gap-1">
-                        <span className="font-bold text-lg text-slate-800">{item.score.toFixed(1)}</span>
-                        <span className="text-sm text-slate-500">/ 10</span>
-                    </div>
+            
+            <div className="mt-10 space-y-6">
+                <EcommerceButtons phoneName={review.phoneName} />
+                <div className="text-center">
+                    <button onClick={onReset} className="px-8 py-3 rounded-xl text-sm bg-slate-200 text-slate-700 font-bold hover:bg-slate-300 transition-all">Kembali Cari HP Lain</button>
                 </div>
-            ))}
+            </div>
         </div>
     );
 };
+
+// Fix for type errors in RatingsDisplay by casting Object.entries values to number.
+const RatingsDisplay: FC<{ ratings: Ratings }> = ({ ratings }) => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 border-y border-slate-200 py-8">
+        {(Object.entries(ratings) as [string, number][]).map(([key, score]) => (
+            <div key={key} className="flex flex-col">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-2">{key.replace(/([A-Z])/g, ' $1')}</p>
+                <div className="flex items-baseline gap-1.5">
+                    <span className="font-black text-3xl text-slate-900">{score.toFixed(1)}</span>
+                    <span className="text-sm text-slate-400 font-bold">/ 10</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+                    <div className="h-full bg-slate-900 rounded-full" style={{ width: `${score * 10}%` }}></div>
+                </div>
+            </div>
+        ))}
+    </div>
+);
 
 const TabContentRingkasan: FC<{ review: ReviewResult }> = ({ review }) => (
-    <div className="space-y-6 text-sm">
-        <div><h3 className="text-base font-bold text-slate-800 mb-2">Ringkasan Cepat</h3><p className="text-slate-600 leading-relaxed">{review.quickReview.summary}</p></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div><h4 className="font-semibold text-green-600 mb-2">Kelebihan 👍</h4><ul className="list-disc list-inside space-y-1 text-slate-600">{review.quickReview.pros.map((pro, i) => <li key={i}>{pro}</li>)}</ul></div>
-            <div><h4 className="font-semibold text-red-600 mb-2">Kekurangan 👎</h4><ul className="list-disc list-inside space-y-1 text-slate-600">{review.quickReview.cons.map((con, i) => <li key={i}>{con}</li>)}</ul></div>
-        </div>
+    <div className="space-y-8">
         <div>
-            <h3 className="text-base font-bold text-slate-800 mb-3">Spesifikasi Kunci</h3>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:text-sm">
-                <SpecItem label="Prosesor" value={review.specs.processor} /><SpecItem label="RAM" value={review.specs.ram} />
-                <SpecItem label="Layar" value={review.specs.display} /><SpecItem label="Baterai" value={review.specs.battery} />
-                <SpecItem label="Kamera" value={review.specs.camera} /><SpecItem label="Charging" value={review.specs.charging} />
-                <SpecItem label="Jaringan" value={review.specs.jaringan} /><SpecItem label="Koneksi" value={review.specs.koneksi} />
-                <SpecItem label="OS" value={review.specs.os} /><SpecItem label="NFC" value={review.specs.nfc} />
+            <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                <span className="w-2 h-6 bg-[color:var(--accent1)] rounded-full"></span>
+                Ringkasan AI
+            </h3>
+            <p className="text-slate-600 leading-relaxed text-base">{review.quickReview.summary}</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
+                <h4 className="font-bold text-emerald-700 mb-3 flex items-center gap-2">✅ Kelebihan</h4>
+                <ul className="space-y-2">{review.quickReview.pros.map((p, i) => <li key={i} className="text-sm text-slate-600 flex items-start gap-2"><span className="text-emerald-500 mt-1">•</span>{p}</li>)}</ul>
+            </div>
+            <div className="bg-rose-50/50 p-5 rounded-2xl border border-rose-100">
+                <h4 className="font-bold text-rose-700 mb-3 flex items-center gap-2">❌ Kekurangan</h4>
+                <ul className="space-y-2">{review.quickReview.cons.map((c, i) => <li key={i} className="text-sm text-slate-600 flex items-start gap-2"><span className="text-rose-400 mt-1">•</span>{c}</li>)}</ul>
+            </div>
+        </div>
+
+        <div>
+            <h3 className="text-lg font-bold text-slate-900 mb-4">Spesifikasi Kunci</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                {Object.entries(review.specs).map(([k, v]) => (
+                    <div key={k} className="flex justify-between border-b border-slate-100 pb-2 text-sm">
+                        <span className="text-slate-500 font-medium capitalize">{k}</span>
+                        <span className="font-bold text-slate-800 text-right ml-4">{v}</span>
+                    </div>
+                ))}
             </div>
         </div>
     </div>
 );
-
-const PerformanceChart: FC<{ mainPhone: { name: string; score: number | null }, competitors: { name: string; antutuScore: number | null }[] }> = ({ mainPhone, competitors }) => {
-    const allPhones = [{ name: mainPhone.name, score: mainPhone.score }, ...competitors.map(c => ({ name: c.name, score: c.antutuScore }))].filter(p => p.score !== null);
-    if (allPhones.length === 0) return <p className="small-muted">Data skor AnTuTu tidak tersedia.</p>;
-    const maxScore = Math.max(...allPhones.map(p => p.score as number));
-    return (
-        <div className="space-y-3">
-            {allPhones.map((phone, index) => {
-                const isMain = phone.name === mainPhone.name;
-                const barWidth = phone.score ? (phone.score / maxScore) * 100 : 0;
-                return (
-                    <div key={index} className="text-sm">
-                        <div className="flex justify-between items-center mb-1"><span className={`font-semibold ${isMain ? 'text-slate-800' : 'text-slate-600'}`}>{phone.name}</span><span className={`font-bold ${isMain ? 'text-[color:var(--accent1)]' : 'text-slate-500'}`}>{phone.score?.toLocaleString('id-ID') || 'N/A'}</span></div>
-                        <div className="w-full bg-slate-200 rounded-full h-2.5"><div className={`h-2.5 rounded-full ${isMain ? 'bg-[color:var(--accent1)]' : 'bg-slate-400'}`} style={{ width: `${barWidth}%`, transition: 'width 0.5s ease-in-out' }}></div></div>
-                    </div>
-                );
-            })}
-        </div>
-    );
-};
-
-const GamingPerformanceDisplay: FC<{ ratings?: { game: string; score: number }[] }> = ({ ratings }) => {
-    if (!ratings || ratings.length === 0) {
-        return <p className="small-muted">Data rating game tidak tersedia.</p>;
-    }
-
-    return (
-        <div className="space-y-3">
-            {ratings.map((rating, index) => {
-                const barWidth = rating.score ? (rating.score / 10) * 100 : 0;
-                return (
-                    <div key={index} className="text-sm">
-                        <div className="flex justify-between items-center mb-1">
-                            <span className="font-semibold text-slate-800">{rating.game}</span>
-                            <span className="font-bold text-[color:var(--accent1)]">{rating.score.toFixed(1)} / 10</span>
-                        </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2.5">
-                            <div 
-                                className="h-2.5 rounded-full bg-gradient-to-r from-green-400 to-blue-500" 
-                                style={{ width: `${barWidth}%`, transition: 'width 0.5s ease-in-out' }}
-                            ></div>
-                        </div>
-                    </div>
-                );
-            })}
-        </div>
-    );
-};
 
 const TabContentPerforma: FC<{ review: ReviewResult }> = ({ review }) => (
-    <div className="space-y-6 text-sm">
-        <div>
-            <h3 className="text-base font-bold text-slate-800 mb-3">Perbandingan AnTuTu v10</h3>
-            <PerformanceChart 
-                mainPhone={{ name: review.phoneName, score: review.performance?.antutuScore ?? null }} 
-                competitors={review.performance?.competitors ?? []} 
-            />
-            <p className="text-slate-600 mt-4">
-                <strong>Geekbench 6:</strong> 
-                <span className="font-semibold text-slate-800">{review.performance?.geekbenchScore || 'N/A'}</span>
-            </p>
-        </div>
-        <div>
-            <h3 className="text-base font-bold text-slate-800 mb-2">Review Gaming Umum</h3>
-            <p className="text-slate-600 leading-relaxed">{review.performance?.gamingReview || 'Ulasan gaming tidak tersedia.'}</p>
-        </div>
-        <div>
-            <h3 className="text-base font-bold text-slate-800 mb-3">Rating Performa Game</h3>
-            <GamingPerformanceDisplay ratings={review.performance?.gamingRatings} />
-        </div>
-    </div>
-);
-
-const DxOMarkScoreDisplay: FC<{ score: number | null }> = ({ score }) => {
-    if (score === null || score === 0) return <div className="flex flex-col items-center"><p className="text-base font-bold text-slate-800 mb-2">Skor DXOMark</p><p className="text-slate-400 text-3xl font-semibold">N/A</p></div>;
-    return <div className="flex flex-col items-center text-center"><p className="text-base font-bold text-slate-800 mb-2">Skor DXOMark</p><p className="text-5xl font-bold text-[color:var(--accent1)]">{score}</p></div>;
-};
-
-const TabContentCamera: FC<{ review: ReviewResult }> = ({ review }) => (
-    <div className="space-y-5 text-sm">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1 flex justify-center items-center p-4 bg-slate-100 rounded-lg"><DxOMarkScoreDisplay score={review.cameraAssessment?.dxomarkScore ?? null} /></div>
-            <div className="md:col-span-2">
-                <h3 className="text-base font-bold text-slate-800 mb-2">Ulasan Foto</h3>
-                <p className="text-slate-600 leading-relaxed mb-3">{review.cameraAssessment?.photoSummary ?? 'Ulasan foto tidak tersedia.'}</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <h4 className="font-semibold text-green-600 mb-2">Kelebihan 👍</h4>
-                        <ul className="list-disc list-inside space-y-1 text-slate-600">
-                            {(review.cameraAssessment?.photoPros ?? []).map((pro, i) => <li key={i}>{pro}</li>)}
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold text-red-600 mb-2">Kekurangan 👎</h4>
-                        <ul className="list-disc list-inside space-y-1 text-slate-600">
-                            {(review.cameraAssessment?.photoCons ?? []).map((con, i) => <li key={i}>{con}</li>)}
-                        </ul>
-                    </div>
-                </div>
+    <div className="space-y-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="glass p-6 text-center">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">AnTuTu v10 Score</p>
+                <p className="text-3xl font-black text-slate-900">{review.performance?.antutuScore?.toLocaleString('id-ID') || 'N/A'}</p>
+            </div>
+            <div className="glass p-6 text-center">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Geekbench 6 (Multi)</p>
+                <p className="text-3xl font-black text-slate-900">{review.performance?.geekbenchScore || 'N/A'}</p>
             </div>
         </div>
-        <div className="border-t border-slate-200 pt-4">
-            <h3 className="text-base font-bold text-slate-800 mb-2">Ulasan Video</h3>
-            <p className="text-slate-600 leading-relaxed">{review.cameraAssessment?.videoSummary ?? 'Ulasan video tidak tersedia.'}</p>
+        <div>
+            <h3 className="text-lg font-bold text-slate-900 mb-3">Analisis Gaming</h3>
+            <div className="p-5 bg-indigo-50/30 rounded-2xl border border-indigo-100">
+                <p className="text-slate-600 leading-relaxed">{review.performance?.gamingReview || 'Data performa gaming tidak tersedia.'}</p>
+            </div>
         </div>
     </div>
 );
 
-const SpecItem: FC<{ label: string; value: string | undefined | null }> = ({ label, value }) => (
-    value ? (<><dt className="small-muted truncate">{label}</dt><dd className="text-slate-700 text-right">{value}</dd></>) : null
+const TabContentCamera: FC<{ review: ReviewResult }> = ({ review }) => (
+    <div className="space-y-8">
+        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+             <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-slate-900">Penilaian Kamera</h3>
+                {review.cameraAssessment?.dxomarkScore && (
+                    <div className="px-4 py-1.5 bg-slate-900 text-white rounded-full text-xs font-bold">
+                        DXOMark: {review.cameraAssessment.dxomarkScore}
+                    </div>
+                )}
+             </div>
+             
+             <div className="space-y-6">
+                <div>
+                    <h4 className="font-bold text-slate-800 text-sm mb-2 uppercase tracking-wide">Kualitas Foto</h4>
+                    <p className="text-slate-600 text-sm leading-relaxed">{review.cameraAssessment?.photoSummary || 'Review foto tidak tersedia.'}</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                         <h5 className="text-[10px] font-black text-emerald-600 uppercase tracking-tighter">Pro Foto</h5>
+                         <ul className="space-y-1">{review.cameraAssessment?.photoPros?.map((p, i) => <li key={i} className="text-xs text-slate-500">• {p}</li>)}</ul>
+                    </div>
+                    <div className="space-y-2">
+                         <h5 className="text-[10px] font-black text-rose-600 uppercase tracking-tighter">Cons Foto</h5>
+                         <ul className="space-y-1">{review.cameraAssessment?.photoCons?.map((c, i) => <li key={i} className="text-xs text-slate-500">• {c}</li>)}</ul>
+                    </div>
+                </div>
+                <div className="pt-4 border-t border-slate-200">
+                    <h4 className="font-bold text-slate-800 text-sm mb-2 uppercase tracking-wide">Kualitas Video</h4>
+                    <p className="text-slate-600 text-sm leading-relaxed">{review.cameraAssessment?.videoSummary || 'Review video tidak tersedia.'}</p>
+                </div>
+             </div>
+        </div>
+    </div>
 );
 
 export default SmartReview;
