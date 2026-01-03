@@ -6,6 +6,7 @@ import SearchIcon from './icons/SearchIcon';
 import ShareButtons from './ShareButtons';
 import EcommerceButtons from './EcommerceButtons';
 import CrownIcon from './icons/CrownIcon';
+import UsersIcon from './icons/UsersIcon';
 
 // --- INTERFACES ---
 interface Ratings {
@@ -200,7 +201,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
             }
         }
 
-        const prompt = `Lakukan ulasan/review mendalam untuk smartphone: '${searchQuery}'. Gunakan data terbaru hingga tahun 2025. Respons dalam Bahasa Indonesia.`;
+        const prompt = `Lakukan ulasan/review mendalam dan komprehensif untuk smartphone: '${searchQuery}'. Berikan ringkasan (summary) yang panjang, sangat detail, dan mencakup berbagai aspek penggunaan harian. Gunakan data terbaru hingga tahun 2025. Respons dalam Bahasa Indonesia.`;
 
         try {
             const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any } });
@@ -477,7 +478,7 @@ const ReviewSummaryCard: FC<{ result: ReviewResult; onSeeFull: () => void; onRes
                 </div>
 
                 <div className="text-left mb-6">
-                    <p className="text-slate-200 text-base leading-relaxed font-medium italic">"{result.quickReview?.summary}"</p>
+                    <p className="text-slate-200 text-base leading-relaxed font-medium italic line-clamp-3">"{result.quickReview?.summary}"</p>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-6 border-t border-white/10">
@@ -583,10 +584,26 @@ const TabContentRingkasan: FC<{ review: ReviewResult }> = ({ review }) => (
         <div>
             <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
                 <span className="w-2 h-6 bg-[color:var(--accent1)] rounded-full"></span>
-                Ringkasan AI
+                Ringkasan AI Komprehensif
             </h3>
-            <p className="text-slate-600 leading-relaxed text-base">{review.quickReview.summary}</p>
+            <p className="text-slate-600 leading-relaxed text-base whitespace-pre-wrap">{review.quickReview.summary}</p>
         </div>
+
+        {review.targetAudience && review.targetAudience.length > 0 && (
+            <div>
+                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <UsersIcon className="w-6 h-6 text-slate-400" />
+                    Cocok Untuk Siapa?
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                    {review.targetAudience.map((audience, idx) => (
+                        <span key={idx} className="px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-xl text-indigo-700 text-sm font-semibold shadow-sm">
+                            {audience}
+                        </span>
+                    ))}
+                </div>
+            </div>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
