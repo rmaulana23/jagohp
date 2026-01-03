@@ -22,6 +22,10 @@ const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
         return average.toFixed(1);
     };
 
+    const formatBrandName = (name: string): string => {
+        return name.replace(/iqoo/gi, 'iQOO');
+    };
+
     const shortenSpec = (spec: string | undefined | null): string | undefined | null => {
         if (!spec) return spec;
         const shortSpec = spec
@@ -31,32 +35,33 @@ const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
             .replace(/Samsung\s*Exynos\s*/i, 'Exynos ')
             .replace(/Apple\s*/i, '')
             .replace(/Unisoc\s*/i, '');
-        return shortSpec.trim();
+        return formatBrandName(shortSpec.trim());
     };
 
     const overallScore = calculateOverallScore();
     const priceDisplay = marketPrice?.indonesia || 'Rp -'; 
+    const displayName = formatBrandName(phoneName);
     
     return (
         <div className="p-4 animate-fade-in flex flex-col bg-[color:var(--accent1)] rounded-3xl shadow-2xl border border-white/10 overflow-hidden group">
             <div className="flex gap-4 mb-4 items-start">
                 {imageUrl ? (
-                    <div className="w-20 h-28 bg-white/5 rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center p-2 shadow-inner">
+                    <div className="w-18 h-24 bg-slate-900/40 rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center p-1 shadow-inner border border-white/5">
                         <img 
                             src={imageUrl} 
-                            alt={phoneName} 
-                            className="max-w-full max-h-full object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-500" 
+                            alt={displayName} 
+                            className="max-w-full max-h-full object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-500 scale-110" 
                         />
                     </div>
                 ) : (
-                    <div className="w-20 h-20 bg-white/5 rounded-2xl flex-shrink-0 flex items-center justify-center border border-white/5">
+                    <div className="w-18 h-18 bg-slate-900/40 rounded-2xl flex-shrink-0 flex items-center justify-center border border-white/5">
                         <span className="text-[10px] text-slate-500 font-bold uppercase">No Image</span>
                     </div>
                 )}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
-                            <div className="text-base font-bold text-white leading-tight truncate group-hover:text-yellow-400 transition-colors">{phoneName}</div>
+                            <div className="text-base font-bold text-white leading-tight truncate group-hover:text-yellow-400 transition-colors">{displayName}</div>
                             <div className="text-[9px] text-slate-400 mt-1 uppercase font-bold tracking-widest">{`Rilis: ${specs?.rilis || 'N/A'}`}</div> 
                         </div>
                         <div className="text-[10px] font-black text-yellow-400 bg-white/10 px-2.5 py-1 rounded-xl backdrop-blur-md flex-shrink-0 border border-white/5">
@@ -75,15 +80,13 @@ const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
             </div>
 
             <div className="flex-1">
-                <div className="mb-4">
-                    <p className="text-slate-300 text-xs leading-relaxed line-clamp-3 italic">"{quickReview?.summary}"</p>
-                </div>
-
                 <dl className="grid grid-cols-2 gap-x-3 gap-y-3 text-[10px] border-t border-white/10 pt-4">
                     <SpecItem label="Chipset" value={shortenSpec(specs?.processor)} />
                     <SpecItem label="AnTuTu v10" value={performance?.antutuScore?.toLocaleString('id-ID')} />
-                    <SpecItem label="Memori" value={specs?.ram} />
+                    <SpecItem label="Memori" value={formatBrandName(specs?.ram || '')} />
                     <SpecItem label="Baterai" value={specs?.battery} />
+                    <SpecItem label="Layar" value={specs?.display} />
+                    <SpecItem label="Kamera" value={specs?.camera} />
                 </dl>
             </div>
 
