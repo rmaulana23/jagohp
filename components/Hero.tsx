@@ -359,48 +359,14 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
             specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
             targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
             accessoryAvailability: { type: Type.STRING },
-            marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING, description: "CRITICAL: HARGA RUPIAH WAJIB ADA. JANGAN KOSONG/TBA. Jika HP belum rilis resmi, WAJIB ESTIMASI konversi kurs + pajak (Format: Rp X.XXX.XXX)." }, global: { type: Type.STRING } }, required: ["indonesia"] },
-            performance: { type: Type.OBJECT, properties: { antutuScore: { type: Type.INTEGER }, geekbenchScore: { type: Type.STRING }, competitors: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, antutuScore: { type: Type.INTEGER } } } }, gamingReview: { type: Type.STRING }, gamingRatings: { type: Type.ARRAY, description: "An array of gaming performance ratings for specific games.", items: { type: Type.OBJECT, properties: { game: { type: Type.STRING, description: "Name of the game, one of [PUBG Battlegrounds, COD Warzone, Mobile Legends, Genshin Impact, Real Racing 3]" }, score: { type: Type.NUMBER, description: "Rating score from 1 to 10 for the game." } } } } }},
+            marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } }, required: ["indonesia"] },
+            performance: { type: Type.OBJECT, properties: { antutuScore: { type: Type.INTEGER }, geekbenchScore: { type: Type.STRING }, competitors: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, antutuScore: { type: Type.INTEGER } } } }, gamingReview: { type: Type.STRING }, gamingRatings: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { game: { type: Type.STRING }, score: { type: Type.NUMBER } } } } }},
             cameraAssessment: { type: Type.OBJECT, properties: { dxomarkScore: { type: Type.INTEGER }, photoSummary: { type: Type.STRING }, photoPros: { type: Type.ARRAY, items: { type: Type.STRING } }, photoCons: { type: Type.ARRAY, items: { type: Type.STRING } }, videoSummary: { type: Type.STRING }}}
         },
     };
-    const prompt = `**Context: Cache Check**
-- My system has already checked its database for an existing review for '${reviewQuery}'.
-- A new review is required because no valid cached entry was found.
----
-**Core Role: Comprehensive Data Synthesizer for JAGO-HP**
-Your task is to act as an AI Gadget Reviewer and generate a comprehensive review in **Bahasa Indonesia** for the gadget: '${reviewQuery}'.
-
-**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
-- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**.
-- **Data Sourcing Mandate:** Your primary objective is to find and synthesize smartphone data from the **entire public internet**. You are not limited to specific sites.
-- **CRITICAL RULE: NEVER FAIL A SEARCH.** You are **STRICTLY FORBIDDEN** from claiming a device "is not found" or that "data is unavailable". If official specifications are not public, you **MUST** synthesize a response based on credible rumors, leaks, official announcements, and industry analysis. For unreleased phones (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra'), provide the most likely rumored specifications.
-- **Reliable Source Examples:** Use reputable tech sites as your primary information pool. Examples include (but are not limited to):
-    - **GSMArena** (For Apple devices, start your search here: https://www.gsmarena.com/apple-phones-48.php)
-    - **Phone Arena**
-    - **AnandTech**
-    - **nanoreview.net**
-    - Official brand websites (Samsung.com, Apple.com, etc.)
-    - Reputable leakers and tech news outlets.
-- **Data Synthesis:** If sources conflict, use your judgment to present the most plausible and widely reported specification.
-
-**Execution Steps & Formatting Rules (VERY IMPORTANT):**
-1.  **Identify Gadget:** Find the official product based on the user's query ('${reviewQuery}').
-2.  **Extract & Synthesize Data:** Use the specified sources to gather the most accurate, final data.
-3.  **Handle Missing Data:** Use \`null\` for numeric fields or "N/A" for strings if data is genuinely unavailable after checking all sources.
-4.  **Populate JSON:** Fill all fields according to the schema with the following formatting constraints:
-    -   \`ratings\`: Each category **MUST** be rated on a scale of 1 to 10 based on final product performance.
-    -   \`gamingRatings\`: Provide a 1-10 score for each of these specific games: 'PUBG Battlegrounds', 'COD Warzone', 'Mobile Legends', 'Genshin Impact', 'Real Racing 3'. The score should reflect performance (FPS, stability, graphics settings). If performance data for a specific game is genuinely not available, omit it from the array.
-    -   \`quickReview.summary\`: MUST be a single, concise sentence (maximum 1-2 short sentences).
-    -   \`specs.ram\`: Format: "[Size] [Type]". Example: "8GB LPDDR5", "12GB LPDDR5X".
-    -   \`specs.camera\`: A short summary of main lenses. Example: "Utama: 200MP + 50MP", "50MP Wide + 12MP Ultrawide".
-    -   \`specs.battery\`: Just the capacity. Example: "5000 mAh".
-5.  **Failure Conditions:** The only failure is if a device is truly fictional and unmentioned anywhere. Otherwise, you must provide data.
-
-**Final Output:** Strictly adhere to the JSON schema and all formatting rules.`;
     
     try {
-        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema } });
+        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: `Review HP: ${reviewQuery}`, config: { responseMimeType: "application/json", responseSchema: schema } });
         const parsedResult: ReviewResult = JSON.parse(response.text.trim());
         if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
             setReviewError(parsedResult.phoneName);
@@ -450,11 +416,11 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
     
     const phoneSpecProperties = {
         rilis: { type: Type.STRING }, os: { type: Type.STRING }, processor: { type: Type.STRING },
-        ram: { type: Type.STRING, description: "Ukuran dan tipe RAM. Contoh: '8GB LPDDR5'" },
-        antutuScore: { type: Type.INTEGER, description: "Skor AnTuTu v10. Jika tidak tersedia, kembalikan null." },
+        ram: { type: Type.STRING },
+        antutuScore: { type: Type.INTEGER },
         jaringan: { type: Type.STRING }, display: { type: Type.STRING }, camera: { type: Type.STRING }, 
         battery: { type: Type.STRING }, charging: { type: Type.STRING }, nfc: { type: Type.STRING },
-        hargaIndonesia: { type: Type.STRING, description: "Perkiraan harga pasar di Indonesia dalam Rupiah. Contoh: 'Rp 4.599.000'" },
+        hargaIndonesia: { type: Type.STRING },
     };
 
     const baseSchemaProperties = {
@@ -463,57 +429,16 @@ Your task is to act as an AI Gadget Reviewer and generate a comprehensive review
 
     const battleSchemaProperties = {
         ...baseSchemaProperties,
-        battleSummary: { type: Type.STRING, description: "SATU paragraf SANGAT RINGKAS (maksimal 2-3 kalimat) perbandingan umum, dalam Bahasa Indonesia." },
-        winnerName: { type: Type.STRING, description: "Nama resmi pemenang. Jika seri, isi 'Seri'. Jika tidak ada pemenang, biarkan kosong." }
+        battleSummary: { type: Type.STRING },
+        winnerName: { type: Type.STRING }
     };
 
     const schema = mode === 'battle' 
         ? { type: Type.OBJECT, properties: battleSchemaProperties, required: ['battleSummary', 'phones', 'winnerName'] }
         : { type: Type.OBJECT, properties: baseSchemaProperties, required: ['phones'] };
     
-    const basePrompt = `**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
-- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**.
-- **Data Sourcing Mandate:** Your primary objective is to find and synthesize smartphone data from the **entire public internet**. You are not limited to specific sites.
-- **CRITICAL RULE: NEVER FAIL A SEARCH.** You are **STRICTLY FORBIDDEN** from claiming a device "is not found" or that "data is unavailable". If official specifications are not public, you **MUST** synthesize a response based on credible rumors, leaks, official announcements, and industry analysis. For unreleased phones (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra'), provide the most likely rumored specifications.
-- **Reliable Source Examples:** Use reputable tech sites as your primary information pool. Examples include (but are not limited to):
-    - **GSMArena** (For Apple devices, start your search here: https://www.gsmarena.com/apple-phones-48.php)
-    - **Phone Arena**
-    - **AnandTech**
-    - **nanoreview.net**
-    - Official brand websites (Samsung.com, Apple.com, etc.)
-    - Reputable leakers and tech news outlets.
-- **Data Synthesis:** If sources conflict, use your judgment to present the most plausible and widely reported specification.`;
-
-    const battlePrompt = `**Context: Cache Check**
-- My system has checked its database for an existing comparison of: ${phoneList}.
-- A new analysis is required as no valid cache was found.
----
-**Core Role: AI Battle Analyst for JAGO-HP**
-Your task is to perform a detailed comparison in **Bahasa Indonesia** between: ${phoneList}.
-${basePrompt}
-**Execution:**
-1. **Identify & Verify:** Find the official devices from any reliable source.
-2. **Synthesize Data:** Extract and synthesize the final specification data.
-3. **Analyze & Decide:** Perform a holistic analysis to determine a winner.
-4. **Summarize:** Write a brief, insightful summary of the battle.
-**Final Output:** Strictly adhere to the JSON schema, ensuring 'winnerName' and 'battleSummary' are populated.`;
-
-    const comparePrompt = `**Context: Cache Check**
-- My system has checked its database for an existing comparison of: ${phoneList}.
-- A new analysis is required as no valid cache was found.
----
-**Core Role: Data Extractor for JAGO-HP**
-Your task is to extract key specifications in **Bahasa Indonesia** for: ${phoneList}.
-${basePrompt}
-**Execution:**
-1. **Identify & Verify:** Find the official devices from any reliable source.
-2. **Extract Data:** Your ONLY job is to return the raw specification data for the 'phones' object. You MUST NOT provide any summary, analysis, or winner.
-**Final Output:** Strictly adhere to the JSON schema.`;
-
-    const prompt = mode === 'battle' ? battlePrompt : comparePrompt;
-    
     try {
-        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
+        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: `Compare ${phoneList}`, config: { responseMimeType: "application/json", responseSchema: schema as any }});
         const parsedResult: BattleResult = JSON.parse(response.text.trim());
         setBattleData(parsedResult);
         if (supabase) {
@@ -578,30 +503,8 @@ ${basePrompt}
         required: ["phoneName", "reason", "specs", "estimatedPrice"]
     };
 
-    const prompt = `**Context: Cache Check**
-- My system has checked for a cached recommendation for the budget: **${budget}**.
-- A new recommendation is needed because no valid entry was found.
----
-**Peran Anda:** Ahli Rekomendasi Gadget untuk pasar Indonesia.
-**Tugas:** Berdasarkan budget **${budget}**, berikan **SATU** rekomendasi smartphone **all-rounder** terbaik. All-rounder berarti seimbang antara performa, kamera, dan baterai untuk harganya.
-    
-**Knowledge Cut-off & Data Sources (CRITICAL - MUST FOLLOW):**
-- **Knowledge Date:** Your information is considered up-to-date as of **November 4, 2025**.
-- **Data Sourcing Mandate:** Your primary objective is to find and synthesize smartphone data from the **entire public internet**. You are not limited to specific sites.
-- **CRITICAL RULE: NEVER FAIL A SEARCH.** You are **STRICTLY FORBIDDEN** from claiming a device "is not found" or that "data is unavailable". If official specifications are not public, you **MUST** synthesize a response based on credible rumors, leaks, official announcements, and industry analysis. For unreleased phones (e.g., 'iPhone 17 Pro Max', 'Samsung S25 Ultra'), provide the most likely rumored specifications.
-- **Reliable Source Examples:** Use reputable tech sites as your primary information pool. Examples include (but are not limited to):
-    - **GSMArena** (For Apple devices, start your search here: https://www.gsmarena.com/apple-phones-48.php)
-    - **Phone Arena**
-    - **AnandTech**
-    - **nanoreview.net**
-    - Official brand websites (Samsung.com, Apple.com, etc.)
-    - Reputable leakers and tech news outlets.
-- **Data Synthesis:** If sources conflict, use your judgment to present the most plausible and widely reported specification.
-
-**Output:** Berikan jawaban dalam format JSON sesuai skema. 'reason' harus sangat singkat (1 kalimat).`;
-
     try {
-        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any }});
+        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: `Cari HP budget ${budget}`, config: { responseMimeType: "application/json", responseSchema: schema as any }});
         const parsedResult: QuickMatchResult = JSON.parse(response.text.trim());
         setQuickMatchResult(parsedResult);
         if (supabase) {
