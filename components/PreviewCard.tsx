@@ -8,82 +8,90 @@ interface PreviewCardProps {
 }
 
 const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
-    const { phoneName, ratings, quickReview, specs, performance, marketPrice } = result;
+    const { phoneName, ratings, quickReview, specs, performance, marketPrice, imageUrl } = result;
 
-    const calculateOverallScore = () => {
+    const calculateOverallScore = (): string => {
         if (!ratings) {
             return 'N/A';
         }
         const scores = [ratings.gaming, ratings.kamera, ratings.baterai, ratings.layarDesain, ratings.performa, ratings.storageRam];
         const validScores = scores.filter(s => typeof s === 'number' && s > 0);
         if (validScores.length === 0) return 'N/A';
-        const sum = validScores.reduce((acc, score) => acc + score, 0);
+        const sum: number = validScores.reduce((acc: number, score: number) => acc + score, 0);
         const average = sum / validScores.length;
         return average.toFixed(1);
     };
 
-    // Function to shorten spec text for better display
     const shortenSpec = (spec: string | undefined | null): string | undefined | null => {
         if (!spec) return spec;
-        
-        // For processor: remove common manufacturer names to save space.
         const shortSpec = spec
-            .replace(/Qualcomm\s*SM\w{4}(-\w{2,3})?\s*/i, '') // "Qualcomm SM8650-AB" -> ""
-            .replace(/Qualcomm\s*/i, '') // "Qualcomm Snapdragon..." -> "Snapdragon..."
+            .replace(/Qualcomm\s*SM\w{4}(-\w{2,3})?\s*/i, '')
+            .replace(/Qualcomm\s*/i, '')
             .replace(/MediaTek\s*/i, '')
             .replace(/Samsung\s*Exynos\s*/i, 'Exynos ')
             .replace(/Apple\s*/i, '')
             .replace(/Unisoc\s*/i, '');
-            
         return shortSpec.trim();
     };
 
     const overallScore = calculateOverallScore();
-    const brand = phoneName.split(' ')[0] || 'Unknown';
-    // Force display of whatever string is returned, assuming AI follows the "No TBA" rule
     const priceDisplay = marketPrice?.indonesia || 'Rp -'; 
     
     return (
-        <div className="p-4 animate-fade-in flex flex-col bg-[color:var(--accent1)] rounded-2xl shadow-lg border border-white/10">
+        <div className="p-4 animate-fade-in flex flex-col bg-[color:var(--accent1)] rounded-3xl shadow-2xl border border-white/10 overflow-hidden group">
+            <div className="flex gap-4 mb-4 items-start">
+                {imageUrl ? (
+                    <div className="w-20 h-28 bg-white/5 rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center p-2 shadow-inner">
+                        <img 
+                            src={imageUrl} 
+                            alt={phoneName} 
+                            className="max-w-full max-h-full object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-500" 
+                        />
+                    </div>
+                ) : (
+                    <div className="w-20 h-20 bg-white/5 rounded-2xl flex-shrink-0 flex items-center justify-center border border-white/5">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase">No Image</span>
+                    </div>
+                )}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                            <div className="text-base font-bold text-white leading-tight truncate group-hover:text-yellow-400 transition-colors">{phoneName}</div>
+                            <div className="text-[9px] text-slate-400 mt-1 uppercase font-bold tracking-widest">{`Rilis: ${specs?.rilis || 'N/A'}`}</div> 
+                        </div>
+                        <div className="text-[10px] font-black text-yellow-400 bg-white/10 px-2.5 py-1 rounded-xl backdrop-blur-md flex-shrink-0 border border-white/5">
+                            {overallScore}
+                        </div>
+                    </div>
+                    
+                    <div className="mt-3">
+                        <div className="inline-flex items-center px-2.5 py-1.5 rounded-xl bg-white/10 border border-white/10">
+                            <span className="text-[11px] font-black text-yellow-300 tracking-tight">
+                                {priceDisplay}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div className="flex-1">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <div className="text-base font-semibold text-white leading-tight">{phoneName}</div>
-                        <div className="text-xs text-slate-200 mt-0.5">{`Rilis: ${specs?.rilis || 'N/A'} • ${brand}`}</div> 
-                    </div>
-                    <div className="text-sm font-semibold text-white flex-shrink-0 ml-2 bg-white/10 px-2 py-1 rounded-lg backdrop-blur-sm">
-                        Score <span className="text-yellow-400">{overallScore}</span>
-                    </div>
+                <div className="mb-4">
+                    <p className="text-slate-300 text-xs leading-relaxed line-clamp-3 italic">"{quickReview?.summary}"</p>
                 </div>
 
-                {/* Price Display Badge - Always Visible & Prominent */}
-                <div className="mt-3 mb-2">
-                    <div className="inline-flex items-center px-3 py-1.5 rounded-lg bg-white/10 border border-white/20 backdrop-blur-md">
-                        <span className="text-[10px] uppercase tracking-wider text-slate-300 mr-2">Harga Pasar:</span>
-                        <span className="text-sm font-bold text-yellow-300 tracking-wide">
-                            {priceDisplay}
-                        </span>
-                    </div>
-                </div>
-
-                <div className="mt-2 text-sm">
-                    <div className="font-medium text-white text-xs uppercase tracking-wider opacity-80 mb-1">Quick Review</div>
-                    <p className="text-slate-200 text-sm leading-relaxed line-clamp-3">{quickReview?.summary}</p>
-                </div>
-
-                <dl className="mt-4 grid grid-cols-2 gap-x-2 gap-y-2 text-xs border-t border-white/10 pt-3">
-                    <SpecItem label="CPU" value={shortenSpec(specs?.processor)} />
-                    <SpecItem label="RAM" value={specs?.ram} />
-                    <SpecItem label="Kamera" value={specs?.camera} />
+                <dl className="grid grid-cols-2 gap-x-3 gap-y-3 text-[10px] border-t border-white/10 pt-4">
+                    <SpecItem label="Chipset" value={shortenSpec(specs?.processor)} />
+                    <SpecItem label="AnTuTu v10" value={performance?.antutuScore?.toLocaleString('id-ID')} />
+                    <SpecItem label="Memori" value={specs?.ram} />
                     <SpecItem label="Baterai" value={specs?.battery} />
-                    <SpecItem label="AnTuTu" value={performance?.antutuScore?.toLocaleString('id-ID')} />
                 </dl>
             </div>
-             <button
+
+            <button
                 onClick={onSeeFull}
-                className="w-full mt-5 px-4 py-2.5 rounded-xl text-xs font-bold bg-white text-[color:var(--accent1)] hover:bg-slate-100 transition-colors shadow-md flex items-center justify-center gap-2"
+                className="w-full mt-5 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest bg-white text-[#141426] hover:bg-yellow-400 transition-colors shadow-lg active:scale-95"
             >
-                Lihat Review Lengkap &rarr;
+                Review Lengkap &rarr;
             </button>
         </div>
     );
@@ -92,9 +100,9 @@ const PreviewCard: FC<PreviewCardProps> = ({ result, onSeeFull }) => {
 const SpecItem: FC<{ label: string; value: string | undefined | null }> = ({ label, value }) => {
     if (!value) return null;
     return (
-        <div className="flex flex-col">
-            <dt className="text-slate-400 font-medium text-[10px] uppercase">{label}</dt>
-            <dd className="text-white font-medium truncate">{value}</dd>
+        <div className="flex flex-col min-w-0">
+            <dt className="text-slate-500 font-black text-[8px] uppercase tracking-widest mb-0.5">{label}</dt>
+            <dd className="text-slate-200 font-bold truncate leading-tight">{value}</dd>
         </div>
     )
 };
