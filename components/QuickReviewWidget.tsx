@@ -49,7 +49,7 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
                 phoneName: { type: Type.STRING },
                 ratings: { type: Type.OBJECT, properties: { gaming: { type: Type.NUMBER }, kamera: { type: Type.NUMBER }, baterai: { type: Type.NUMBER }, layarDesain: { type: Type.NUMBER }, performa: { type: Type.NUMBER }, storageRam: { type: Type.NUMBER }}},
                 quickReview: { type: Type.OBJECT, properties: { summary: { type: Type.STRING }, pros: { type: Type.ARRAY, items: { type: Type.STRING } }, cons: { type: Type.ARRAY, items: { type: Type.STRING } } } },
-                specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
+                specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan dan tahun. Contoh: 'Januari 2026'." }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
                 targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
                 accessoryAvailability: { type: Type.STRING },
                 marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } } },
@@ -59,7 +59,14 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
         };
         
         try {
-            const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: `Quick Review HP: ${reviewQuery}`, config: { responseMimeType: "application/json", responseSchema: schema } });
+            const response = await ai.models.generateContent({ 
+                model: 'gemini-3-flash-preview', 
+                contents: `**Pakar Teknologi:** Quick Review HP: ${reviewQuery}. Gunakan data terbaru awal 2026. rilis wajib ada bulan. Brand 'iQOO' ditulis 'iQOO'.`, 
+                config: { 
+                    responseMimeType: "application/json", 
+                    responseSchema: schema 
+                } 
+            });
             const parsedResult: ReviewResult = JSON.parse(response.text.trim());
             if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
                 setReviewError(parsedResult.phoneName);
@@ -76,21 +83,21 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
 
     return (
         <div className="glass p-5 space-y-4">
-            <h3 className="font-semibold text-slate-800 text-lg">Quick Smart Review</h3>
+            <h3 className="font-semibold text-slate-800 text-lg">Quick Review 2026</h3>
             <div className="flex gap-3 items-center">
                 <input 
                     value={reviewQuery} 
                     onChange={(e) => setReviewQuery(e.target.value)} 
                     onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} 
                     className="flex-1 px-4 py-2.5 rounded-lg bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" 
-                    placeholder="Cari HP lain..." 
+                    placeholder="Tipe HP 2026..." 
                 />
                 <button 
                     onClick={handleReviewSearch} 
                     disabled={reviewLoading} 
                     className="px-4 py-2.5 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
-                    {reviewLoading ? '...' : 'Cari'}
+                    {reviewLoading ? '...' : 'Pakar'}
                 </button>
             </div>
             {quickReviewResult ? (
@@ -99,7 +106,7 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
                 </div>
             ) : (
                 <div className="text-center text-sm text-slate-400 py-4 italic">
-                    Masukkan nama HP di atas.
+                    Tanya kami tentang model HP apa pun.
                 </div>
             )}
         </div>
