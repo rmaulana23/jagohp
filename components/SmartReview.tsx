@@ -121,7 +121,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
     const schema = {
         type: Type.OBJECT,
         properties: {
-            phoneName: { type: Type.STRING },
+            phoneName: { type: Type.STRING, description: "Nama resmi lengkap HP (Contoh: Samsung Galaxy S24 Ultra)" },
             ratings: {
                 type: Type.OBJECT,
                 properties: {
@@ -189,6 +189,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 
         const cacheKey = searchQuery.trim().toLowerCase();
 
+        // 1. Cek database berdasarkan query user (pencarian cepat)
         if (supabase) {
             try {
                 const { data } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', cacheKey).single();
@@ -197,24 +198,23 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     setReview(cachedReview);
                     setLoading(false);
                     updateRecentList(cachedReview);
-                    
-                    // Refresh timestamp in DB to persistent move to top
                     await supabase.from('smart_reviews').update({ created_at: new Date().toISOString() }).eq('cache_key', cacheKey);
                     return;
                 }
             } catch (cacheError) {
-                console.warn("Supabase cache check failed:", cacheError);
+                console.warn("Supabase initial cache check missed.");
             }
         }
 
-        const prompt = `**Peran:** Anda adalah Ahli Teknologi Senior & Reviewer Gadget tingkat dunia dengan pengetahuan komprehensif hingga awal Januari 2026.
-**Tugas:** Lakukan ulasan mendalam untuk smartphone: '${searchQuery}'. 
+        const prompt = `**Peran:** Anda adalah Ahli Teknologi Senior & Reviewer Gadget tingkat dunia.
+**Tugas:** Lakukan ulasan mendalam untuk smartphone yang dimaksud user: '${searchQuery}'. 
+**PENTING:** Identifikasi dengan tepat HP apa yang dimaksud user (misal: "S24 Ultra" adalah "Samsung Galaxy S24 Ultra").
 **Ketentuan Khusus:**
-1. Berikan ringkasan (summary) yang panjang (minimal 3 paragraf), sangat detail, teknis namun mudah dimengerti.
-2. Gunakan data terbaru dari sumber terpercaya seperti GSMArena atau PhoneArena.
-3. Data 'rilis' WAJIB menyertakan nama bulan (Contoh: Maret 2025) atau estimasi bulan (Contoh: Januari 2026 - Estimasi).
-4. Field 'targetAudience' harus spesifik (misal: 'Fotografer Jalanan', 'Gamer Kompetitif Mobile').
-5. Brand 'iQOO' harus selalu ditulis dengan format 'iQOO' (i kecil, QOO besar).
+1. Berikan nama resmi lengkap HP di field 'phoneName'.
+2. Berikan ringkasan (summary) yang panjang (minimal 3 paragraf), teknis namun mudah dimengerti.
+3. Gunakan data terbaru dari GSMArena atau PhoneArena (hingga awal 2026).
+4. Data 'rilis' WAJIB menyertakan nama bulan.
+5. Brand 'iQOO' harus selalu ditulis 'iQOO'.
 **Bahasa:** Bahasa Indonesia.`;
 
         try {
@@ -233,19 +233,50 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                 setError(parsedResult.phoneName);
                 setReview(null);
             } else {
-                setReview(parsedResult);
-                updateRecentList(parsedResult);
+                // 2. Cek database LAGI berdasarkan Nama Resmi dari AI (untuk mencegah duplikasi)
+                const officialCacheKey = parsedResult.phoneName.toLowerCase().trim();
+                
                 if (supabase) {
+                    const { data: existingData } = await supabase
+                        .from('smart_reviews')
+                        .select('review_data')
+                        .eq('cache_key', officialCacheKey)
+                        .single();
+
+                    if (existingData) {
+                        // Data sudah ada di DB dengan nama resmi ini, gunakan itu saja
+                        const existingReview = existingData.review_data as ReviewResult;
+                        setReview(existingReview);
+                        updateRecentList(existingReview);
+                        await supabase.from('smart_reviews').update({ created_at: new Date().toISOString() }).eq('cache_key', officialCacheKey);
+                        setLoading(false);
+                        return;
+                    }
+
+                    // 3. Jika benar-benar baru, simpan ke database dengan cache_key nama resmi
                     try {
-                        await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: parsedResult });
+                        await supabase.from('smart_reviews').insert({ 
+                            cache_key: officialCacheKey, 
+                            review_data: parsedResult 
+                        });
+                        // Jika user mencari dengan nama tidak lengkap, simpan alias kueri juga (opsional, tapi bagus untuk akselerasi)
+                        if (officialCacheKey !== cacheKey) {
+                             await supabase.from('smart_reviews').insert({ 
+                                cache_key: cacheKey, 
+                                review_data: parsedResult 
+                            }).catch(() => null); // Abaikan jika kueri user sudah ada
+                        }
                     } catch (cacheError) {
                         console.warn("Supabase cache write failed:", cacheError);
                     }
                 }
+                
+                setReview(parsedResult);
+                updateRecentList(parsedResult);
             }
         } catch (e) {
             console.error(e);
-            setError('An AI error occurred. Please try again.');
+            setError('Terjadi kesalahan AI. Silakan coba lagi.');
         } finally {
             setLoading(false);
         }
@@ -253,7 +284,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 
     const updateRecentList = (newReview: ReviewResult) => {
         setRecentReviews(prev => {
-            // Remove existing review if present to prevent duplicates and always move to top (index 0)
             const filtered = prev.filter(r => r.phoneName.toLowerCase() !== newReview.phoneName.toLowerCase());
             return [newReview, ...filtered];
         });
@@ -265,7 +295,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         } else if (initialResult) {
             setReview(initialResult);
             setQuery(initialResult.phoneName);
-            // Bubbling locally
             updateRecentList(initialResult);
         }
     }, [initialQuery, initialResult]);
@@ -279,18 +308,13 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         setReview(rev);
         setShowFullReview(false);
         setQuery(rev.phoneName);
-        
-        // Move to top locally
         updateRecentList(rev);
-        
-        // Update timestamp in DB so it stays top on refresh
         if (supabase) {
             supabase.from('smart_reviews')
                 .update({ created_at: new Date().toISOString() })
                 .eq('cache_key', rev.phoneName.toLowerCase())
                 .then();
         }
-
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -503,7 +527,7 @@ const ReviewSummaryCard: FC<{ result: ReviewResult; onSeeFull: () => void; onRes
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-6 border-t border-white/10">
-                    <SpecItemDark label="CPU" value={result.specs?.processor} />
+                    <SpecItemDark label="Chipset" value={result.specs?.processor} />
                     <SpecItemDark label="RAM/Storage" value={result.specs?.ram} />
                     <SpecItemDark label="AnTuTu v10" value={result.performance?.antutuScore?.toLocaleString('id-ID')} />
                 </div>
