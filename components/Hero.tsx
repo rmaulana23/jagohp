@@ -58,6 +58,12 @@ interface HeroProps {
   onOpenDonationModal: () => void;
 }
 
+// Utility to format brand names correctly
+const formatBrandName = (name: string): string => {
+    if (!name) return name;
+    return name.replace(/iqoo/gi, 'iQOO');
+};
+
 // --- Share Popup Component ---
 const CardSharePopup: FC<{ post: BlogPost; onClose: () => void }> = ({ post, onClose }) => {
     const [copyStatus, setCopyStatus] = useState('');
@@ -333,6 +339,24 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
 
     const cacheKey = reviewQuery.trim().toLowerCase();
 
+    // Helper to ensure search registers as "latest" in the main Smart Review list
+    const bubbleInSmartReviewList = async (reviewData: ReviewResult) => {
+        if (!supabase) return;
+        try {
+            // First check if it exists in the main smart_reviews table
+            const { data: existing } = await supabase.from('smart_reviews').select('cache_key').eq('cache_key', cacheKey).single();
+            if (existing) {
+                // Update timestamp to move to top
+                await supabase.from('smart_reviews').update({ created_at: new Date().toISOString() }).eq('cache_key', cacheKey);
+            } else {
+                // Insert as new to appear at top
+                await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: reviewData });
+            }
+        } catch (err) {
+            console.warn("Failed to bubble review in smart_reviews list", err);
+        }
+    };
+
     if (supabase) {
       try {
         const { data } = await supabase
@@ -341,7 +365,9 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
           .eq('phone_name_query', cacheKey)
           .single();
         if (data && data.review_data) {
-          onSetPersistentQuickReviewResult(data.review_data as ReviewResult);
+          const cachedResult = data.review_data as ReviewResult;
+          onSetPersistentQuickReviewResult(cachedResult);
+          await bubbleInSmartReviewList(cachedResult);
           setReviewLoading(false);
           return;
         }
@@ -356,7 +382,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
             phoneName: { type: Type.STRING },
             ratings: { type: Type.OBJECT, properties: { gaming: { type: Type.NUMBER }, kamera: { type: Type.NUMBER }, baterai: { type: Type.NUMBER }, layarDesain: { type: Type.NUMBER }, performa: { type: Type.NUMBER }, storageRam: { type: Type.NUMBER }}},
             quickReview: { type: Type.OBJECT, properties: { summary: { type: Type.STRING }, pros: { type: Type.ARRAY, items: { type: Type.STRING } }, cons: { type: Type.ARRAY, items: { type: Type.STRING } } } },
-            specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
+            specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan dan tahun. Contoh: 'Januari 2025' atau 'Awal 2026 (Estimasi)'." }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
             targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
             accessoryAvailability: { type: Type.STRING },
             marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } }, required: ["indonesia"] },
@@ -366,12 +392,20 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     };
     
     try {
-        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: `Review HP: ${reviewQuery}`, config: { responseMimeType: "application/json", responseSchema: schema } });
+        const response = await ai.models.generateContent({ 
+            model: 'gemini-3-flash-preview', 
+            contents: `**Pakar Teknologi:** Review HP: ${reviewQuery}. Gunakan data terbaru Januari 2026. Pastikan rilis menyertakan nama bulan. Brand 'iQOO' ditulis 'iQOO'.`, 
+            config: { 
+                responseMimeType: "application/json", 
+                responseSchema: schema 
+            } 
+        });
         const parsedResult: ReviewResult = JSON.parse(response.text.trim());
         if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
             setReviewError(parsedResult.phoneName);
         } else {
             onSetPersistentQuickReviewResult(parsedResult);
+            await bubbleInSmartReviewList(parsedResult);
             if (supabase) {
               try {
                 await supabase.from('quick_reviews').insert({
@@ -415,7 +449,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     }
     
     const phoneSpecProperties = {
-        rilis: { type: Type.STRING }, os: { type: Type.STRING }, processor: { type: Type.STRING },
+        rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan dan tahun (misal: Januari 2025) atau estimasi." }, os: { type: Type.STRING }, processor: { type: Type.STRING },
         ram: { type: Type.STRING },
         antutuScore: { type: Type.INTEGER },
         jaringan: { type: Type.STRING }, display: { type: Type.STRING }, camera: { type: Type.STRING }, 
@@ -438,7 +472,14 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
         : { type: Type.OBJECT, properties: baseSchemaProperties, required: ['phones'] };
     
     try {
-        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: `Compare ${phoneList}`, config: { responseMimeType: "application/json", responseSchema: schema as any }});
+        const response = await ai.models.generateContent({ 
+            model: 'gemini-3-flash-preview', 
+            contents: `**Pakar Teknologi:** Compare ${phoneList}. Gunakan data 2026. rilis wajib ada nama bulan.`, 
+            config: { 
+                responseMimeType: "application/json", 
+                responseSchema: schema as any 
+            }
+        });
         const parsedResult: BattleResult = JSON.parse(response.text.trim());
         setBattleData(parsedResult);
         if (supabase) {
@@ -466,7 +507,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     setQuickMatchError(null);
     setQuickMatchResult(null);
 
-    const cacheKey = `quick_match_${budget.toLowerCase().replace(/\s+/g, '_')}`;
+    const cacheKey = `quick_match_${budget.toLowerCase().replace(/\s+/g, '_')}_2026`;
     if (supabase) {
         try {
             const { data } = await supabase
@@ -504,7 +545,14 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     };
 
     try {
-        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: `Cari HP budget ${budget}`, config: { responseMimeType: "application/json", responseSchema: schema as any }});
+        const response = await ai.models.generateContent({ 
+            model: 'gemini-3-flash-preview', 
+            contents: `**Pakar Teknologi:** Cari HP terbaik awal dengan budget ${budget} dlm IDR.`, 
+            config: { 
+                responseMimeType: "application/json", 
+                responseSchema: schema as any 
+            }
+        });
         const parsedResult: QuickMatchResult = JSON.parse(response.text.trim());
         setQuickMatchResult(parsedResult);
         if (supabase) {
@@ -544,7 +592,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
                         />
                     </div>
                     <div className="mt-6 flex flex-col gap-3">
-                        <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari apa Kak? Tanya dulu aja sini</button>
+                        <button onClick={openChat} className="w-full px-5 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity shadow-md">Cari HP apa Kak? Tanya dulu aja sini</button>
                         
                         {/* Mobile-only download button */}
                         <a 
@@ -564,11 +612,11 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
                         <div>
                             <label className="font-semibold text-slate-800 text-lg md:hidden">Quick Smart Review</label>
                             <div className="mt-2 flex gap-3 items-center">
-                                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung S25 Ultra..." />
+                                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung S26 Ultra..." />
                                 <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Review'}</button>
                             </div>
-                            <div className="mt-2 text-sm small-muted md:hidden">Ketik model atau tipe HP</div>
-                            {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang mereview, mohon tunggu..</div>}
+                            <div className="mt-2 text-sm small-muted md:hidden">Ketik model atau tipe HP terbaru</div>
+                            {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Ahli kami sedang menganalisis, mohon tunggu..</div>}
                             {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
                             {persistentQuickReviewResult && (
                                 <div className="md:hidden mt-4">
@@ -586,7 +634,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
                         <div className="glass p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="font-semibold text-slate-800 text-lg">Quick Compare</h3>
-                                <div className="text-sm small-muted">Bandingkan 2 HP tipe berbeda</div>
+                                <div className="text-sm small-muted">Bandingkan flagship terbaru</div>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <input id="cmpA" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 1" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
@@ -594,14 +642,14 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
                             </div>
                             <div className="mt-4 flex flex-col sm:flex-row gap-3">
                                 <button onClick={() => handleCompareAction('compare')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-slate-400 text-slate-600 font-semibold hover:bg-slate-100 transition-colors disabled:opacity-50">
-                                    {battleModeLoading === 'compare' ? 'Membandingkan...' : 'Compare'}
+                                    {battleModeLoading === 'compare' ? 'Menganalisis...' : 'Compare'}
                                 </button>
                                 <button onClick={() => handleCompareAction('battle')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
-                                    {battleModeLoading === 'battle' ? 'Membandingkan...' : 'Battle Mode'}
+                                    {battleModeLoading === 'battle' ? 'Analisis Battle' : 'Battle Mode'}
                                 </button>
                             </div>
                         </div>
-                        {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">Kami sedang membandingkan, mohon tunggu..</div>}
+                        {battleModeLoading && <div className="text-center p-4 small-muted animate-pulse">Pakar kami sedang membandingkan...</div>}
                         {battleError && <div className="text-center p-4 text-red-500">{battleError}</div>}
                         {battleData && <div className="md:hidden mt-4"><BattleSnippet result={battleData} onSeeFull={() => navigateToFullBattle(battleData)} /></div>}
                     </div>
@@ -727,7 +775,7 @@ const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ re
                 return (
                     <div key={index} className={`relative bg-slate-50 p-3 rounded-lg ${isWinner ? 'border border-[color:var(--accent1)]' : 'border border-slate-200'}`}>
                         {isWinner && <div className="absolute -top-3 right-2 bg-[color:var(--accent1)] text-white px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1"><CrownIcon className="w-3 h-3"/>Pemenang</div>}
-                        <h4 className="font-semibold text-slate-800 text-sm truncate">{phone.name}</h4>
+                        <h4 className="font-semibold text-slate-800 text-sm truncate">{formatBrandName(phone.name)}</h4>
                         <dl className="mt-2 space-y-1.5 text-xs text-slate-600">
                             <SpecItem label="CPU" value={phone.specs?.processor} />
                             <SpecItem label="Memori" value={phone.specs?.ram} />
@@ -775,7 +823,7 @@ const QuickPhoneMatch: FC<{
 
 const QuickMatchResultCard: FC<{ result: QuickMatchResult; onSeeFull: () => void }> = ({ result, onSeeFull }) => (
     <div className="glass p-4 animate-fade-in space-y-3">
-        <h4 className="font-bold text-slate-800 text-lg">{result.phoneName}</h4>
+        <h4 className="font-bold text-slate-800 text-lg">{formatBrandName(result.phoneName)}</h4>
         <p className="text-sm text-slate-500 font-semibold">{result.estimatedPrice}</p>
         <div className="my-2 p-3 bg-slate-100 border-l-4 border-[color:var(--accent1)] rounded-r-md">
             <p className="text-slate-600 text-sm leading-relaxed">{result.reason}</p>
@@ -850,7 +898,7 @@ const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: 
   }, []);
 
   const blogTitle = latestPost ? latestPost.title : 'Selamat Datang di JAGO-HP';
-  const truncatedTitle = latestPost ? latestPost.title.split(' ').slice(0, 4).join(' ') + (latestPost.title.split(' ').length > 4 ? '...' : '') : 'Selamat Datang di JAGO-HP';
+  const truncatedTitle = latestPost ? latestPost.title.split(' ').slice(0, 4).join(' ') + (latestPost.title.split(' ').length > 4 ? '...' : '') : 'Pakar HP Global';
   const isClickable = !!latestPost;
 
   return (
@@ -900,10 +948,11 @@ const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: 
             background: linear-gradient(
                 to right,
                 rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.08) 50%,
+                rgba(255, 255, 255, 0.03) 50%,
                 rgba(255, 255, 255, 0) 100%
             );
-            animation: shimmer 4s infinite linear;
+            animation: shimmer 7s infinite linear;
+            pointer-events: none;
         }
       `}</style>
       <div className="w-full h-full text-left p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-black text-white shadow-lg flex flex-col justify-between phone-screen-effect">
@@ -928,7 +977,7 @@ const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: 
         <div className="flex-grow flex items-end justify-between gap-4">
             {/* Left Side: Title & Tagline */}
             <div className="flex-1 overflow-hidden self-end">
-                <h1 className="text-3xl font-bold font-orbitron">JAGO-HP</h1>
+                <h1 className="text-3xl font-bold font-orbitron text-white">JAGO-HP</h1>
                  
                  {/* Unified Running Text for All Screens */}
                  <div className="mt-1 marquee-container">
@@ -939,12 +988,12 @@ const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: 
                     >
                         <div className="marquee-wrapper">
                             <div className="marquee-content text-[11px] md:text-xs text-slate-300 group-hover:text-white transition-colors duration-200">
-                                {latestPost && <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">BARU</span>}
+                                {latestPost && <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">Baru!</span>}
                                 <span className="align-middle md:hidden">{truncatedTitle}</span>
                                 <span className="align-middle hidden md:inline">{blogTitle}</span>
                             </div>
                             <div className="marquee-content text-[11px] md:text-xs text-slate-300 group-hover:text-white transition-colors duration-200" aria-hidden="true">
-                                {latestPost && <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">BARU</span>}
+                                {latestPost && <span className="font-semibold bg-rose-600/90 px-1.5 py-0.5 rounded text-[10px] mr-2 tracking-wide align-middle">Baru!</span>}
                                 <span className="align-middle md:hidden">{truncatedTitle}</span>
                                 <span className="align-middle hidden md:inline">{blogTitle}</span>
                             </div>
