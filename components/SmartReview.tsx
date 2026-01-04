@@ -76,6 +76,12 @@ interface SmartReviewProps {
     onCompare?: (phoneName: string) => void;
 }
 
+// Utility to format brand names correctly
+const formatBrandName = (name: string): string => {
+    if (!name) return name;
+    return name.replace(/iqoo/gi, 'iQOO');
+};
+
 const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialResult = null, clearGlobalResult, onCompare }) => {
     const [query, setQuery] = useState(initialQuery);
     const [loading, setLoading] = useState(false);
@@ -132,10 +138,10 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
             },
             specs: {
                 type: Type.OBJECT, properties: {
-                    rilis: { type: Type.STRING }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }
+                    rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan. Contoh: 'Januari 2025' atau 'Awal 2026 (Estimasi)'." }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }
                 }
             },
-            targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
+            targetAudience: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Daftar kategori pengguna yang paling cocok menggunakan HP ini." },
             accessoryAvailability: { type: Type.STRING },
             marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } }, required: ["indonesia"] },
             performance: {
@@ -201,10 +207,25 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
             }
         }
 
-        const prompt = `Lakukan ulasan/review mendalam dan komprehensif untuk smartphone: '${searchQuery}'. Berikan ringkasan (summary) yang panjang, sangat detail, dan mencakup berbagai aspek penggunaan harian. Gunakan data terbaru hingga tahun 2025. Respons dalam Bahasa Indonesia.`;
+        const prompt = `**Peran:** Anda adalah Ahli Teknologi Senior & Reviewer Gadget tingkat dunia dengan pengetahuan komprehensif hingga awal Januari 2026.
+**Tugas:** Lakukan ulasan mendalam untuk smartphone: '${searchQuery}'. 
+**Ketentuan Khusus:**
+1. Berikan ringkasan (summary) yang panjang (minimal 3 paragraf), sangat detail, teknis namun mudah dimengerti.
+2. Gunakan data terbaru dari sumber terpercaya seperti GSMArena atau PhoneArena.
+3. Data 'rilis' WAJIB menyertakan nama bulan (Contoh: Maret 2025) atau estimasi bulan (Contoh: Januari 2026 - Estimasi).
+4. Field 'targetAudience' harus spesifik (misal: 'Fotografer Jalanan', 'Gamer Kompetitif Mobile').
+5. Brand 'iQOO' harus selalu ditulis dengan format 'iQOO' (i kecil, QOO besar).
+**Bahasa:** Bahasa Indonesia.`;
 
         try {
-            const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema as any } });
+            const response = await ai.models.generateContent({ 
+                model: 'gemini-3-flash-preview', 
+                contents: prompt, 
+                config: { 
+                    responseMimeType: "application/json", 
+                    responseSchema: schema as any 
+                } 
+            });
             const resultText = response.text.trim();
             const parsedResult: ReviewResult = JSON.parse(resultText);
 
@@ -296,7 +317,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Contoh: Samsung S25 Ultra..."
+                                placeholder="Contoh: Samsung S26 Ultra..."
                                 className="w-full bg-white border border-slate-300 rounded-lg py-3 pl-5 pr-14 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all duration-200 shadow-sm"
                             />
                             <button
@@ -394,7 +415,7 @@ const RecentReviewCard: FC<{ result: ReviewResult; onSelect: () => void; onCompa
                     </div>
                 )}
                 <div className="min-w-0">
-                    <h3 className="text-lg font-bold text-white leading-tight group-hover:text-yellow-400 transition-colors truncate">{result.phoneName}</h3>
+                    <h3 className="text-lg font-bold text-white leading-tight group-hover:text-yellow-400 transition-colors truncate">{formatBrandName(result.phoneName)}</h3>
                     <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Rilis: {result.specs?.rilis || 'N/A'}</p>
                 </div>
             </div>
@@ -461,7 +482,7 @@ const ReviewSummaryCard: FC<{ result: ReviewResult; onSeeFull: () => void; onRes
             <div className="flex-1 relative z-10">
                 <div className="flex justify-between items-start mb-6">
                     <div className="text-left">
-                        <h2 className="text-3xl font-bold text-white font-orbitron tracking-tight">{result.phoneName}</h2>
+                        <h2 className="text-3xl font-bold text-white font-orbitron tracking-tight">{formatBrandName(result.phoneName)}</h2>
                         <p className="text-sm text-slate-400 mt-1 font-medium">Rilis: {result.specs?.rilis || 'N/A'}</p>
                     </div>
                     <div className="bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/10 flex flex-col items-center">
@@ -528,7 +549,7 @@ const ReviewResultDisplay: FC<{ review: ReviewResult; onReset: () => void; }> = 
                         className="w-full max-w-sm h-auto object-contain mb-6 drop-shadow-2xl" 
                     />
                 )}
-                <h2 className="text-2xl md:text-4xl font-bold text-center text-slate-900 font-orbitron">{review.phoneName}</h2>
+                <h2 className="text-2xl md:text-4xl font-bold text-center text-slate-900 font-orbitron">{formatBrandName(review.phoneName)}</h2>
                 <p className="text-center text-sm font-semibold text-slate-500 mt-2">{review.specs.rilis ? `Resmi Rilis: ${review.specs.rilis}` : ''}</p>
             </div>
             
