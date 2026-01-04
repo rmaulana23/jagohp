@@ -44,6 +44,12 @@ interface PhoneBattleProps {
     clearInitialPhoneA?: () => void;
 }
 
+// Utility to format brand names correctly
+const formatBrandName = (name: string): string => {
+    if (!name) return name;
+    return name.replace(/iqoo/gi, 'iQOO');
+};
+
 const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initialPhoneA = '', clearInitialPhoneA }) => {
     const [phoneNames, setPhoneNames] = useState<string[]>(['', '']);
     const [loading, setLoading] = useState(false);
@@ -60,10 +66,10 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
     }, [initialPhoneA]);
 
     const phoneSpecProperties = {
-        rilis: { type: Type.STRING, description: "Bulan dan tahun rilis. Contoh: 'September 2024'" },
+        rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan dan tahun. Contoh: 'September 2024' atau 'Desember 2025 (Estimasi)'." },
         os: { type: Type.STRING },
         processor: { type: Type.STRING },
-        ram: { type: Type.STRING, description: "Ukuran dan tipe RAM. Contoh: '8GB LPDDR5'" },
+        ram: { type: Type.STRING, description: "Ukuran dan tipe RAM. Contoh: '8GB LPDDR5X'" },
         antutuScore: { type: Type.INTEGER, description: "Skor benchmark AnTuTu v10 sebagai angka integer." },
         jaringan: { type: Type.STRING },
         display: { type: Type.STRING },
@@ -71,14 +77,14 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
         battery: { type: Type.STRING },
         charging: { type: Type.STRING },
         nfc: { type: Type.STRING },
-        hargaIndonesia: { type: Type.STRING, description: "Perkiraan harga pasar di Indonesia dalam Rupiah. Contoh: 'Rp 4.599.000'" }
+        hargaIndonesia: { type: Type.STRING, description: "Perkiraan harga pasar di Indonesia dlm Rupiah awal 2026. Contoh: 'Rp 14.599.000'" }
     };
 
     const schema = {
         type: Type.OBJECT,
         properties: {
-            battleSummary: { type: Type.STRING, description: "Ringkasan perbandingan singkat." },
-            targetAudience: { type: Type.STRING, description: "Analisis target pasar." },
+            battleSummary: { type: Type.STRING, description: "Ringkasan perbandingan mendalam." },
+            targetAudience: { type: Type.STRING, description: "Analisis target pasar yang spesifik." },
             phones: {
                 type: Type.ARRAY,
                 items: {
@@ -90,7 +96,7 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
                     required: ["name", "specs"]
                 }
             },
-            winnerName: { type: Type.STRING, description: "Nama pemenang atau 'Seri'." }
+            winnerName: { type: Type.STRING, description: "Nama pemenang mutlak atau 'Seri'." }
         },
         required: ['battleSummary', 'targetAudience', 'phones']
     };
@@ -135,11 +141,14 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
         }
 
         const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
-        const prompt = `Lakukan analisis perbandingan mendalam dalam Bahasa Indonesia antara: ${phoneList}. Cari data spek terbaru dari seluruh internet (GSMArena, nanoreview, dll). Pastikan harga dlm Rupiah.`;
+        const prompt = `**Peran:** Anda adalah Ahli Teknologi tingkat dunia dengan pengetahuan terbaru hingga awal Januari 2026.
+**Tugas:** Lakukan analisis perbandingan mendalam dalam Bahasa Indonesia antara: ${phoneList}. 
+**Sumber:** GSMArena, PhoneArena, dan data benchmark terbaru 2026. 
+**Penting:** Data rilis WAJIB menyertakan nama bulan. Brand 'iQOO' selalu ditulis 'iQOO'. Pastikan harga dlm Rupiah (IDR) pasar Indonesia saat ini.`;
 
         try {
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-3-flash-preview',
                 contents: prompt,
                 config: { responseMimeType: "application/json", responseSchema: schema as any }
             });
@@ -162,7 +171,7 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
                 {/* Banner Image */}
                 <div className="w-full mb-8 rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white">
                     <img 
-                        src="https://imgur.com/7FkszM5.jpg" 
+                        src="https://imgur.com/ms4Btaa.jpg" 
                         alt="JAGO-HP Compare Banner" 
                         className="w-full h-auto object-cover max-h-[350px] block"
                     />
@@ -277,7 +286,7 @@ const BattleResultDisplay: FC<{ result: BattleResult; onReset: () => void }> = (
                                 <span>Pemenang</span>
                             </div>
                         )}
-                        <h3 className="text-lg font-bold text-slate-900 mb-1">{phone.name}</h3>
+                        <h3 className="text-lg font-bold text-slate-900 mb-1">{formatBrandName(phone.name)}</h3>
                         <p className="text-sm small-muted mb-4">{phone.specs?.rilis || 'N/A'}</p>
                         
                         <dl className="space-y-1 text-sm flex-grow">
