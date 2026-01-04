@@ -112,7 +112,7 @@ const App: React.FC = () => {
   const navigateToFullReview = (result: ReviewResult) => {
     setReviewResult(result);
     setReviewQuery('');
-    navigate('review');
+    navigate(`review/${encodeURIComponent(result.phoneName.replace(/\s+/g, '-'))}`);
   };
 
   const navigateToFullBattle = (result: BattleResult) => {
@@ -123,7 +123,7 @@ const App: React.FC = () => {
   const navigateToReviewWithQuery = (phoneName: string) => {
     setReviewResult(null);
     setReviewQuery(phoneName);
-    navigate('review');
+    navigate(`review/${encodeURIComponent(phoneName.replace(/\s+/g, '-'))}`);
   };
 
   const navigateToBattleWithPhone = (phoneName: string) => {
@@ -174,7 +174,7 @@ const App: React.FC = () => {
                              />;
       case 'review': return <SmartReview 
                                 initialResult={reviewResult} 
-                                initialQuery={reviewQuery} 
+                                initialQuery={param ? decodeURIComponent(param.replace(/-/g, ' ')) : reviewQuery} 
                                 clearGlobalResult={clearGlobalResult} 
                                 onCompare={navigateToBattleWithPhone}
                              />;
