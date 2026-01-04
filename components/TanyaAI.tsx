@@ -19,9 +19,9 @@ interface TanyaAIProps {
 }
 
 const quickQuestions = [
-    'HP gaming 1 jutaan yang bagus',
-    'HP kamera terbaik harga 2 jutaan',
-    'HP daily driver yang oke tahun 2025'
+    'HP 2 juta ada fitur NFC',
+    'HP gaming diawal 2026',
+    'HP kamera terbaik 2-3 jutaan'
 ];
 
 const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, openAdminLogin, isPage = false }) => {
@@ -35,12 +35,20 @@ const TanyaAI: React.FC<TanyaAIProps> = ({ isOpen, onClose, openAdminLogin, isPa
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
 
     useEffect(() => {
-        const systemInstruction = `Anda adalah JagoBot AI (Asisten AI JAGO-HP). Semua respons HARUS dalam Bahasa Indonesia.
-Anda hanya menjawab soal gadget. Jika di luar topik, tolak dengan sopan. 
-Berikan jawaban awal yang singkat dan padat.`;
+        const systemInstruction = `Anda adalah JagoBot AI (Asisten Ahli Teknologi JAGO-HP).
+**Persona:** Pakar gadget tingkat dunia yang mengetahui semua perkembangan smartphone, spesifikasi, harga, dan rumor hingga awal Januari 2026.
+**Mandat:**
+1. Hanya menjawab soal gadget/smartphone/teknologi terkait. Jika di luar topik, tolak dengan sopan.
+2. Semua respons WAJIB dalam Bahasa Indonesia.
+3. Gunakan data terbaru dari GSMArena, PhoneArena, dll.
+4. Tulis brand 'iQOO' dengan benar.
+5. Berikan jawaban yang informatif, akurat, dan profesional.`;
 
-        chatRef.current = ai.chats.create({ model: 'gemini-3-flash-preview', config: { systemInstruction } });
-        setMessages([{ role: 'model', text: 'Hai Kak, aku JagoBot AI. Mau cari HP apa? Tulis aja yang mau ditanyain' }]);
+        chatRef.current = ai.chats.create({ 
+            model: 'gemini-3-flash-preview', 
+            config: { systemInstruction } 
+        });
+        setMessages([{ role: 'model', text: 'Hai Kak, aku JagoBot AI. Mau tanya spek atau harga HP terbaru 2026? Tulis aja di sini ya!' }]);
         setShowQuickQuestions(true);
     }, [ai]);
 
@@ -162,7 +170,7 @@ Berikan jawaban awal yang singkat dan padat.`;
                             <div>
                                 <h2 className="text-sm font-bold text-slate-900">JagoBot AI</h2>
                                 <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> AKTIF
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Online
                                 </p>
                             </div>
                         </div>
@@ -208,7 +216,7 @@ Berikan jawaban awal yang singkat dan padat.`;
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFormSubmit(e); } }}
-                                placeholder="Tulis sesuatu..."
+                                placeholder="Tanya apa saja tentang gadget..."
                                 className="w-full bg-slate-100 border-none rounded-2xl py-3.5 pl-5 pr-12 text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-slate-900 transition-all"
                             />
                             <button
@@ -225,7 +233,7 @@ Berikan jawaban awal yang singkat dan padat.`;
                         </div>
                     </form>
                     <p className="text-[9px] text-slate-400 text-center mt-3 font-medium uppercase tracking-widest">
-                        AI Gemini • JAGO-HP 2025
+                        AI Gemini • JAGO-HP 2026
                     </p>
                 </div>
             </div>
