@@ -7,6 +7,7 @@ import ShareButtons from './ShareButtons';
 import EcommerceButtons from './EcommerceButtons';
 import CrownIcon from './icons/CrownIcon';
 import UsersIcon from './icons/UsersIcon';
+import ShareIcon from './icons/ShareIcon';
 
 // --- INTERFACES ---
 interface Ratings {
@@ -87,7 +88,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [review, setReview] = useState<ReviewResult | null>(initialResult);
-    const [showFullReview, setShowFullReview] = useState(false);
+    const [showFullReview, setShowFullReview] = useState(initialResult ? true : false);
     const [recentReviews, setRecentReviews] = useState<ReviewResult[]>([]);
     const [loadingRecent, setLoadingRecent] = useState(false);
     const [visibleCount, setVisibleCount] = useState(6);
@@ -196,6 +197,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                 if (data && data.review_data) {
                     const cachedReview = data.review_data as ReviewResult;
                     setReview(cachedReview);
+                    setShowFullReview(true);
                     setLoading(false);
                     updateRecentList(cachedReview);
                     await supabase.from('smart_reviews').update({ created_at: new Date().toISOString() }).eq('cache_key', cacheKey);
@@ -247,6 +249,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                         // Data sudah ada di DB dengan nama resmi ini, gunakan itu saja
                         const existingReview = existingData.review_data as ReviewResult;
                         setReview(existingReview);
+                        setShowFullReview(true);
                         updateRecentList(existingReview);
                         await supabase.from('smart_reviews').update({ created_at: new Date().toISOString() }).eq('cache_key', officialCacheKey);
                         setLoading(false);
@@ -272,6 +275,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                 }
                 
                 setReview(parsedResult);
+                setShowFullReview(true);
                 updateRecentList(parsedResult);
             }
         } catch (e) {
@@ -295,6 +299,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         } else if (initialResult) {
             setReview(initialResult);
             setQuery(initialResult.phoneName);
+            setShowFullReview(true);
             updateRecentList(initialResult);
         }
     }, [initialQuery, initialResult]);
@@ -306,7 +311,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 
     const selectFromRecent = (rev: ReviewResult) => {
         setReview(rev);
-        setShowFullReview(false);
+        setShowFullReview(true);
         setQuery(rev.phoneName);
         updateRecentList(rev);
         if (supabase) {
@@ -361,17 +366,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     {loading && !review && <ReviewSkeleton />}
                     {error && <div className="text-center text-red-500 border border-red-500/30 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
                     
-                    {review && !showFullReview && (
-                        <div className="animate-fade-in max-w-4xl mx-auto">
-                            <ReviewSummaryCard 
-                                result={review} 
-                                onSeeFull={() => setShowFullReview(true)} 
-                                onReset={() => { setReview(null); setQuery(''); clearGlobalResult(); }}
-                                onCompare={onCompare}
-                            />
-                        </div>
-                    )}
-
                     {review && showFullReview && (
                         <ReviewResultDisplay 
                             review={review} 
@@ -380,6 +374,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                                 setQuery(''); 
                                 clearGlobalResult();
                                 setShowFullReview(false);
+                                window.location.hash = 'review';
                             }} 
                         />
                     )}
@@ -473,98 +468,53 @@ const SpecItemSmall: FC<{ label: string; value: string | undefined | null }> = (
     );
 };
 
-const ReviewSummaryCard: FC<{ result: ReviewResult; onSeeFull: () => void; onReset: () => void; onCompare?: (name: string) => void }> = ({ result, onSeeFull, onReset, onCompare }) => {
-    // Fix: Explicitly type return value and internal calculation for calculateOverallScore
-    const calculateOverallScore = (): string => {
-        if (!result.ratings) return 'N/A';
-        const scores = [result.ratings.gaming, result.ratings.kamera, result.ratings.baterai, result.ratings.layarDesain, result.ratings.performa, result.ratings.storageRam];
-        const validScores = scores.filter(s => typeof s === 'number' && s > 0);
-        if (validScores.length === 0) return 'N/A';
-        const sum: number = validScores.reduce((acc: number, score: number) => acc + score, 0);
-        return (sum / validScores.length).toFixed(1);
-    };
-
-    const overallScore = calculateOverallScore();
-
-    return (
-        <div className="bg-[#141426] rounded-3xl p-6 md:p-10 shadow-2xl border border-white/5 relative overflow-hidden flex flex-col md:flex-row gap-8">
-            {/* Background Accent */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] pointer-events-none rounded-full"></div>
-            
-            {/* Image Column */}
-            {result.imageUrl && (
-                <div className="md:w-1/3 flex items-center justify-center animate-fade-in">
-                    <img 
-                        src={result.imageUrl} 
-                        alt={result.phoneName} 
-                        className="max-w-full h-auto max-h-[350px] object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] hover:scale-105 transition-transform duration-500" 
-                    />
-                </div>
-            )}
-            
-            {/* Content Column */}
-            <div className="flex-1 relative z-10">
-                <div className="flex justify-between items-start mb-6">
-                    <div className="text-left">
-                        <h2 className="text-3xl font-bold text-white font-orbitron tracking-tight">{formatBrandName(result.phoneName)}</h2>
-                        <p className="text-sm text-slate-400 mt-1 font-medium">Rilis: {result.specs?.rilis || 'N/A'}</p>
-                    </div>
-                    <div className="bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/10 flex flex-col items-center">
-                        <span className="text-slate-300 text-[10px] font-bold uppercase tracking-widest block mb-0.5">AI Score</span>
-                        <span className="text-2xl font-black text-yellow-400">{overallScore}</span>
-                    </div>
-                </div>
-
-                <div className="mb-6 flex flex-wrap gap-3">
-                    <div className="inline-flex items-center px-5 py-2.5 rounded-2xl bg-white/5 border border-white/10">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-3 border-r border-white/10 pr-3">Harga Indo:</span>
-                        <span className="text-lg font-black text-yellow-400">{result.marketPrice?.indonesia || 'Rp -'}</span>
-                    </div>
-                </div>
-
-                <div className="text-left mb-6">
-                    <p className="text-slate-200 text-base leading-relaxed font-medium italic line-clamp-3">"{result.quickReview?.summary}"</p>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-6 border-t border-white/10">
-                    <SpecItemDark label="Chipset" value={result.specs?.processor} />
-                    <SpecItemDark label="RAM/Storage" value={result.specs?.ram} />
-                    <SpecItemDark label="AnTuTu v10" value={result.performance?.antutuScore?.toLocaleString('id-ID')} />
-                </div>
-
-                <div className="mt-8 flex flex-col gap-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <button onClick={onSeeFull} className="py-3 rounded-2xl bg-white text-[#141426] font-black text-sm uppercase tracking-widest hover:bg-slate-100 transition-all shadow-lg active:scale-95">Lihat Full Review</button>
-                        <button onClick={() => onCompare ? onCompare(result.phoneName) : (window.location.hash = 'battle')} className="py-3 rounded-2xl bg-white/10 border border-white/20 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95">Bandingkan HP</button>
-                    </div>
-                    <button 
-                        onClick={onReset} 
-                        className="w-full py-2.5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all active:scale-95"
-                    >
-                        &larr; Cari Review Lain
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const SpecItemDark: FC<{ label: string; value: string | undefined | null }> = ({ label, value }) => {
-    if (!value) return null;
-    return (
-        <div className="text-left">
-            <dt className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</dt>
-            <dd className="text-white font-bold text-xs truncate">{value}</dd>
-        </div>
-    )
-};
-
 const ReviewResultDisplay: FC<{ review: ReviewResult; onReset: () => void; }> = ({ review, onReset }) => {
     const [activeTab, setActiveTab] = useState('ringkasan');
+    const [copyStatus, setCopyStatus] = useState('');
     const priceDisplay = review.marketPrice?.indonesia || 'Rp -';
+
+    const shareUrl = `${window.location.origin}/#review/${encodeURIComponent(review.phoneName.replace(/\s+/g, '-'))}`;
+    const shareText = `Baca Smart Review lengkap ${review.phoneName} di JAGO-HP!\n\n${shareUrl}`;
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            setCopyStatus('Tautan disalin!');
+            setTimeout(() => setCopyStatus(''), 2000);
+        });
+    };
 
     return (
         <div className="glass p-4 md:p-8 text-left animate-fade-in shadow-xl">
+            {/* Header Action Row */}
+            <div className="flex justify-between items-center mb-6">
+                <button onClick={onReset} className="text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-2">
+                    &larr; Kembali
+                </button>
+                <div className="flex items-center gap-2">
+                    {copyStatus && <span className="text-[10px] font-bold text-green-600 animate-pulse">{copyStatus}</span>}
+                    <button 
+                        onClick={handleCopyLink}
+                        className="p-2 bg-slate-100 rounded-lg text-slate-500 hover:bg-slate-200 transition-colors"
+                        title="Salin Tautan Review"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                        </svg>
+                    </button>
+                    <a 
+                        href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                        title="Bagikan ke WhatsApp"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
             <div className="flex flex-col items-center mb-8">
                 {review.imageUrl && (
                     <img 
@@ -604,6 +554,29 @@ const ReviewResultDisplay: FC<{ review: ReviewResult; onReset: () => void; }> = 
                 {activeTab === 'foto-video' && <TabContentCamera review={review} />}
             </div>
             
+            {/* Bagikan Review Section */}
+            <div className="mt-12 p-6 bg-slate-50 rounded-3xl border border-slate-200 text-center">
+                <h3 className="font-bold text-slate-800 mb-2">Suka dengan Review Ini?</h3>
+                <p className="text-sm text-slate-500 mb-6">Bagikan ke teman atau simpan tautannya untuk referensi nanti.</p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a 
+                        href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full sm:w-auto px-6 py-3 bg-[#25D366] text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                    >
+                        Bagikan ke WhatsApp
+                    </a>
+                    <button 
+                        onClick={handleCopyLink}
+                        className="w-full sm:w-auto px-6 py-3 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                    >
+                        <ShareIcon className="w-5 h-5" />
+                        Salin Tautan Review
+                    </button>
+                </div>
+            </div>
+
             <div className="mt-10 space-y-6">
                 <EcommerceButtons phoneName={review.phoneName} />
                 <div className="text-center">
