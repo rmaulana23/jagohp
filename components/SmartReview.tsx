@@ -487,9 +487,17 @@ const ReviewSummaryCard: FC<{ result: ReviewResult; onSeeFull: () => void; onRes
                     <SpecItemDark label="AnTuTu v10" value={result.performance?.antutuScore?.toLocaleString('id-ID')} />
                 </div>
 
-                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button onClick={onSeeFull} className="py-3 rounded-2xl bg-white text-[#141426] font-black text-sm uppercase tracking-widest hover:bg-slate-100 transition-all shadow-lg active:scale-95">Lihat Full Review</button>
-                    <button onClick={() => onCompare ? onCompare(result.phoneName) : (window.location.hash = 'battle')} className="py-3 rounded-2xl bg-white/10 border border-white/20 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95">Bandingkan HP</button>
+                <div className="mt-8 flex flex-col gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onClick={onSeeFull} className="py-3 rounded-2xl bg-white text-[#141426] font-black text-sm uppercase tracking-widest hover:bg-slate-100 transition-all shadow-lg active:scale-95">Lihat Full Review</button>
+                        <button onClick={() => onCompare ? onCompare(result.phoneName) : (window.location.hash = 'battle')} className="py-3 rounded-2xl bg-white/10 border border-white/20 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95">Bandingkan HP</button>
+                    </div>
+                    <button 
+                        onClick={onReset} 
+                        className="w-full py-2.5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all active:scale-95"
+                    >
+                        &larr; Cari Review Lain
+                    </button>
                 </div>
             </div>
         </div>
