@@ -961,10 +961,10 @@ const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: 
             background: linear-gradient(
                 to right,
                 rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.03) 50%,
+                rgba(255, 255, 255, 0.12) 50%,
                 rgba(255, 255, 255, 0) 100%
             );
-            animation: shimmer 7s infinite linear;
+            animation: shimmer 4s infinite linear;
             pointer-events: none;
         }
       `}</style>
