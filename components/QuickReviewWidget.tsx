@@ -39,14 +39,14 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
                     return;
                 }
             } catch (cacheError) {
-                console.warn("Supabase quick review cache check failed:", cacheError);
+                console.warn("Supabase quick review cache check missed.");
             }
         }
 
         const schema = {
             type: Type.OBJECT,
             properties: {
-                phoneName: { type: Type.STRING },
+                phoneName: { type: Type.STRING, description: "Nama resmi HP selengkap mungkin" },
                 ratings: { type: Type.OBJECT, properties: { gaming: { type: Type.NUMBER }, kamera: { type: Type.NUMBER }, baterai: { type: Type.NUMBER }, layarDesain: { type: Type.NUMBER }, performa: { type: Type.NUMBER }, storageRam: { type: Type.NUMBER }}},
                 quickReview: { type: Type.OBJECT, properties: { summary: { type: Type.STRING }, pros: { type: Type.ARRAY, items: { type: Type.STRING } }, cons: { type: Type.ARRAY, items: { type: Type.STRING } } } },
                 specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan dan tahun. Contoh: 'Januari 2026'." }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
@@ -61,7 +61,7 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
         try {
             const response = await ai.models.generateContent({ 
                 model: 'gemini-3-flash-preview', 
-                contents: `**Pakar Teknologi:** Quick Review HP: ${reviewQuery}. Gunakan data terbaru awal 2026. rilis wajib ada bulan. Brand 'iQOO' ditulis 'iQOO'.`, 
+                contents: `**Pakar Teknologi:** Quick Review HP dari kueri user: "${reviewQuery}". Identifikasi HP apa yang dimaksud (Contoh: "iPhone 16" -> "Apple iPhone 16"). Gunakan data 2026. rilis wajib ada bulan.`, 
                 config: { 
                     responseMimeType: "application/json", 
                     responseSchema: schema 
@@ -71,11 +71,21 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
             if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
                 setReviewError(parsedResult.phoneName);
             } else {
+                // Periksa apakah nama resmi dari AI sudah ada di DB utama
+                const officialKey = parsedResult.phoneName.toLowerCase().trim();
+                if (supabase) {
+                    const { data: existing } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', officialKey).single();
+                    if (existing) {
+                        setQuickReviewResult(existing.review_data as ReviewResult);
+                        setReviewLoading(false);
+                        return;
+                    }
+                }
                 setQuickReviewResult(parsedResult);
             }
         } catch (e) {
             console.error(e);
-            setReviewError('An AI error occurred.');
+            setReviewError('Terjadi kesalahan AI.');
         } finally {
             setReviewLoading(false);
         }
@@ -83,7 +93,7 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
 
     return (
         <div className="glass p-5 space-y-4">
-            <h3 className="font-semibold text-slate-800 text-lg">Quick Review 2026</h3>
+            <h3 className="font-semibold text-slate-800 text-lg">Quick Review Pakar 2026</h3>
             <div className="flex gap-3 items-center">
                 <input 
                     value={reviewQuery} 
@@ -106,7 +116,7 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
                 </div>
             ) : (
                 <div className="text-center text-sm text-slate-400 py-4 italic">
-                    Tanya kami tentang model HP apa pun.
+                    Tanya pakar kami tentang model HP apa pun.
                 </div>
             )}
         </div>
