@@ -343,14 +343,14 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     const bubbleInSmartReviewList = async (reviewData: ReviewResult) => {
         if (!supabase) return;
         try {
-            // First check if it exists in the main smart_reviews table
-            const { data: existing } = await supabase.from('smart_reviews').select('cache_key').eq('cache_key', cacheKey).single();
-            if (existing) {
-                // Update timestamp to move to top
-                await supabase.from('smart_reviews').update({ created_at: new Date().toISOString() }).eq('cache_key', cacheKey);
+            const officialKey = reviewData.phoneName.toLowerCase().trim();
+            // Cek kueri mentah atau nama resmi
+            const { data: existing } = await supabase.from('smart_reviews').select('cache_key').or(`cache_key.eq.${cacheKey},cache_key.eq.${officialKey}`).limit(1);
+            
+            if (existing && existing.length > 0) {
+                await supabase.from('smart_reviews').update({ created_at: new Date().toISOString() }).eq('cache_key', existing[0].cache_key);
             } else {
-                // Insert as new to appear at top
-                await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: reviewData });
+                await supabase.from('smart_reviews').insert({ cache_key: officialKey, review_data: reviewData });
             }
         } catch (err) {
             console.warn("Failed to bubble review in smart_reviews list", err);
@@ -372,14 +372,14 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
           return;
         }
       } catch (cacheError) {
-        console.warn("Supabase quick review cache check failed:", cacheError);
+        console.warn("Supabase quick review cache check missed.");
       }
     }
 
     const schema = {
         type: Type.OBJECT,
         properties: {
-            phoneName: { type: Type.STRING },
+            phoneName: { type: Type.STRING, description: "Nama resmi lengkap HP" },
             ratings: { type: Type.OBJECT, properties: { gaming: { type: Type.NUMBER }, kamera: { type: Type.NUMBER }, baterai: { type: Type.NUMBER }, layarDesain: { type: Type.NUMBER }, performa: { type: Type.NUMBER }, storageRam: { type: Type.NUMBER }}},
             quickReview: { type: Type.OBJECT, properties: { summary: { type: Type.STRING }, pros: { type: Type.ARRAY, items: { type: Type.STRING } }, cons: { type: Type.ARRAY, items: { type: Type.STRING } } } },
             specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan dan tahun. Contoh: 'Januari 2025' atau 'Awal 2026 (Estimasi)'." }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
@@ -394,7 +394,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     try {
         const response = await ai.models.generateContent({ 
             model: 'gemini-3-flash-preview', 
-            contents: `**Pakar Teknologi:** Review HP: ${reviewQuery}. Gunakan data terbaru Januari 2026. Pastikan rilis menyertakan nama bulan. Brand 'iQOO' ditulis 'iQOO'.`, 
+            contents: `**Pakar Teknologi:** Identifikasi dan Review HP dari kueri: "${reviewQuery}". Gunakan data terbaru Januari 2026. Berikan nama resmi lengkap di 'phoneName'.`, 
             config: { 
                 responseMimeType: "application/json", 
                 responseSchema: schema 
@@ -404,6 +404,19 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
         if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
             setReviewError(parsedResult.phoneName);
         } else {
+            // Cek duplikasi nama resmi sebelum simpan
+            const officialKey = parsedResult.phoneName.toLowerCase().trim();
+            if (supabase) {
+                const { data: existing } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', officialKey).single();
+                if (existing) {
+                    const finalResult = existing.review_data as ReviewResult;
+                    onSetPersistentQuickReviewResult(finalResult);
+                    await bubbleInSmartReviewList(finalResult);
+                    setReviewLoading(false);
+                    return;
+                }
+            }
+
             onSetPersistentQuickReviewResult(parsedResult);
             await bubbleInSmartReviewList(parsedResult);
             if (supabase) {
@@ -419,7 +432,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
         }
     } catch (e: any) {
         console.error(e.message || e);
-        setReviewError('An AI error occurred. Please try again.');
+        setReviewError('Terjadi kesalahan AI. Silakan coba lagi.');
     } finally {
         setReviewLoading(false);
     }
@@ -444,7 +457,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
           return;
         }
       } catch (cacheError) {
-        console.warn("Supabase quick compare cache check failed:", cacheError);
+        console.warn("Supabase quick compare cache check missed.");
       }
     }
     
@@ -474,7 +487,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     try {
         const response = await ai.models.generateContent({ 
             model: 'gemini-3-flash-preview', 
-            contents: `**Pakar Teknologi:** Compare ${phoneList}. Gunakan data 2026. rilis wajib ada nama bulan.`, 
+            contents: `**Pakar Teknologi:** Identifikasi dan Compare HP: ${phoneList}. Gunakan data 2026. Rilis wajib ada nama bulan.`, 
             config: { 
                 responseMimeType: "application/json", 
                 responseSchema: schema as any 
@@ -489,12 +502,12 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
               compare_data: parsedResult,
             });
           } catch (cacheError) {
-            console.warn("Supabase quick compare cache check failed:", cacheError);
+            console.warn("Supabase quick compare cache save failed.");
           }
         }
     } catch (e: any) {
         console.error(e.message || e);
-        setBattleError('An AI error occurred during comparison. Please try again.');
+        setBattleError('Terjadi kesalahan AI saat membandingkan. Silakan coba lagi.');
     } finally {
         setBattleModeLoading(null);
     }
@@ -521,7 +534,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
                 return;
             }
         } catch (cacheError) {
-            console.warn("Supabase quick match cache check failed:", cacheError);
+            console.warn("Supabase quick match cache check missed.");
         }
     }
 
