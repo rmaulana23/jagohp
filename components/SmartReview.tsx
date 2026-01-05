@@ -104,7 +104,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                 .from('smart_reviews')
                 .select('review_data')
                 .order('created_at', { ascending: false })
-                .limit(100); // Fetch more for pagination
+                .limit(100); 
             if (data) {
                 setRecentReviews(data.map(d => d.review_data as ReviewResult));
             }
@@ -154,12 +154,11 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     gamingReview: { type: Type.STRING },
                     gamingRatings: {
                         type: Type.ARRAY,
-                        description: "An array of gaming performance ratings for specific games.",
                         items: {
                             type: Type.OBJECT,
                             properties: {
-                                game: { type: Type.STRING, description: "Name of the game" },
-                                score: { type: Type.NUMBER, description: "Rating score from 1 to 10" }
+                                game: { type: Type.STRING },
+                                score: { type: Type.NUMBER }
                             }
                         }
                     }
@@ -190,7 +189,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 
         const cacheKey = searchQuery.trim().toLowerCase();
 
-        // 1. Cek database berdasarkan query user (pencarian cepat)
+        // 1. Check raw query cache
         if (supabase) {
             try {
                 const { data } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', cacheKey).single();
@@ -204,38 +203,32 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     return;
                 }
             } catch (cacheError) {
-                console.warn("Supabase initial cache check missed.");
+                console.warn("Raw query cache miss.");
             }
         }
 
-        const prompt = `**Peran:** Anda adalah Ahli Teknologi Senior & Reviewer Gadget tingkat dunia.
-**Tugas:** Lakukan ulasan mendalam untuk smartphone yang dimaksud user: '${searchQuery}'. 
-**PENTING:** Identifikasi dengan tepat HP apa yang dimaksud user (misal: "S24 Ultra" adalah "Samsung Galaxy S24 Ultra").
-**Ketentuan Khusus:**
-1. Berikan nama resmi lengkap HP di field 'phoneName'.
-2. Berikan ringkasan (summary) yang panjang (minimal 3 paragraf), teknis namun mudah dimengerti.
-3. Gunakan data terbaru dari GSMArena atau PhoneArena (hingga awal 2026).
-4. Data 'rilis' WAJIB menyertakan nama bulan.
-5. Brand 'iQOO' harus selalu ditulis 'iQOO'.
+        const prompt = `**Peran:** Pakar Gadget Senior JAGO-HP. Pengetahuan hingga awal 2026.
+**Tugas:** Lakukan ulasan mendalam untuk: '${searchQuery}'. 
+**ATURAN IDENTITAS (PENTING):** 
+- Identifikasi HP dengan tepat meskipun input user tidak lengkap.
+- Contoh: 'samsung s25 fe' dan 'samsung s25 fe 5g' adalah HP yang sama. Gunakan nama resmi lengkap: 'Samsung Galaxy S25 FE 5G'.
+- Field 'phoneName' WAJIB menggunakan nama resmi lengkap.
+- Selalu gunakan data terbaru (GSMArena/PhoneArena) 2026.
 **Bahasa:** Bahasa Indonesia.`;
 
         try {
             const response = await ai.models.generateContent({ 
                 model: 'gemini-3-flash-preview', 
                 contents: prompt, 
-                config: { 
-                    responseMimeType: "application/json", 
-                    responseSchema: schema as any 
-                } 
+                config: { responseMimeType: "application/json", responseSchema: schema as any } 
             });
-            const resultText = response.text.trim();
-            const parsedResult: ReviewResult = JSON.parse(resultText);
+            const parsedResult: ReviewResult = JSON.parse(response.text.trim());
 
             if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
                 setError(parsedResult.phoneName);
                 setReview(null);
             } else {
-                // 2. Cek database LAGI berdasarkan Nama Resmi dari AI (untuk mencegah duplikasi)
+                // 2. Double check database with Official Name to prevent duplicates (e.g. S25 FE vs S25 FE 5G)
                 const officialCacheKey = parsedResult.phoneName.toLowerCase().trim();
                 
                 if (supabase) {
@@ -246,7 +239,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                         .single();
 
                     if (existingData) {
-                        // Data sudah ada di DB dengan nama resmi ini, gunakan itu saja
                         const existingReview = existingData.review_data as ReviewResult;
                         setReview(existingReview);
                         setShowFullReview(true);
@@ -256,21 +248,21 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                         return;
                     }
 
-                    // 3. Jika benar-benar baru, simpan ke database dengan cache_key nama resmi
+                    // 3. Save new entry with official name as cache key
                     try {
                         await supabase.from('smart_reviews').insert({ 
                             cache_key: officialCacheKey, 
                             review_data: parsedResult 
                         });
-                        // Jika user mencari dengan nama tidak lengkap, simpan alias kueri juga (opsional, tapi bagus untuk akselerasi)
+                        // Also store the raw user query as an alias if different
                         if (officialCacheKey !== cacheKey) {
                              await supabase.from('smart_reviews').insert({ 
                                 cache_key: cacheKey, 
                                 review_data: parsedResult 
-                            }).catch(() => null); // Abaikan jika kueri user sudah ada
+                            }).catch(() => null); 
                         }
                     } catch (cacheError) {
-                        console.warn("Supabase cache write failed:", cacheError);
+                        console.warn("Supabase save failed:", cacheError);
                     }
                 }
                 
