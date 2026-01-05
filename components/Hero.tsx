@@ -306,10 +306,10 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*, blog_post_categories(blog_categories(name)), comments(count)')
-          .eq('status', 'published') // Only fetch published posts
-          .order('sort_order', { ascending: true }) // Manual sort first
-          .order('published_at', { ascending: false }) // Then latest
-          .limit(5); // Fetch 5 latest posts
+          .eq('status', 'published') 
+          .order('sort_order', { ascending: true }) 
+          .order('published_at', { ascending: false }) 
+          .limit(5); 
 
         if (error) {
             console.error("Supabase error fetching posts:", error.message || error);
@@ -317,7 +317,6 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
         }
 
         if (data) {
-          // Transform junction table structure to flattened blog_categories for UI
           const transformed = data.map((p: any) => ({
             ...p,
             blog_categories: p.blog_post_categories?.map((bpc: any) => bpc.blog_categories) || []
@@ -339,12 +338,11 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
 
     const cacheKey = reviewQuery.trim().toLowerCase();
 
-    // Helper to ensure search registers as "latest" in the main Smart Review list
+    // Utility function to update the global smart review list
     const bubbleInSmartReviewList = async (reviewData: ReviewResult) => {
         if (!supabase) return;
         try {
             const officialKey = reviewData.phoneName.toLowerCase().trim();
-            // Cek kueri mentah atau nama resmi
             const { data: existing } = await supabase.from('smart_reviews').select('cache_key').or(`cache_key.eq.${cacheKey},cache_key.eq.${officialKey}`).limit(1);
             
             if (existing && existing.length > 0) {
@@ -353,10 +351,11 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
                 await supabase.from('smart_reviews').insert({ cache_key: officialKey, review_data: reviewData });
             }
         } catch (err) {
-            console.warn("Failed to bubble review in smart_reviews list", err);
+            console.warn("Failed to bubble review", err);
         }
     };
 
+    // 1. First check the local quick review cache
     if (supabase) {
       try {
         const { data } = await supabase
@@ -372,17 +371,17 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
           return;
         }
       } catch (cacheError) {
-        console.warn("Supabase quick review cache check missed.");
+        console.warn("Quick review cache miss.");
       }
     }
 
     const schema = {
         type: Type.OBJECT,
         properties: {
-            phoneName: { type: Type.STRING, description: "Nama resmi lengkap HP" },
+            phoneName: { type: Type.STRING, description: "Nama resmi lengkap HP (Contoh: Samsung Galaxy S25 FE 5G)" },
             ratings: { type: Type.OBJECT, properties: { gaming: { type: Type.NUMBER }, kamera: { type: Type.NUMBER }, baterai: { type: Type.NUMBER }, layarDesain: { type: Type.NUMBER }, performa: { type: Type.NUMBER }, storageRam: { type: Type.NUMBER }}},
             quickReview: { type: Type.OBJECT, properties: { summary: { type: Type.STRING }, pros: { type: Type.ARRAY, items: { type: Type.STRING } }, cons: { type: Type.ARRAY, items: { type: Type.STRING } } } },
-            specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan dan tahun. Contoh: 'Januari 2025' atau 'Awal 2026 (Estimasi)'." }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
+            specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING, description: "Januari 2026." }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
             targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
             accessoryAvailability: { type: Type.STRING },
             marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } }, required: ["indonesia"] },
@@ -392,19 +391,26 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     };
     
     try {
+        const prompt = `**Pakar JAGO-HP (2026):** Identifikasi HP dari kueri user: "${reviewQuery}".
+**NORMALISASI IDENTITAS:** 
+- Pastikan HP teridentifikasi dengan benar meskipun user menyingkat namanya.
+- Contoh: 'S25 FE' dan 'S25 FE 5G' adalah produk yang sama. Gunakan nama resmi penuh di 'phoneName'.
+- Jangan buat entri baru jika data sudah ada dengan nama resmi yang serupa.`;
+
         const response = await ai.models.generateContent({ 
             model: 'gemini-3-flash-preview', 
-            contents: `**Pakar Teknologi:** Identifikasi dan Review HP dari kueri: "${reviewQuery}". Gunakan data terbaru Januari 2026. Berikan nama resmi lengkap di 'phoneName'.`, 
+            contents: prompt, 
             config: { 
                 responseMimeType: "application/json", 
-                responseSchema: schema 
+                responseSchema: schema as any
             } 
         });
         const parsedResult: ReviewResult = JSON.parse(response.text.trim());
+
         if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
             setReviewError(parsedResult.phoneName);
         } else {
-            // Cek duplikasi nama resmi sebelum simpan
+            // 2. Secondary check with Official Name to avoid duplicates (e.g. S25 FE vs S25 FE 5G)
             const officialKey = parsedResult.phoneName.toLowerCase().trim();
             if (supabase) {
                 const { data: existing } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', officialKey).single();
@@ -419,14 +425,22 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
 
             onSetPersistentQuickReviewResult(parsedResult);
             await bubbleInSmartReviewList(parsedResult);
+            
             if (supabase) {
               try {
+                // Save both the raw query and official name records
                 await supabase.from('quick_reviews').insert({
                   phone_name_query: cacheKey,
                   review_data: parsedResult,
                 });
+                if (cacheKey !== officialKey) {
+                   await supabase.from('quick_reviews').insert({
+                    phone_name_query: officialKey,
+                    review_data: parsedResult,
+                  }).catch(() => null);
+                }
               } catch (cacheError) {
-                console.warn("Supabase quick review cache write failed:", cacheError);
+                console.warn("Quick review cache save failed:", cacheError);
               }
             }
         }
@@ -457,12 +471,12 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
           return;
         }
       } catch (cacheError) {
-        console.warn("Supabase quick compare cache check missed.");
+        console.warn("Quick compare cache miss.");
       }
     }
     
     const phoneSpecProperties = {
-        rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan dan tahun (misal: Januari 2025) atau estimasi." }, os: { type: Type.STRING }, processor: { type: Type.STRING },
+        rilis: { type: Type.STRING, description: "Bulan & Tahun." }, os: { type: Type.STRING }, processor: { type: Type.STRING },
         ram: { type: Type.STRING },
         antutuScore: { type: Type.INTEGER },
         jaringan: { type: Type.STRING }, display: { type: Type.STRING }, camera: { type: Type.STRING }, 
@@ -471,7 +485,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     };
 
     const baseSchemaProperties = {
-        phones: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, specs: { type: Type.OBJECT, properties: phoneSpecProperties }}, required: ["name", "specs"]}},
+        phones: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING, description: "Official Full Name" }, specs: { type: Type.OBJECT, properties: phoneSpecProperties }}, required: ["name", "specs"]}},
     };
 
     const battleSchemaProperties = {
@@ -485,9 +499,13 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
         : { type: Type.OBJECT, properties: baseSchemaProperties, required: ['phones'] };
     
     try {
+        const prompt = `**Pakar JAGO-HP:** Identifikasi & Bandingkan HP: ${phoneList}. 
+**PENTING:** Jika user menyebutkan 'S25 FE', identifikasi sebagai 'Samsung Galaxy S25 FE 5G'. 
+Gunakan data resmi terbaru 2026.`;
+
         const response = await ai.models.generateContent({ 
             model: 'gemini-3-flash-preview', 
-            contents: `**Pakar Teknologi:** Identifikasi dan Compare HP: ${phoneList}. Gunakan data 2026. Rilis wajib ada nama bulan.`, 
+            contents: prompt, 
             config: { 
                 responseMimeType: "application/json", 
                 responseSchema: schema as any 
@@ -502,7 +520,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
               compare_data: parsedResult,
             });
           } catch (cacheError) {
-            console.warn("Supabase quick compare cache save failed.");
+            console.warn("Quick compare cache save failed.");
           }
         }
     } catch (e: any) {
@@ -534,7 +552,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
                 return;
             }
         } catch (cacheError) {
-            console.warn("Supabase quick match cache check missed.");
+            console.warn("Quick match cache miss.");
         }
     }
 
@@ -560,7 +578,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     try {
         const response = await ai.models.generateContent({ 
             model: 'gemini-3-flash-preview', 
-            contents: `**Pakar Teknologi:** Cari HP terbaik awal dengan budget ${budget} dlm IDR.`, 
+            contents: `**Pakar JAGO-HP:** Cari HP terbaik awal 2026 dengan budget ${budget}. Berikan nama resmi lengkap di 'phoneName'.`, 
             config: { 
                 responseMimeType: "application/json", 
                 responseSchema: schema as any 
@@ -575,7 +593,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
                     result_data: parsedResult
                 });
             } catch (cacheError) {
-                console.warn("Supabase quick match cache write failed:", cacheError);
+                console.warn("Quick match cache write failed:", cacheError);
             }
         }
     } catch (e: any) {
@@ -864,15 +882,15 @@ const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: 
   const [weather, setWeather] = useState<{ temp: string; icon: string } | null>(null);
 
   const getWeatherIcon = (code: number) => {
-    if (code === 0) return '☀️'; // Clear sky
-    if ([1, 2].includes(code)) return '🌤️'; // Mainly clear, partly cloudy
-    if (code === 3) return '☁️'; // Overcast
-    if ([45, 48].includes(code)) return '🌫️'; // Fog
-    if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return '🌧️'; // Drizzle and Rain
-    if ([56, 57, 66, 67].includes(code)) return '🥶'; // Freezing Drizzle & Rain
-    if ([71, 73, 75, 77, 85, 86].includes(code)) return '🌨️'; // Snow
-    if ([95, 96, 99].includes(code)) return '⛈️'; // Thunderstorm
-    return '🛰️'; // Default
+    if (code === 0) return '☀️'; 
+    if ([1, 2].includes(code)) return '🌤️'; 
+    if (code === 3) return '☁️'; 
+    if ([45, 48].includes(code)) return '🌫️'; 
+    if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return '🌧️'; 
+    if ([56, 57, 66, 67].includes(code)) return '🥶'; 
+    if ([71, 73, 75, 77, 85, 86].includes(code)) return '🌨️'; 
+    if ([95, 96, 99].includes(code)) return '⛈️'; 
+    return '🛰️'; 
   };
 
   useEffect(() => {
