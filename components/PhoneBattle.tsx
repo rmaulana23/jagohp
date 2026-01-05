@@ -96,9 +96,9 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
                     required: ["name", "specs"]
                 }
             },
-            winnerName: { type: Type.STRING, description: "Nama pemenang mutlak atau 'Seri'." }
+            winnerName: { type: Type.STRING, description: "Wajib diisi dengan Nama HP yang sedikit lebih unggul secara keseluruhan dari list 'phones' yang Anda buat, atau tulis 'Seri' jika benar-benar seimbang." }
         },
-        required: ['battleSummary', 'targetAudience', 'phones']
+        required: ['battleSummary', 'targetAudience', 'phones', 'winnerName']
     };
     
     const handlePhoneNameChange = (index: number, value: string) => {
@@ -141,10 +141,11 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
         }
 
         const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
-        const prompt = `**Peran:** Anda adalah Ahli Teknologi tingkat dunia dengan pengetahuan terbaru hingga awal Januari 2026.
+        const prompt = `**Peran:** Ahli Teknologi tingkat dunia dengan pengetahuan terbaru hingga awal Januari 2026.
 **Tugas:** Lakukan analisis perbandingan mendalam dalam Bahasa Indonesia antara: ${phoneList}. 
+**Ketentuan Pemenang:** Evaluasi semua aspek (Performa, Kamera, Baterai, Harga). Tentukan satu yang sedikit lebih unggul dan tulis namanya di 'winnerName' secara persis seperti di field 'name'. Jika seimbang, tulis 'Seri'.
 **Sumber:** GSMArena, PhoneArena, dan data benchmark terbaru 2026. 
-**Penting:** Data rilis WAJIB menyertakan nama bulan. Brand 'iQOO' selalu ditulis 'iQOO'. Pastikan harga dlm Rupiah (IDR) pasar Indonesia saat ini.`;
+**Penting:** Data rilis WAJIB menyertakan nama bulan. Brand 'iQOO' selalu ditulis 'iQOO'.`;
 
         try {
             const response = await ai.models.generateContent({
@@ -168,10 +169,10 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
         <section id="battle" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
             <div className="container mx-auto max-w-6xl">
                 
-                {/* Banner Image */}
+                {/* Banner Image Updated */}
                 <div className="w-full mb-8 rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white">
                     <img 
-                        src="https://imgur.com/ms4Btaa.jpg" 
+                        src="https://imgur.com/DDAhgsz.jpg" 
                         alt="JAGO-HP Compare Banner" 
                         className="w-full h-auto object-cover max-h-[350px] block"
                     />
@@ -217,7 +218,7 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
                                 >
                                     {loading ? 'Membandingkan...' : 'Adu Spesifikasi'}
                                 </button>
-                                {loading && <p className="text-sm text-slate-500 mt-3 animate-pulse">Kami coba analisis, mohon jangan pindah menu..</p>}
+                                {loading && <p className="text-sm text-slate-500 mt-3 animate-pulse">Pakar AI sedang menimbang-nimbang pilihan terbaik...</p>}
                             </div>
                         </form>
                     </>
@@ -229,7 +230,7 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
                     {result && (
                         <>
                             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-slate-900 font-orbitron text-center">
-                                Hasil Perbandingan
+                                Hasil Analisis
                             </h2>
                             <BattleResultDisplay result={result} onReset={() => { setResult(null); setPhoneNames(['', '']); }} />
                         </>
@@ -277,39 +278,56 @@ const BattleResultDisplay: FC<{ result: BattleResult; onReset: () => void }> = (
     <div className="animate-fade-in space-y-8">
         <div className={`grid grid-cols-1 ${result.phones.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-6 items-stretch`}>
             {result.phones.map((phone, index) => {
-                const isWinner = result.winnerName && phone.name === result.winnerName;
+                // Check for winner by name (case insensitive for safety)
+                const isWinner = result.winnerName && 
+                                 result.winnerName !== 'Seri' && 
+                                 phone.name.toLowerCase() === result.winnerName.toLowerCase();
                 return (
-                    <div key={index} className={`relative glass p-5 flex flex-col transition-all duration-300 ${isWinner ? 'border-2 border-[color:var(--accent1)] shadow-xl' : ''}`}>
+                    <div key={index} className={`relative glass p-5 flex flex-col transition-all duration-300 ${isWinner ? 'border-2 border-yellow-400 shadow-xl ring-4 ring-yellow-400/10' : ''}`}>
                         {isWinner && (
-                            <div className="absolute -top-3.5 right-4 bg-[color:var(--accent1)] text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                            <div className="absolute -top-4 right-4 bg-yellow-400 text-slate-900 px-4 py-1 rounded-full text-xs font-black flex items-center gap-2 shadow-lg animate-bounce">
                                 <CrownIcon className="w-4 h-4" />
-                                <span>Pemenang</span>
+                                <span>REKOMENDASI</span>
                             </div>
                         )}
-                        <h3 className="text-lg font-bold text-slate-900 mb-1">{formatBrandName(phone.name)}</h3>
-                        <p className="text-sm small-muted mb-4">{phone.specs?.rilis || 'N/A'}</p>
+                        <h3 className="text-xl font-bold text-slate-900 mb-1">{formatBrandName(phone.name)}</h3>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Rilis: {phone.specs?.rilis || 'N/A'}</p>
                         
                         <dl className="space-y-1 text-sm flex-grow">
                             {Object.entries(phone.specs).map(([key, val]) => (
                                 val ? (
-                                    <div key={key} className="flex justify-between items-start gap-4 py-2 border-b border-slate-200/60 last:border-b-0">
-                                        <dt className="small-muted flex-shrink-0 capitalize">{key.replace(/([A-Z])/g, ' $1')}</dt>
-                                        <dd className="text-slate-700 text-right break-words font-medium">{val}</dd>
+                                    <div key={key} className="flex justify-between items-start gap-4 py-2.5 border-b border-slate-100 last:border-b-0">
+                                        <dt className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex-shrink-0 mt-0.5">{key.replace(/([A-Z])/g, ' $1')}</dt>
+                                        <dd className="text-slate-800 text-right break-words font-bold">{val}</dd>
                                     </div>
                                 ) : null
                             ))}
                         </dl>
-                        <EcommerceButtons phoneName={phone.name} isCompact={true} />
+                        <div className="mt-6">
+                            <EcommerceButtons phoneName={phone.name} isCompact={true} />
+                        </div>
                     </div>
                 );
             })}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="glass p-5"><h3 className="text-lg font-bold flex items-center gap-2"><LightbulbIcon className="w-6 h-6 text-[color:var(--accent1)]" /> Ringkasan Adu</h3><p className="text-sm text-slate-600 mt-2">{result.battleSummary}</p></div>
-            <div className="glass p-5"><h3 className="text-lg font-bold flex items-center gap-2"><UsersIcon className="w-6 h-6 text-[color:var(--accent1)]" /> Cocok Untuk Siapa</h3><p className="text-sm text-slate-600 mt-2">{result.targetAudience}</p></div>
+            <div className="glass p-6 border-l-4 border-indigo-500">
+                <h3 className="text-lg font-bold flex items-center gap-3 text-slate-900">
+                    <LightbulbIcon className="w-6 h-6 text-indigo-500" /> 
+                    Ringkasan Adu
+                </h3>
+                <p className="text-sm text-slate-600 mt-3 leading-relaxed font-medium">{result.battleSummary}</p>
+            </div>
+            <div className="glass p-6 border-l-4 border-emerald-500">
+                <h3 className="text-lg font-bold flex items-center gap-3 text-slate-900">
+                    <UsersIcon className="w-6 h-6 text-emerald-500" /> 
+                    Saran Penggunaan
+                </h3>
+                <p className="text-sm text-slate-600 mt-3 leading-relaxed font-medium">{result.targetAudience}</p>
+            </div>
         </div>
-        <div className="text-center">
-            <button onClick={onReset} className="px-6 py-2 rounded-lg text-sm bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors">Bandingkan Lagi</button>
+        <div className="text-center pt-4">
+            <button onClick={onReset} className="px-10 py-3 rounded-full bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] hover:bg-indigo-600 transition-colors shadow-lg active:scale-95">Bandingkan HP Lain</button>
         </div>
     </div>
 );
