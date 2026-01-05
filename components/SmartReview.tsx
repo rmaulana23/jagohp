@@ -382,7 +382,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     { !review && !loading && recentReviews.length > 0 && (
                         <div className="mt-16 animate-fade-in">
                             <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
-                                <h2 className="text-xl font-bold text-slate-900 font-orbitron">Pencarian Review Pengguna Lainnya</h2>
+                                <h2 className="text-xl font-bold text-slate-900 font-orbitron uppercase tracking-tight">Eksplorasi Review HP</h2>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {recentReviews.slice(0, visibleCount).map((rev, idx) => (
@@ -422,37 +422,39 @@ const ReviewSkeleton: FC = () => (
 
 const RecentReviewCard: FC<{ result: ReviewResult; onSelect: () => void; onCompare?: (name: string) => void }> = ({ result, onSelect, onCompare }) => {
     return (
-        <div className="bg-[#141426] rounded-2xl p-5 shadow-lg border border-white/5 flex flex-col h-full hover:scale-[1.02] transition-transform duration-300 group">
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-full hover:shadow-md transition-shadow duration-300 group">
             <div className="flex gap-4 mb-4">
                 {result.imageUrl ? (
-                    <div className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-white/5 p-1 flex items-center justify-center">
-                        <img src={result.imageUrl} alt={result.phoneName} className="max-w-full max-h-full object-contain" />
+                    <div className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-50 p-1 flex items-center justify-center border border-slate-100">
+                        <img src={result.imageUrl} alt={result.phoneName} className="max-w-full max-h-full object-contain drop-shadow-sm" />
                     </div>
                 ) : (
-                    <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-slate-800 flex items-center justify-center">
-                         <span className="text-[10px] text-slate-600 font-bold uppercase tracking-tighter">No Image</span>
+                    <div className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 flex items-center justify-center border border-slate-200">
+                         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter text-center">No Image</span>
                     </div>
                 )}
-                <div className="min-w-0">
-                    <h3 className="text-lg font-bold text-white leading-tight group-hover:text-yellow-400 transition-colors truncate">{formatBrandName(result.phoneName)}</h3>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Rilis: {result.specs?.rilis || 'N/A'}</p>
+                <div className="min-w-0 flex-1">
+                    <h3 className="text-lg font-bold text-slate-900 leading-tight group-hover:text-indigo-600 transition-colors truncate">{formatBrandName(result.phoneName)}</h3>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Rilis: {result.specs?.rilis || 'N/A'}</p>
                 </div>
             </div>
             
-            <div className="mb-6 grid grid-cols-2 gap-3">
+            <div className="mb-6 grid grid-cols-2 gap-x-3 gap-y-4">
                 <SpecItemSmall label="CPU" value={result.specs?.processor} />
+                <SpecItemSmall label="RAM" value={result.specs?.ram} />
                 <SpecItemSmall label="AnTuTu" value={result.performance?.antutuScore?.toLocaleString('id-ID')} />
+                <SpecItemSmall label="Koneksi" value={result.specs?.koneksi || result.specs?.jaringan} />
             </div>
             
-            <div className="mb-4 mt-auto">
-                <div className="inline-block px-3 py-1 bg-white/5 rounded-lg border border-white/10 w-full text-center">
+            <div className="mb-5 mt-auto">
+                <div className="inline-block px-3 py-1.5 bg-slate-900 rounded-xl w-full text-center shadow-sm">
                     <span className="text-yellow-400 font-black text-sm">{result.marketPrice?.indonesia || 'Rp -'}</span>
                 </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-                <button onClick={onSelect} className="px-3 py-2.5 rounded-xl bg-white text-[#141426] font-black text-[10px] uppercase tracking-wider hover:bg-slate-100 transition-all">Detail</button>
-                <button onClick={() => onCompare ? onCompare(result.phoneName) : (window.location.hash = 'battle')} className="px-3 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-black text-[10px] uppercase tracking-wider hover:bg-white/20 transition-all">Compare</button>
+                <button onClick={onSelect} className="px-3 py-2.5 rounded-xl bg-slate-100 text-slate-900 font-black text-[10px] uppercase tracking-wider hover:bg-slate-200 transition-all border border-slate-200">Detail</button>
+                <button onClick={() => onCompare ? onCompare(result.phoneName) : (window.location.hash = 'battle')} className="px-3 py-2.5 rounded-xl bg-white border border-slate-900 text-slate-900 font-black text-[10px] uppercase tracking-wider hover:bg-slate-50 transition-all">Compare</button>
             </div>
         </div>
     );
@@ -462,8 +464,8 @@ const SpecItemSmall: FC<{ label: string; value: string | undefined | null }> = (
     if (!value) return null;
     return (
         <div className="flex flex-col text-left">
-            <span className="text-[9px] text-slate-500 uppercase font-black tracking-tighter">{label}</span>
-            <span className="text-[11px] text-slate-300 font-bold truncate leading-tight">{value}</span>
+            <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest mb-0.5">{label}</span>
+            <span className="text-[11px] text-slate-700 font-bold truncate leading-tight">{value}</span>
         </div>
     );
 };
