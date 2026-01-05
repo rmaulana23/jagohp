@@ -29,6 +29,7 @@ interface SpecDetails {
 interface PhoneData {
     name: string;
     specs: SpecDetails;
+    imageUrl?: string; // Menambahkan properti gambar
 }
 
 export interface BattleResult {
@@ -58,12 +59,44 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
 
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
 
+    // Fungsi untuk melengkapi gambar HP dari database
+    const enrichWithImages = async (battleData: BattleResult): Promise<BattleResult> => {
+        if (!supabase) return battleData;
+        
+        const enrichedPhones = await Promise.all(battleData.phones.map(async (phone) => {
+            try {
+                // Cari di smart_reviews berdasarkan nama resmi (cache_key)
+                const { data } = await supabase
+                    .from('smart_reviews')
+                    .select('review_data')
+                    .eq('cache_key', phone.name.toLowerCase().trim())
+                    .single();
+                
+                if (data && data.review_data && data.review_data.imageUrl) {
+                    return { ...phone, imageUrl: data.review_data.imageUrl };
+                }
+            } catch (e) {
+                // Jika tidak ketemu di smart_reviews, biarkan tanpa gambar
+            }
+            return phone;
+        }));
+
+        return { ...battleData, phones: enrichedPhones };
+    };
+
     useEffect(() => {
         if (initialPhoneA) {
             setPhoneNames([initialPhoneA, '']);
             if (clearInitialPhoneA) clearInitialPhoneA();
         }
     }, [initialPhoneA]);
+
+    // Jika ada initialResult, perkaya dengan gambar jika belum ada
+    useEffect(() => {
+        if (initialResult && initialResult.phones.every(p => !p.imageUrl)) {
+            enrichWithImages(initialResult).then(setResult);
+        }
+    }, [initialResult]);
 
     const phoneSpecProperties = {
         rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan dan tahun. Contoh: 'September 2024' atau 'Desember 2025 (Estimasi)'." },
@@ -133,7 +166,8 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
             try {
                 const { data } = await supabase.from('phone_battles').select('battle_data').eq('cache_key', cacheKey).single();
                 if (data && data.battle_data) {
-                    setResult(data.battle_data as BattleResult);
+                    const enriched = await enrichWithImages(data.battle_data as BattleResult);
+                    setResult(enriched);
                     setLoading(false);
                     return;
                 }
@@ -154,7 +188,8 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
                 config: { responseMimeType: "application/json", responseSchema: schema as any }
             });
             const parsedResult: BattleResult = JSON.parse(response.text.trim());
-            setResult(parsedResult);
+            const enrichedResult = await enrichWithImages(parsedResult);
+            setResult(enrichedResult);
             if (supabase) {
                 await supabase.from('phone_battles').insert({ cache_key: cacheKey, battle_data: parsedResult });
             }
@@ -169,12 +204,12 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
         <section id="battle" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
             <div className="container mx-auto max-w-6xl">
                 
-                {/* Banner Image Updated */}
-                <div className="w-full mb-8 rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white">
+                {/* Banner Image Section - Updated for Full View & Cropping edges */}
+                <div className="w-full mb-10 rounded-2xl overflow-hidden shadow-2xl border border-slate-200 aspect-[21/9] md:aspect-[3/1]">
                     <img 
-                        src="https://imgur.com/DDAhgsz.jpg" 
-                        alt="JAGO-HP Compare Banner" 
-                        className="w-full h-auto object-cover max-h-[350px] block"
+                        src="https://imgur.com/ZIQQkar.jpg" 
+                        alt="DUELKAN HP Favoritmu!" 
+                        className="w-full h-full object-cover block"
                     />
                 </div>
 
@@ -264,6 +299,7 @@ const BattleSkeleton: FC<{ phoneCount: number }> = ({ phoneCount }) => (
         <div className={`grid grid-cols-1 md:grid-cols-${phoneCount} gap-6`}>
             {[...Array(phoneCount)].map((_, i) => (
                 <div key={i} className="glass p-5 space-y-3">
+                    <div className="h-40 bg-slate-200 rounded-xl mb-4"></div>
                     <div className="h-6 bg-slate-200 rounded w-3/4"></div>
                     <div className="space-y-2 pt-4 mt-2 border-t border-slate-200">
                         {[...Array(6)].map((_, j) => <div key={j} className="h-4 bg-slate-200 rounded w-full"></div>)}
@@ -285,11 +321,30 @@ const BattleResultDisplay: FC<{ result: BattleResult; onReset: () => void }> = (
                 return (
                     <div key={index} className={`relative glass p-5 flex flex-col transition-all duration-300 ${isWinner ? 'border-2 border-yellow-400 shadow-xl ring-4 ring-yellow-400/10' : ''}`}>
                         {isWinner && (
-                            <div className="absolute -top-4 right-4 bg-yellow-400 text-slate-900 px-4 py-1 rounded-full text-xs font-black flex items-center gap-2 shadow-lg animate-bounce">
+                            <div className="absolute -top-4 right-4 bg-yellow-400 text-slate-900 px-4 py-1 rounded-full text-xs font-black flex items-center gap-2 shadow-lg animate-bounce z-10">
                                 <CrownIcon className="w-4 h-4" />
                                 <span>REKOMENDASI</span>
                             </div>
                         )}
+
+                        {/* Tampilan Gambar HP */}
+                        <div className="w-full aspect-square mb-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center p-4 overflow-hidden group">
+                            {phone.imageUrl ? (
+                                <img 
+                                    src={phone.imageUrl} 
+                                    alt={phone.name} 
+                                    className="max-w-full max-h-full object-contain drop-shadow-xl group-hover:scale-110 transition-transform duration-500" 
+                                />
+                            ) : (
+                                <div className="text-center text-slate-300 flex flex-col items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 mb-2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                                    </svg>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">Gambar Belum Tersedia</span>
+                                </div>
+                            )}
+                        </div>
+
                         <h3 className="text-xl font-bold text-slate-900 mb-1">{formatBrandName(phone.name)}</h3>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Rilis: {phone.specs?.rilis || 'N/A'}</p>
                         
