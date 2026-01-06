@@ -187,9 +187,11 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         setReview(null);
         setShowFullReview(false);
 
-        const cacheKey = searchQuery.trim().toLowerCase();
+        // Normalize initial query key (e.g. "S25 FE" -> "s25 fe")
+        const normalizedQuery = searchQuery.trim().toLowerCase().replace(/-/g, ' ');
+        const cacheKey = normalizedQuery;
 
-        // 1. Check raw query cache
+        // 1. First check if this exact phrase exists in DB
         if (supabase) {
             try {
                 const { data } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', cacheKey).single();
@@ -209,10 +211,10 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 
         const prompt = `**Peran:** Pakar Gadget Senior JAGO-HP. Pengetahuan hingga awal 2026.
 **Tugas:** Lakukan ulasan mendalam untuk: '${searchQuery}'. 
-**ATURAN IDENTITAS (PENTING):** 
-- Identifikasi HP dengan tepat meskipun input user tidak lengkap.
-- Contoh: 'samsung s25 fe' dan 'samsung s25 fe 5g' adalah HP yang sama. Gunakan nama resmi lengkap: 'Samsung Galaxy S25 FE 5G'.
-- Field 'phoneName' WAJIB menggunakan nama resmi lengkap.
+**ATURAN IDENTITAS (KRUSIAL):** 
+- Normalisasi Identitas: Identifikasi HP dengan tepat meskipun input user tidak lengkap atau bervariasi.
+- Contoh: 'Xiaomi 15T' dan 'Xiaomi 15T 5G' adalah HP yang sama. Identifikasi sebagai versi terlengkap: 'Xiaomi 15T 5G'.
+- Field 'phoneName' WAJIB menggunakan nama resmi penuh yang paling dikenal di pasar global/Indonesia.
 - Selalu gunakan data terbaru (GSMArena/PhoneArena) 2026.
 **Bahasa:** Bahasa Indonesia.`;
 
@@ -228,7 +230,8 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                 setError(parsedResult.phoneName);
                 setReview(null);
             } else {
-                // 2. Double check database with Official Name to prevent duplicates (e.g. S25 FE vs S25 FE 5G)
+                // 2. IMPORTANT: After getting official name from AI, check DB again using THAT official name
+                // to prevent duplicates like "Xiaomi 15T" and "Xiaomi 15T 5G" having separate entries.
                 const officialCacheKey = parsedResult.phoneName.toLowerCase().trim();
                 
                 if (supabase) {
@@ -243,6 +246,13 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                         setReview(existingReview);
                         setShowFullReview(true);
                         updateRecentList(existingReview);
+                        // Also link the raw query to this official entry to make future lookups faster
+                        if (officialCacheKey !== cacheKey) {
+                             await supabase.from('smart_reviews').insert({ 
+                                cache_key: cacheKey, 
+                                review_data: existingReview 
+                            }).catch(() => null); 
+                        }
                         await supabase.from('smart_reviews').update({ created_at: new Date().toISOString() }).eq('cache_key', officialCacheKey);
                         setLoading(false);
                         return;
@@ -254,7 +264,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                             cache_key: officialCacheKey, 
                             review_data: parsedResult 
                         });
-                        // Also store the raw user query as an alias if different
+                        // Also store the raw user query as an alias
                         if (officialCacheKey !== cacheKey) {
                              await supabase.from('smart_reviews').insert({ 
                                 cache_key: cacheKey, 
@@ -650,26 +660,73 @@ const TabContentRingkasan: FC<{ review: ReviewResult }> = ({ review }) => (
     </div>
 );
 
-const TabContentPerforma: FC<{ review: ReviewResult }> = ({ review }) => (
-    <div className="space-y-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="glass p-6 text-center">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">AnTuTu v10 Score</p>
-                <p className="text-3xl font-black text-slate-900">{review.performance?.antutuScore?.toLocaleString('id-ID') || 'N/A'}</p>
+const TabContentPerforma: FC<{ review: ReviewResult }> = ({ review }) => {
+    const mainPhone = { name: review.phoneName, score: review.performance.antutuScore || 0, isMain: true };
+    const rivals = (review.performance.competitors || []).map(c => ({ name: c.name, score: c.antutuScore || 0, isMain: false }));
+    const allForComparison = [mainPhone, ...rivals].sort((a, b) => b.score - a.score);
+    const maxScore = Math.max(...allForComparison.map(i => i.score));
+
+    return (
+        <div className="space-y-10">
+            {/* AnTuTu v10 Section */}
+            <div>
+                <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                    <span className="w-2 h-6 bg-orange-500 rounded-full"></span>
+                    Benchmark AnTuTu v10
+                </h3>
+                
+                <div className="space-y-5 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                    {allForComparison.map((item, idx) => {
+                        const percentage = maxScore > 0 ? (item.score / maxScore) * 100 : 0;
+                        return (
+                            <div key={idx} className="space-y-1.5">
+                                <div className="flex justify-between items-end">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-xs font-bold truncate max-w-[150px] sm:max-w-none ${item.isMain ? 'text-indigo-600' : 'text-slate-500'}`}>
+                                            {formatBrandName(item.name)}
+                                        </span>
+                                        {item.isMain && <span className="bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">Target</span>}
+                                    </div>
+                                    <span className={`text-sm font-black ${item.isMain ? 'text-slate-900' : 'text-slate-500'}`}>
+                                        {item.score.toLocaleString('id-ID')}
+                                    </span>
+                                </div>
+                                <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                                    <div 
+                                        className={`h-full rounded-full transition-all duration-1000 ease-out ${item.isMain ? 'bg-indigo-600 shadow-[0_0_8px_rgba(79,70,229,0.4)]' : 'bg-slate-400 opacity-60'}`}
+                                        style={{ width: `${percentage}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    <p className="text-[10px] text-slate-400 font-medium italic mt-4 text-center">
+                        * Data AnTuTu v10 berdasarkan database benchmark publik 2025/2026.
+                    </p>
+                </div>
             </div>
-            <div className="glass p-6 text-center">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Geekbench 6 (Multi)</p>
-                <p className="text-3xl font-black text-slate-900">{review.performance?.geekbenchScore || 'N/A'}</p>
+
+            {/* Geekbench & Gaming Review */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="glass p-6 text-center">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Geekbench 6 (Multi)</p>
+                    <p className="text-3xl font-black text-slate-900">{review.performance?.geekbenchScore || 'N/A'}</p>
+                </div>
+                <div className="glass p-6 flex flex-col justify-center">
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Chipset Utama</h4>
+                    <p className="text-base font-bold text-indigo-600 leading-tight">{review.specs.processor}</p>
+                </div>
+            </div>
+
+            <div>
+                <h3 className="text-lg font-bold text-slate-900 mb-3">Analisis Gaming</h3>
+                <div className="p-5 bg-indigo-50/30 rounded-2xl border border-indigo-100">
+                    <p className="text-slate-600 leading-relaxed text-sm">{review.performance?.gamingReview || 'Data performa gaming tidak tersedia.'}</p>
+                </div>
             </div>
         </div>
-        <div>
-            <h3 className="text-lg font-bold text-slate-900 mb-3">Analisis Gaming</h3>
-            <div className="p-5 bg-indigo-50/30 rounded-2xl border border-indigo-100">
-                <p className="text-slate-600 leading-relaxed">{review.performance?.gamingReview || 'Data performa gaming tidak tersedia.'}</p>
-            </div>
-        </div>
-    </div>
-);
+    );
+};
 
 const TabContentCamera: FC<{ review: ReviewResult }> = ({ review }) => (
     <div className="space-y-8">
