@@ -17,6 +17,7 @@ import ChatBubbleLeftEllipsisIcon from './icons/ChatBubbleLeftEllipsisIcon';
 import ShareIcon from './icons/ShareIcon';
 import ChartBarIcon from './icons/ChartBarIcon';
 import AndroidIcon from './icons/AndroidIcon';
+import LightbulbIcon from './icons/LightbulbIcon';
 
 interface QuickMatchResult {
   phoneName: string;
@@ -286,7 +287,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
   
   const [comparePhoneA, setComparePhoneA] = useState('');
   const [comparePhoneB, setComparePhoneB] = useState('');
-  const [battleModeLoading, setBattleModeLoading] = useState<'compare' | 'battle' | null>(null);
+  const [battleModeLoading, setBattleModeLoading] = useState<boolean>(false);
   const [battleError, setBattleError] = useState<string | null>(null);
   const [battleData, setBattleData] = useState<BattleResult | null>(null);
 
@@ -452,22 +453,22 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     }
   };
   
-  const handleCompareAction = async (mode: 'compare' | 'battle') => {
+  const handleCompareAction = async () => {
     if (!comparePhoneA.trim() || !comparePhoneB.trim()) return;
-    setBattleModeLoading(mode);
+    setBattleModeLoading(true);
     setBattleError(null);
     setBattleData(null);
 
     const phoneNames = [comparePhoneA, comparePhoneB];
     const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
-    const cacheKey = [mode, ...phoneNames.map(name => name.trim().toLowerCase()).sort()].join('_vs_');
+    const cacheKey = ['battle', ...phoneNames.map(name => name.trim().toLowerCase()).sort()].join('_vs_');
 
     if (supabase) {
       try {
         const { data } = await supabase.from('quick_compare').select('compare_data').eq('cache_key', cacheKey).single();
         if (data && data.compare_data) {
           setBattleData(data.compare_data as BattleResult);
-          setBattleModeLoading(null);
+          setBattleModeLoading(false);
           return;
         }
       } catch (cacheError) {
@@ -484,24 +485,23 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
         hargaIndonesia: { type: Type.STRING },
     };
 
-    const baseSchemaProperties = {
-        phones: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING, description: "Official Full Name" }, specs: { type: Type.OBJECT, properties: phoneSpecProperties }}, required: ["name", "specs"]}},
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            phones: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING, description: "Official Full Name (e.g., Asus Zenfone 10, not just Zenfone 10)" }, specs: { type: Type.OBJECT, properties: phoneSpecProperties }}, required: ["name", "specs"]}},
+            battleSummary: { type: Type.STRING, description: "Ringkasan perbandingan mendalam." },
+            winnerName: { type: Type.STRING }
+        },
+        required: ['battleSummary', 'phones', 'winnerName']
     };
-
-    const battleSchemaProperties = {
-        ...baseSchemaProperties,
-        battleSummary: { type: Type.STRING },
-        winnerName: { type: Type.STRING }
-    };
-
-    const schema = mode === 'battle' 
-        ? { type: Type.OBJECT, properties: battleSchemaProperties, required: ['battleSummary', 'phones', 'winnerName'] }
-        : { type: Type.OBJECT, properties: baseSchemaProperties, required: ['phones'] };
     
     try {
         const prompt = `**Pakar JAGO-HP:** Identifikasi & Bandingkan HP: ${phoneList}. 
-**PENTING:** Jika user menyebutkan 'S25 FE', identifikasi sebagai 'Samsung Galaxy S25 FE 5G'. 
-Gunakan data resmi terbaru 2026.`;
+**NORMALISASI NAMA (KRUSIAL):** 
+- Selalu gunakan NAMA RESMI LENGKAP termasuk Brand di field 'name'. 
+- Contoh: Jika user input 'zenfone 10', ubah menjadi 'Asus Zenfone 10'. Jika 's24 ultra', ubah menjadi 'Samsung Galaxy S24 Ultra'.
+- Jika user menyebutkan 'S25 FE', identifikasi sebagai 'Samsung Galaxy S25 FE 5G'. 
+Gunakan data resmi terbaru 2026. Lakukan analisis mendalam termasuk ringkasan perbandingan.`;
 
         const response = await ai.models.generateContent({ 
             model: 'gemini-3-flash-preview', 
@@ -527,7 +527,7 @@ Gunakan data resmi terbaru 2026.`;
         console.error(e.message || e);
         setBattleError('Terjadi kesalahan AI saat membandingkan. Silakan coba lagi.');
     } finally {
-        setBattleModeLoading(null);
+        setBattleModeLoading(false);
     }
   };
 
@@ -671,12 +671,9 @@ Gunakan data resmi terbaru 2026.`;
                                 <input id="cmpA" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 1" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
                                 <input id="cmpB" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 2" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
                             </div>
-                            <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                                <button onClick={() => handleCompareAction('compare')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm border border-slate-400 text-slate-600 font-semibold hover:bg-slate-100 transition-colors disabled:opacity-50">
-                                    {battleModeLoading === 'compare' ? 'Menganalisis...' : 'Compare'}
-                                </button>
-                                <button onClick={() => handleCompareAction('battle')} disabled={!!battleModeLoading} className="w-full px-4 py-2 rounded-lg text-sm bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
-                                    {battleModeLoading === 'battle' ? 'Analisis Battle' : 'Battle Mode'}
+                            <div className="mt-4">
+                                <button onClick={handleCompareAction} disabled={battleModeLoading} className="w-full px-4 py-2.5 rounded-lg text-sm bg-[color:var(--accent1)] text-white font-bold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md">
+                                    {battleModeLoading ? 'Menganalisis...' : 'Adu Spesifikasi'}
                                 </button>
                             </div>
                         </div>
@@ -794,33 +791,38 @@ Gunakan data resmi terbaru 2026.`;
 // --- Snippet Components ---
 
 const BattleSnippet: FC<{ result: BattleResult, onSeeFull: () => void }> = ({ result, onSeeFull }) => (
-    <div className="glass p-4 animate-fade-in space-y-4">
-        {result.battleSummary && (
-             <p className="text-sm text-slate-600 leading-relaxed border-b border-slate-200 pb-3 mb-3">
-                {result.battleSummary}
-            </p>
-        )}
-        <div className="grid grid-cols-2 gap-2">
+    <div className="glass p-5 animate-fade-in space-y-6 shadow-xl border-slate-200">
+        <div className="w-full">
+            <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
+                <h3 className="text-sm font-bold flex items-center gap-2 text-indigo-900 mb-2">
+                    <LightbulbIcon className="w-5 h-5 text-indigo-500" />
+                    Ringkasan Adu
+                </h3>
+                <p className="text-xs text-indigo-900/80 leading-relaxed font-medium">
+                    {result.battleSummary}
+                </p>
+            </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
             {result.phones.map((phone, index) => {
                 const isWinner = phone.name === result.winnerName;
                 return (
-                    <div key={index} className={`relative bg-slate-50 p-3 rounded-lg ${isWinner ? 'border border-[color:var(--accent1)]' : 'border border-slate-200'}`}>
-                        {isWinner && <div className="absolute -top-3 right-2 bg-[color:var(--accent1)] text-white px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1"><CrownIcon className="w-3 h-3"/>Pemenang</div>}
-                        <h4 className="font-semibold text-slate-800 text-sm truncate">{formatBrandName(phone.name)}</h4>
-                        <dl className="mt-2 space-y-1.5 text-xs text-slate-600">
+                    <div key={index} className={`relative bg-white p-4 rounded-xl shadow-sm ${isWinner ? 'border-2 border-yellow-400 ring-4 ring-yellow-400/5' : 'border border-slate-200'}`}>
+                        {isWinner && <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-slate-900 px-3 py-0.5 rounded-full text-[10px] font-black flex items-center gap-1 shadow-md z-10 uppercase tracking-tighter"><CrownIcon className="w-3 h-3"/>Pemenang</div>}
+                        <h4 className="font-bold text-slate-900 text-sm truncate text-center">{formatBrandName(phone.name)}</h4>
+                        <dl className="mt-3 space-y-1.5 text-[10px] text-slate-600">
                             <SpecItem label="CPU" value={phone.specs?.processor} />
-                            <SpecItem label="Memori" value={phone.specs?.ram} />
+                            <SpecItem label="AnTuTu" value={phone.specs?.antutuScore} />
                             <SpecItem label="Kamera" value={phone.specs?.camera} />
                             <SpecItem label="Baterai" value={phone.specs?.battery} />
-                            <SpecItem label="Charging" value={phone.specs?.charging} />
-                            <SpecItem label="NFC" value={phone.specs?.nfc} />
                             <SpecItem label="Harga" value={phone.specs?.hargaIndonesia} />
                         </dl>
                     </div>
                 );
             })}
         </div>
-        <button onClick={onSeeFull} className="w-full mt-2 px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors">Lihat Perbandingan Lengkap</button>
+        <button onClick={onSeeFull} className="w-full py-3 rounded-xl text-xs bg-slate-900 text-white font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg active:scale-95">Lihat Perbandingan Lengkap &rarr;</button>
     </div>
 );
 
@@ -875,7 +877,7 @@ const QuickMatchResultCard: FC<{ result: QuickMatchResult; onSeeFull: () => void
     </div>
 );
 
-const SpecItem: FC<{ label: string; value: any }> = ({ label, value }) => value ? (<div className="flex justify-between gap-2"><dt className="font-normal text-slate-500 truncate">{label}</dt><dd className="font-medium text-slate-700 text-right truncate">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</dd></div>) : null;
+const SpecItem: FC<{ label: string; value: any }> = ({ label, value }) => value ? (<div className="flex justify-between gap-2 border-b border-slate-50 pb-1"><dt className="font-bold text-slate-400 uppercase tracking-tighter">{label}</dt><dd className="font-bold text-slate-700 text-right truncate">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</dd></div>) : null;
 
 const PhoneScreenDisplay: FC<{ latestPost: BlogPost | null; navigateToBlogPost: (post: BlogPost) => void; setPage: (page: string) => void; }> = ({ latestPost, navigateToBlogPost, setPage }) => {
   const [time, setTime] = useState('');
