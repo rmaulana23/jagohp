@@ -4,7 +4,6 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
 import VersusIcon from './icons/VersusIcon';
 import LightbulbIcon from './icons/LightbulbIcon';
-import UsersIcon from './icons/UsersIcon';
 import PlusCircleIcon from './icons/PlusCircleIcon';
 import XCircleIcon from './icons/XCircleIcon';
 import CrownIcon from './icons/CrownIcon';
@@ -34,7 +33,6 @@ interface PhoneData {
 
 export interface BattleResult {
     battleSummary?: string;
-    targetAudience?: string;
     phones: PhoneData[];
     winnerName?: string;
 }
@@ -43,6 +41,7 @@ interface PhoneBattleProps {
     initialResult?: BattleResult | null;
     initialPhoneA?: string;
     clearInitialPhoneA?: () => void;
+    clearGlobalBattleResult?: () => void;
 }
 
 // Utility to format brand names correctly
@@ -51,7 +50,7 @@ const formatBrandName = (name: string): string => {
     return name.replace(/iqoo/gi, 'iQOO');
 };
 
-const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initialPhoneA = '', clearInitialPhoneA }) => {
+const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initialPhoneA = '', clearInitialPhoneA, clearGlobalBattleResult }) => {
     const [phoneNames, setPhoneNames] = useState<string[]>(['', '']);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -95,6 +94,8 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
     useEffect(() => {
         if (initialResult && initialResult.phones.every(p => !p.imageUrl)) {
             enrichWithImages(initialResult).then(setResult);
+        } else {
+            setResult(initialResult);
         }
     }, [initialResult]);
 
@@ -117,13 +118,12 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
         type: Type.OBJECT,
         properties: {
             battleSummary: { type: Type.STRING, description: "Ringkasan perbandingan mendalam." },
-            targetAudience: { type: Type.STRING, description: "Analisis target pasar yang spesifik." },
             phones: {
                 type: Type.ARRAY,
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        name: { type: Type.STRING },
+                        name: { type: Type.STRING, description: "WAJIB NAMA RESMI LENGKAP + BRAND (Contoh: Asus Zenfone 10)" },
                         specs: { type: Type.OBJECT, properties: phoneSpecProperties }
                     },
                     required: ["name", "specs"]
@@ -131,7 +131,7 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
             },
             winnerName: { type: Type.STRING, description: "Wajib diisi dengan Nama HP yang sedikit lebih unggul secara keseluruhan dari list 'phones' yang Anda buat, atau tulis 'Seri' jika benar-benar seimbang." }
         },
-        required: ['battleSummary', 'targetAudience', 'phones', 'winnerName']
+        required: ['battleSummary', 'phones', 'winnerName']
     };
     
     const handlePhoneNameChange = (index: number, value: string) => {
@@ -177,6 +177,9 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
         const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
         const prompt = `**Peran:** Ahli Teknologi tingkat dunia dengan pengetahuan terbaru hingga awal Januari 2026.
 **Tugas:** Lakukan analisis perbandingan mendalam dalam Bahasa Indonesia antara: ${phoneList}. 
+**ATURAN NAMA (KRUSIAL):** 
+- Selalu gunakan NAMA RESMI LENGKAP termasuk Brand di field 'name'. 
+- Contoh: Jika user input 'zenfone 10', ubah menjadi 'Asus Zenfone 10'. Jika input 's24 ultra', ubah menjadi 'Samsung Galaxy S24 Ultra'.
 **Ketentuan Pemenang:** Evaluasi semua aspek (Performa, Kamera, Baterai, Harga). Tentukan satu yang sedikit lebih unggul dan tulis namanya di 'winnerName' secara persis seperti di field 'name'. Jika seimbang, tulis 'Seri'.
 **Sumber:** GSMArena, PhoneArena, dan data benchmark terbaru 2026. 
 **Penting:** Data rilis WAJIB menyertakan nama bulan. Brand 'iQOO' selalu ditulis 'iQOO'.`;
@@ -198,6 +201,12 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleReset = () => {
+        setResult(null);
+        setPhoneNames(['', '']);
+        if (clearGlobalBattleResult) clearGlobalBattleResult();
     };
 
     return (
@@ -267,7 +276,7 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
                             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-slate-900 font-orbitron text-center">
                                 Hasil Analisis
                             </h2>
-                            <BattleResultDisplay result={result} onReset={() => { setResult(null); setPhoneNames(['', '']); }} />
+                            <BattleResultDisplay result={result} onReset={handleReset} />
                         </>
                     )}
                 </div>
@@ -365,20 +374,13 @@ const BattleResultDisplay: FC<{ result: BattleResult; onReset: () => void }> = (
                 );
             })}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="w-full">
             <div className="glass p-6 border-l-4 border-indigo-500">
                 <h3 className="text-lg font-bold flex items-center gap-3 text-slate-900">
                     <LightbulbIcon className="w-6 h-6 text-indigo-500" /> 
                     Ringkasan Adu
                 </h3>
                 <p className="text-sm text-slate-600 mt-3 leading-relaxed font-medium">{result.battleSummary}</p>
-            </div>
-            <div className="glass p-6 border-l-4 border-emerald-500">
-                <h3 className="text-lg font-bold flex items-center gap-3 text-slate-900">
-                    <UsersIcon className="w-6 h-6 text-emerald-500" /> 
-                    Saran Penggunaan
-                </h3>
-                <p className="text-sm text-slate-600 mt-3 leading-relaxed font-medium">{result.targetAudience}</p>
             </div>
         </div>
         <div className="text-center pt-4">
