@@ -16,7 +16,7 @@ import EyeIcon from './icons/EyeIcon';
 import ChatBubbleLeftEllipsisIcon from './icons/ChatBubbleLeftEllipsisIcon';
 import ShareIcon from './icons/ShareIcon';
 import ChartBarIcon from './icons/ChartBarIcon';
-import ArrowDownTrayIcon from './icons/ArrowDownTrayIcon';
+import AndroidIcon from './icons/AndroidIcon';
 
 interface QuickMatchResult {
   phoneName: string;
@@ -632,8 +632,8 @@ Gunakan data resmi terbaru 2026.`;
                             rel="noopener noreferrer"
                             className="md:hidden w-full flex items-center justify-center gap-3 px-5 py-3 rounded-xl bg-white border-2 border-slate-200 text-slate-800 font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
                         >
-                            <ArrowDownTrayIcon className="w-5 h-5 text-[color:var(--accent1)]" />
-                            <span>Download JAGO-HP App</span>
+                            <span>JAGO-HP App</span>
+                            <AndroidIcon className="w-5 h-5 text-[#3DDC84]" />
                         </a>
                     </div>
                     </div>
@@ -868,7 +868,7 @@ const QuickMatchResultCard: FC<{ result: QuickMatchResult; onSeeFull: () => void
         <EcommerceButtons phoneName={result.phoneName} isCompact={true} />
         <button
             onClick={onSeeFull}
-            className="w-full mt-2 px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-colors"
+            className="w-full mt-2 px-4 py-2 rounded-lg text-sm bg-[color:var(--accent2)]/10 border border-[color:var(--accent2)]/50 text-[color:var(--accent2)] font-semibold hover:bg-[color:var(--accent2)]/20 transition-all duration-300 shadow-sm active:scale-95"
         >
             Lihat Review Lengkap
         </button>
