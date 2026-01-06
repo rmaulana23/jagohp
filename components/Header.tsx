@@ -101,7 +101,7 @@ const Header: React.FC<HeaderProps> = ({ page, setPage, onLogoClick, isAdminAuth
                   className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-md text-sm bg-white text-[color:var(--accent1)] font-bold hover:bg-slate-100 transition-colors shadow-sm"
               >
                   <ArrowDownTrayIcon className="w-4 h-4" />
-                  <span>JAGO-HP App</span>
+                  <span>JAGO-HP (android)</span>
               </a>
             </>
         )}
