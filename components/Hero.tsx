@@ -673,7 +673,7 @@ Gunakan data resmi terbaru 2026. Lakukan analisis mendalam termasuk ringkasan pe
                             </div>
                             <div className="mt-4">
                                 <button onClick={handleCompareAction} disabled={battleModeLoading} className="w-full px-4 py-2.5 rounded-lg text-sm bg-[color:var(--accent1)] text-white font-bold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md">
-                                    {battleModeLoading ? 'Menganalisis...' : 'Compare'}
+                                    {battleModeLoading ? 'Menganalisis...' : 'Adu Spesifikasi'}
                                 </button>
                             </div>
                         </div>
