@@ -136,6 +136,10 @@ const App: React.FC = () => {
     setReviewResult(null);
   };
 
+  const clearGlobalBattleResult = () => {
+    setBattleResult(null);
+  };
+
   const navigateToBlogPost = (post: any) => {
     setSelectedPost(post);
     navigate(`blog/${post.slug}`);
@@ -171,6 +175,7 @@ const App: React.FC = () => {
                                 initialResult={battleResult} 
                                 initialPhoneA={battleQueryA} 
                                 clearInitialPhoneA={() => setBattleQueryA('')} 
+                                clearGlobalBattleResult={clearGlobalBattleResult}
                              />;
       case 'review': return <SmartReview 
                                 initialResult={reviewResult} 
@@ -209,7 +214,7 @@ const App: React.FC = () => {
     }
   }
 
-  const isHomePage = path.split('/')[0] === 'home';
+  const isHomePage = path.split('/')[0] || 'home';
   const isChatPage = path.split('/')[0] === 'chat';
 
   return (
@@ -241,7 +246,7 @@ const App: React.FC = () => {
       )}
 
       {/* Floating AI Chat Bot Trigger - Hidden on Home Page and Chat Page */}
-      {!isHomePage && !isChatPage && (
+      {path.split('/')[0] !== 'home' && !isChatPage && (
         <button
           onClick={openChat}
           className="fixed z-50 right-5 bottom-20 md:bottom-8 w-14 h-14 bg-[color:var(--accent1)] rounded-full flex items-center justify-center text-white shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group border border-white/20"
