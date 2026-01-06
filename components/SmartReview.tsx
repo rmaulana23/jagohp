@@ -89,22 +89,32 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
     const [error, setError] = useState<string | null>(null);
     const [review, setReview] = useState<ReviewResult | null>(initialResult);
     const [showFullReview, setShowFullReview] = useState(initialResult ? true : false);
+    
+    // States for Exploration Section
     const [recentReviews, setRecentReviews] = useState<ReviewResult[]>([]);
     const [loadingRecent, setLoadingRecent] = useState(false);
+    const [explorationSearch, setExplorationSearch] = useState('');
     const [visibleCount, setVisibleCount] = useState(6);
 
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
 
-    // Fetch recent reviews from DB
-    const fetchRecent = async () => {
+    // Fetch recent reviews from DB with optional search term
+    const fetchRecent = async (searchTerm: string = '') => {
         if (!supabase) return;
         setLoadingRecent(true);
         try {
-            const { data } = await supabase
+            let dbQuery = supabase
                 .from('smart_reviews')
                 .select('review_data')
-                .order('created_at', { ascending: false })
-                .limit(100); 
+                .order('created_at', { ascending: false });
+            
+            if (searchTerm.trim()) {
+                dbQuery = dbQuery.ilike('cache_key', `%${searchTerm.toLowerCase()}%`);
+            } else {
+                dbQuery = dbQuery.limit(100);
+            }
+
+            const { data } = await dbQuery;
             if (data) {
                 setRecentReviews(data.map(d => d.review_data as ReviewResult));
             }
@@ -187,11 +197,9 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         setReview(null);
         setShowFullReview(false);
 
-        // Normalize initial query key (e.g. "S25 FE" -> "s25 fe")
         const normalizedQuery = searchQuery.trim().toLowerCase().replace(/-/g, ' ');
         const cacheKey = normalizedQuery;
 
-        // 1. First check if this exact phrase exists in DB
         if (supabase) {
             try {
                 const { data } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', cacheKey).single();
@@ -230,8 +238,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                 setError(parsedResult.phoneName);
                 setReview(null);
             } else {
-                // 2. IMPORTANT: After getting official name from AI, check DB again using THAT official name
-                // to prevent duplicates like "Xiaomi 15T" and "Xiaomi 15T 5G" having separate entries.
                 const officialCacheKey = parsedResult.phoneName.toLowerCase().trim();
                 
                 if (supabase) {
@@ -246,7 +252,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                         setReview(existingReview);
                         setShowFullReview(true);
                         updateRecentList(existingReview);
-                        // Also link the raw query to this official entry to make future lookups faster
                         if (officialCacheKey !== cacheKey) {
                              await supabase.from('smart_reviews').insert({ 
                                 cache_key: cacheKey, 
@@ -258,13 +263,11 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                         return;
                     }
 
-                    // 3. Save new entry with official name as cache key
                     try {
                         await supabase.from('smart_reviews').insert({ 
                             cache_key: officialCacheKey, 
                             review_data: parsedResult 
                         });
-                        // Also store the raw user query as an alias
                         if (officialCacheKey !== cacheKey) {
                              await supabase.from('smart_reviews').insert({ 
                                 cache_key: cacheKey, 
@@ -311,6 +314,12 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         performSearch(query);
     };
 
+    const handleExplorationSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setExplorationSearch(val);
+        fetchRecent(val);
+    };
+
     const selectFromRecent = (rev: ReviewResult) => {
         setReview(rev);
         setShowFullReview(true);
@@ -349,15 +358,15 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Contoh: Samsung S26 Ultra..."
-                                className="w-full bg-white border border-slate-300 rounded-lg py-3 pl-5 pr-14 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all duration-200 shadow-sm"
+                                className="w-full bg-white border border-slate-300 rounded-lg py-3 pl-5 pr-28 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all duration-200 shadow-sm"
                             />
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-lg bg-[color:var(--accent1)] text-white flex items-center justify-center
-                                           hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[80px] px-4 h-10 rounded-lg bg-[color:var(--accent1)] text-white flex items-center justify-center
+                                           hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm"
                             >
-                                {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <SearchIcon className="w-5 h-5" />}
+                                {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'Review'}
                             </button>
                         </form>
                     </>
@@ -381,21 +390,43 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                         />
                     )}
 
-                    { !review && !loading && recentReviews.length > 0 && (
+                    { !review && !loading && (
                         <div className="mt-16 animate-fade-in">
-                            <div className="flex items-center justify-between mb-8 border-b border-slate-200 pb-4">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b border-slate-200 pb-6 gap-4">
                                 <h2 className="text-xl font-bold text-slate-900 font-orbitron uppercase tracking-tight">Eksplorasi Review HP</h2>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {recentReviews.slice(0, visibleCount).map((rev, idx) => (
-                                    <RecentReviewCard 
-                                        key={idx} 
-                                        result={rev} 
-                                        onSelect={() => selectFromRecent(rev)}
-                                        onCompare={onCompare}
+                                <div className="relative w-full md:w-72">
+                                    <input 
+                                        type="text"
+                                        value={explorationSearch}
+                                        onChange={handleExplorationSearch}
+                                        placeholder="Cari HP di database..."
+                                        className="w-full bg-slate-100 border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                                     />
-                                ))}
+                                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                </div>
                             </div>
+
+                            {loadingRecent ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {[...Array(3)].map((_, i) => <div key={i} className="h-64 bg-slate-100 animate-pulse rounded-2xl"></div>)}
+                                </div>
+                            ) : recentReviews.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {recentReviews.slice(0, visibleCount).map((rev, idx) => (
+                                        <RecentReviewCard 
+                                            key={idx} 
+                                            result={rev} 
+                                            onSelect={() => selectFromRecent(rev)}
+                                            onCompare={onCompare}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-20 text-slate-400 italic">
+                                    HP tidak ditemukan dalam database eksplorasi.
+                                </div>
+                            )}
+
                             {recentReviews.length > visibleCount && (
                                 <div className="mt-12 text-center">
                                     <button 
