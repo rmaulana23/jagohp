@@ -260,7 +260,7 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
                                     disabled={loading}
                                     className="w-full max-w-xs px-8 py-3 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md"
                                 >
-                                    {loading ? 'Membandingkan...' : 'Compare'}
+                                    {loading ? 'Membandingkan...' : 'Adu Spesifikasi'}
                                 </button>
                                 {loading && <p className="text-sm text-slate-500 mt-3 animate-pulse">Pakar AI sedang menimbang-nimbang pilihan terbaik...</p>}
                             </div>
