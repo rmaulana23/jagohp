@@ -339,24 +339,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
 
     const cacheKey = reviewQuery.trim().toLowerCase();
 
-    // Utility function to update the global smart review list
-    const bubbleInSmartReviewList = async (reviewData: ReviewResult) => {
-        if (!supabase) return;
-        try {
-            const officialKey = reviewData.phoneName.toLowerCase().trim();
-            const { data: existing } = await supabase.from('smart_reviews').select('cache_key').or(`cache_key.eq.${cacheKey},cache_key.eq.${officialKey}`).limit(1);
-            
-            if (existing && existing.length > 0) {
-                await supabase.from('smart_reviews').update({ created_at: new Date().toISOString() }).eq('cache_key', existing[0].cache_key);
-            } else {
-                await supabase.from('smart_reviews').insert({ cache_key: officialKey, review_data: reviewData });
-            }
-        } catch (err) {
-            console.warn("Failed to bubble review", err);
-        }
-    };
-
-    // 1. First check the local quick review cache
+    // 1. CEK CACHE BERDASARKAN KUERI MENTAH
     if (supabase) {
       try {
         const { data } = await supabase
@@ -367,7 +350,6 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
         if (data && data.review_data) {
           const cachedResult = data.review_data as ReviewResult;
           onSetPersistentQuickReviewResult(cachedResult);
-          await bubbleInSmartReviewList(cachedResult);
           setReviewLoading(false);
           return;
         }
@@ -393,9 +375,11 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     
     try {
         const prompt = `**Pakar JAGO-HP (2026):** Identifikasi HP dari kueri user: "${reviewQuery}".
-**NORMALISASI IDENTITAS:** 
+**NORMALISASI IDENTITAS (PENTING):** 
 - Pastikan HP teridentifikasi dengan benar meskipun user menyingkat namanya.
-- Contoh: 'S25 FE' dan 'S25 FE 5G' adalah produk yang sama. Gunakan nama resmi penuh di 'phoneName'.
+- Gunakan NAMA RESMI LENGKAP termasuk BRAND di 'phoneName'.
+- Contoh: 'zenfone 10' -> 'Asus Zenfone 10', 's24u' -> 'Samsung Galaxy S24 Ultra'.
+- **KHUSUS iPHONE 17 AIR:** Jika HP yang dimaksud adalah iPhone 17 Air, gunakan nama 'iPhone Air' sebagai phoneName resmi (Tanpa angka 17).
 - Jangan buat entri baru jika data sudah ada dengan nama resmi yang serupa.`;
 
         const response = await ai.models.generateContent({ 
@@ -411,25 +395,23 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
         if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
             setReviewError(parsedResult.phoneName);
         } else {
-            // 2. Secondary check with Official Name to avoid duplicates (e.g. S25 FE vs S25 FE 5G)
+            // 2. CEK LAGI BERDASARKAN NAMA RESMI YANG DIHASILKAN AI
             const officialKey = parsedResult.phoneName.toLowerCase().trim();
             if (supabase) {
                 const { data: existing } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', officialKey).single();
                 if (existing) {
                     const finalResult = existing.review_data as ReviewResult;
                     onSetPersistentQuickReviewResult(finalResult);
-                    await bubbleInSmartReviewList(finalResult);
                     setReviewLoading(false);
                     return;
                 }
             }
 
             onSetPersistentQuickReviewResult(parsedResult);
-            await bubbleInSmartReviewList(parsedResult);
             
             if (supabase) {
               try {
-                // Save both the raw query and official name records
+                // Simpan cache baik untuk kueri asli maupun nama resmi
                 await supabase.from('quick_reviews').insert({
                   phone_name_query: cacheKey,
                   review_data: parsedResult,
@@ -500,6 +482,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
 **NORMALISASI NAMA (KRUSIAL):** 
 - Selalu gunakan NAMA RESMI LENGKAP termasuk Brand di field 'name'. 
 - Contoh: Jika user input 'zenfone 10', ubah menjadi 'Asus Zenfone 10'. Jika 's24 ultra', ubah menjadi 'Samsung Galaxy S24 Ultra'.
+- **KHUSUS iPHONE 17 AIR:** Jika HP yang dimaksud adalah iPhone 17 Air, gunakan nama 'iPhone Air' sebagai identitas resmi (Tanpa angka 17).
 - Jika user menyebutkan 'S25 FE', identifikasi sebagai 'Samsung Galaxy S25 FE 5G'. 
 Gunakan data resmi terbaru 2026. Lakukan analisis mendalam termasuk ringkasan perbandingan.`;
 
