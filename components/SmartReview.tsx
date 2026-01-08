@@ -197,6 +197,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         const normalizedQuery = searchQuery.trim().toLowerCase().replace(/-/g, ' ');
         const cacheKey = normalizedQuery;
 
+        // 1. CEK CACHE BERDASARKAN KUERI MENTAH
         if (supabase) {
             try {
                 const { data } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', cacheKey).single();
@@ -219,7 +220,9 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 **ATURAN IDENTITAS (KRUSIAL):** 
 - Normalisasi Identitas: Identifikasi HP dengan tepat meskipun input user tidak lengkap atau bervariasi.
 - Contoh: 'Xiaomi 15T' dan 'Xiaomi 15T 5G' adalah HP yang sama. Identifikasi sebagai versi terlengkap: 'Xiaomi 15T 5G'.
-- Field 'phoneName' WAJIB menggunakan nama resmi penuh yang paling dikenal di pasar global/Indonesia.
+- Field 'phoneName' WAJIB menggunakan nama resmi penuh yang paling dikenal di pasar global/Indonesia (Wajib ada nama Brand).
+- Contoh: 'S24 Ultra' -> 'Samsung Galaxy S24 Ultra', 'zenfone 10' -> 'Asus Zenfone 10'.
+- **KHUSUS iPHONE 17 AIR:** Jika HP yang dimaksud adalah iPhone 17 Air atau iPhone Slim 2025, gunakan nama 'iPhone Air' sebagai phoneName resmi (Tanpa angka 17).
 - Selalu gunakan data terbaru (GSMArena/PhoneArena) 2026.
 **Bahasa:** Bahasa Indonesia.`;
 
@@ -235,6 +238,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                 setError(parsedResult.phoneName);
                 setReview(null);
             } else {
+                // 2. CEK LAGI BERDASARKAN NAMA RESMI (CEK APAKAH SUDAH ADA DARI FITUR COMPARE)
                 const officialCacheKey = parsedResult.phoneName.toLowerCase().trim();
                 
                 if (supabase) {
@@ -249,6 +253,8 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                         setReview(existingReview);
                         setShowFullReview(true);
                         updateRecentList(existingReview);
+                        
+                        // Link kueri user ke record resmi agar pencarian berikutnya lebih cepat
                         if (officialCacheKey !== cacheKey) {
                              await supabase.from('smart_reviews').insert({ 
                                 cache_key: cacheKey, 
@@ -260,11 +266,13 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                         return;
                     }
 
+                    // 3. JIKA BENAR-BENAR BELUM ADA, BARU SIMPAN
                     try {
                         await supabase.from('smart_reviews').insert({ 
                             cache_key: officialCacheKey, 
                             review_data: parsedResult 
                         });
+                        // Simpan juga record kueri user yang tadinya tidak ada
                         if (officialCacheKey !== cacheKey) {
                              await supabase.from('smart_reviews').insert({ 
                                 cache_key: cacheKey, 
