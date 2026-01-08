@@ -188,10 +188,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
     };
     
     const performSearch = async (searchQuery: string) => {
-        if (!searchQuery) {
-            setError('Please enter a smartphone name.');
-            return;
-        }
+        if (!searchQuery.trim()) return;
         setLoading(true);
         setError(null);
         setReview(null);
@@ -306,6 +303,15 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
             setQuery(initialResult.phoneName);
             setShowFullReview(true);
             updateRecentList(initialResult);
+            setLoading(false);
+            setError(null);
+        } else {
+            // Clean/Reset condition
+            setReview(null);
+            setQuery('');
+            setShowFullReview(false);
+            setLoading(false);
+            setError(null);
         }
     }, [initialQuery, initialResult]);
 
@@ -336,6 +342,17 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 
     const handleLoadMore = () => {
         setVisibleCount(prev => prev + 6);
+    };
+
+    const handleBackToSearch = () => {
+        setReview(null); 
+        setQuery(''); 
+        clearGlobalResult();
+        setShowFullReview(false);
+        setLoading(false);
+        setError(null);
+        // Explicitly force hash to just 'review'
+        window.location.hash = 'review';
     };
 
     return (
@@ -380,13 +397,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     {review && showFullReview && (
                         <ReviewResultDisplay 
                             review={review} 
-                            onReset={() => { 
-                                setReview(null); 
-                                setQuery(''); 
-                                clearGlobalResult();
-                                setShowFullReview(false);
-                                window.location.hash = 'review';
-                            }} 
+                            onReset={handleBackToSearch} 
                         />
                     )}
 
@@ -615,7 +626,12 @@ const ReviewResultDisplay: FC<{ review: ReviewResult; onReset: () => void; }> = 
             <div className="mt-10 space-y-6">
                 <EcommerceButtons phoneName={review.phoneName} />
                 <div className="text-center">
-                    <button onClick={onReset} className="px-8 py-3 rounded-xl text-sm bg-slate-200 text-slate-700 font-bold hover:bg-slate-300 transition-all">Kembali Cari HP Lain</button>
+                    <button 
+                        onClick={onReset} 
+                        className="px-8 py-3 rounded-xl text-sm bg-slate-200 text-slate-700 font-bold hover:bg-slate-300 transition-all shadow-sm active:scale-95"
+                    >
+                        Kembali Cari HP Lain
+                    </button>
                 </div>
             </div>
         </div>
