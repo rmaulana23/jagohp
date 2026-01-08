@@ -540,10 +540,7 @@ const ReviewResultDisplay: FC<{ review: ReviewResult; onReset: () => void; }> = 
     return (
         <div className="glass p-4 md:p-8 text-left animate-fade-in shadow-xl">
             {/* Header Action Row */}
-            <div className="flex justify-between items-center mb-6">
-                <button onClick={onReset} className="text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-2">
-                    &larr; Kembali
-                </button>
+            <div className="flex justify-end items-center mb-6">
                 <div className="flex items-center gap-2">
                     {copyStatus && <span className="text-[10px] font-bold text-green-600 animate-pulse">{copyStatus}</span>}
                     <button 
