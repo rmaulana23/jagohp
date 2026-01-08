@@ -61,7 +61,7 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
         try {
             const response = await ai.models.generateContent({ 
                 model: 'gemini-3-flash-preview', 
-                contents: `**Pakar Teknologi:** Quick Review HP dari kueri user: "${reviewQuery}". Identifikasi HP apa yang dimaksud (Contoh: "iPhone 16" -> "Apple iPhone 16"). Gunakan data 2026. rilis wajib ada bulan.`, 
+                contents: `**Pakar Teknologi:** Quick Review HP dari kueri user: "${reviewQuery}". Identifikasi HP apa yang dimaksud (Contoh: "iPhone 16" -> "Apple iPhone 16"). **KHUSUS iPHONE 17 AIR:** WAJIB gunakan nama resmi 'iPhone Air'. Gunakan data 2026. rilis wajib ada bulan.`, 
                 config: { 
                     responseMimeType: "application/json", 
                     responseSchema: schema 
