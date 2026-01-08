@@ -134,6 +134,7 @@ const App: React.FC = () => {
   
   const clearGlobalResult = () => {
     setReviewResult(null);
+    setReviewQuery('');
   };
 
   const clearGlobalBattleResult = () => {
