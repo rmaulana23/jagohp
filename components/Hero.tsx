@@ -339,13 +339,13 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
 
     const cacheKey = reviewQuery.trim().toLowerCase();
 
-    // 1. CEK CACHE BERDASARKAN KUERI MENTAH
+    // 1. CEK CACHE BERDASARKAN KUERI MENTAH DI TABEL UTAMA SMART REVIEW
     if (supabase) {
       try {
         const { data } = await supabase
-          .from('quick_reviews')
+          .from('smart_reviews')
           .select('review_data')
-          .eq('phone_name_query', cacheKey)
+          .eq('cache_key', cacheKey)
           .single();
         if (data && data.review_data) {
           const cachedResult = data.review_data as ReviewResult;
@@ -354,7 +354,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
           return;
         }
       } catch (cacheError) {
-        console.warn("Quick review cache miss.");
+        console.warn("Main review cache miss.");
       }
     }
 
@@ -364,7 +364,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
             phoneName: { type: Type.STRING, description: "Nama resmi lengkap HP (Contoh: Samsung Galaxy S25 FE 5G)" },
             ratings: { type: Type.OBJECT, properties: { gaming: { type: Type.NUMBER }, kamera: { type: Type.NUMBER }, baterai: { type: Type.NUMBER }, layarDesain: { type: Type.NUMBER }, performa: { type: Type.NUMBER }, storageRam: { type: Type.NUMBER }}},
             quickReview: { type: Type.OBJECT, properties: { summary: { type: Type.STRING }, pros: { type: Type.ARRAY, items: { type: Type.STRING } }, cons: { type: Type.ARRAY, items: { type: Type.STRING } } } },
-            specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING, description: "Januari 2026." }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
+            specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING, description: "Januari 2026." }, storage: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
             targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
             accessoryAvailability: { type: Type.STRING },
             marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } }, required: ["indonesia"] },
@@ -395,13 +395,17 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
         if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
             setReviewError(parsedResult.phoneName);
         } else {
-            // 2. CEK LAGI BERDASARKAN NAMA RESMI YANG DIHASILKAN AI
+            // 2. CEK LAGI BERDASARKAN NAMA RESMI YANG DIHASILKAN AI DI TABEL UTAMA
             const officialKey = parsedResult.phoneName.toLowerCase().trim();
             if (supabase) {
                 const { data: existing } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', officialKey).single();
                 if (existing) {
                     const finalResult = existing.review_data as ReviewResult;
                     onSetPersistentQuickReviewResult(finalResult);
+                    // Update cache for the original query too
+                    if (officialKey !== cacheKey) {
+                        await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: finalResult }).catch(() => null);
+                    }
                     setReviewLoading(false);
                     return;
                 }
@@ -411,19 +415,19 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
             
             if (supabase) {
               try {
-                // Simpan cache baik untuk kueri asli maupun nama resmi
-                await supabase.from('quick_reviews').insert({
-                  phone_name_query: cacheKey,
+                // Simpan ke tabel smart_reviews agar tersinkronisasi dengan database eksplorasi
+                await supabase.from('smart_reviews').insert({
+                  cache_key: officialKey,
                   review_data: parsedResult,
                 });
                 if (cacheKey !== officialKey) {
-                   await supabase.from('quick_reviews').insert({
-                    phone_name_query: officialKey,
+                   await supabase.from('smart_reviews').insert({
+                    cache_key: cacheKey,
                     review_data: parsedResult,
                   }).catch(() => null);
                 }
               } catch (cacheError) {
-                console.warn("Quick review cache save failed:", cacheError);
+                console.warn("Review sync failed:", cacheError);
               }
             }
         }
@@ -443,13 +447,13 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
 
     const phoneNames = [comparePhoneA, comparePhoneB];
     const phoneList = phoneNames.map(name => `"${name}"`).join(' vs ');
-    const cacheKey = ['battle', ...phoneNames.map(name => name.trim().toLowerCase()).sort()].join('_vs_');
+    const cacheKey = phoneNames.map(name => name.trim().toLowerCase()).sort().join('_vs_');
 
     if (supabase) {
       try {
-        const { data } = await supabase.from('quick_compare').select('compare_data').eq('cache_key', cacheKey).single();
-        if (data && data.compare_data) {
-          setBattleData(data.compare_data as BattleResult);
+        const { data } = await supabase.from('phone_battles').select('battle_data').eq('cache_key', cacheKey).single();
+        if (data && data.battle_data) {
+          setBattleData(data.battle_data as BattleResult);
           setBattleModeLoading(false);
           return;
         }
@@ -460,7 +464,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
     
     const phoneSpecProperties = {
         rilis: { type: Type.STRING, description: "Bulan & Tahun." }, os: { type: Type.STRING }, processor: { type: Type.STRING },
-        ram: { type: Type.STRING },
+        ram: { type: Type.STRING }, storage: { type: Type.STRING },
         antutuScore: { type: Type.INTEGER },
         jaringan: { type: Type.STRING }, display: { type: Type.STRING }, camera: { type: Type.STRING }, 
         battery: { type: Type.STRING }, charging: { type: Type.STRING }, nfc: { type: Type.STRING },
@@ -498,12 +502,12 @@ Gunakan data resmi terbaru 2026. Lakukan analisis mendalam termasuk ringkasan pe
         setBattleData(parsedResult);
         if (supabase) {
           try {
-            await supabase.from('quick_compare').insert({
+            await supabase.from('phone_battles').insert({
               cache_key: cacheKey,
-              compare_data: parsedResult,
+              battle_data: parsedResult,
             });
           } catch (cacheError) {
-            console.warn("Quick compare cache save failed.");
+            console.warn("Compare cache save failed.");
           }
         }
     } catch (e: any) {
