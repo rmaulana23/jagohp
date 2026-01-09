@@ -138,7 +138,20 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 
             const { data } = await dbQuery;
             if (data) {
-                setRecentReviews(data.map(d => d.review_data as ReviewResult));
+                // Filter unik berdasarkan nama HP agar tidak duplikat di list eksplorasi
+                const uniqueResults: ReviewResult[] = [];
+                const seenNames = new Set<string>();
+                
+                data.forEach(d => {
+                    const rev = d.review_data as ReviewResult;
+                    const normalized = rev.phoneName.toLowerCase();
+                    if (!seenNames.has(normalized)) {
+                        seenNames.add(normalized);
+                        uniqueResults.push(rev);
+                    }
+                });
+                
+                setRecentReviews(uniqueResults);
             }
         } catch (err) {
             console.error("Failed to fetch recent reviews", err);
@@ -252,7 +265,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 **Tugas:** Lakukan ulasan mendalam untuk: '${searchQuery}'. 
 **ATURAN IDENTITAS (KRUSIAL):** 
 - Normalisasi Identitas: Identifikasi HP dengan tepat meskipun input user tidak lengkap atau bervariasi.
-- Contoh: 'Xiaomi 15T' dan 'Xiaomi 15T 5G' adalah HP yang sama. Identifikasi sebagai versi terlengkap: 'Xiaomi 15T 5G'.
 - Field 'phoneName' WAJIB menggunakan nama resmi penuh yang paling dikenal di pasar global/Indonesia (Wajib ada nama Brand).
 - Contoh: 'S24 Ultra' -> 'Samsung Galaxy S24 Ultra', 'zenfone 10' -> 'Asus Zenfone 10'.
 - **KHUSUS iPHONE 17 AIR:** Jika HP yang dimaksud adalah iPhone 17 Air atau iPhone Slim 2025, gunakan nama 'iPhone Air' sebagai phoneName resmi (Tanpa angka 17).
@@ -460,7 +472,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     { !review && !loading && (
                         <div className="mt-16 animate-fade-in">
                             <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b border-slate-200 pb-6 gap-4">
-                                <h2 className="text-xl font-bold text-slate-900 font-orbitron uppercase tracking-tight">Pencarian Review Oleh Pengguna Lain</h2>
+                                <h2 className="text-xl font-bold text-slate-900 font-orbitron uppercase tracking-tight">Eksplorasi Review HP</h2>
                                 <div className="relative w-full md:w-72">
                                     <input 
                                         type="text"
@@ -722,6 +734,13 @@ const RatingsDisplay: FC<{ ratings: Ratings }> = ({ ratings }) => (
     </div>
 );
 
+const SpecRow: FC<{ label: string; value: string | undefined }> = ({ label, value }) => (
+    <div className="flex justify-between border-b border-slate-100 pb-2 text-sm">
+        <span className="text-slate-500 font-medium">{label}</span>
+        <span className="font-bold text-slate-800 text-right ml-4">{value || '-'}</span>
+    </div>
+);
+
 const TabContentRingkasan: FC<{ review: ReviewResult }> = ({ review }) => (
     <div className="space-y-8">
         <div>
@@ -732,10 +751,34 @@ const TabContentRingkasan: FC<{ review: ReviewResult }> = ({ review }) => (
             <p className="text-slate-600 leading-relaxed text-base whitespace-pre-wrap">{review.quickReview.summary}</p>
         </div>
 
+        <div>
+            <h3 className="text-lg font-bold text-slate-900 mb-4">Spesifikasi Kunci</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12">
+                {/* Left Column */}
+                <div className="space-y-3">
+                    <SpecRow label="OS" value={review.specs.os} />
+                    <SpecRow label="Jaringan" value={review.specs.jaringan} />
+                    <SpecRow label="Layar" value={review.specs.display} />
+                    <SpecRow label="Kamera" value={review.specs.camera} />
+                    <SpecRow label="Penyimpanan" value={review.specs.storage} />
+                    <SpecRow label="Memori" value={review.specs.ram} />
+                </div>
+                {/* Right Column */}
+                <div className="space-y-3 mt-3 sm:mt-0">
+                    <SpecRow label="Processor" value={review.specs.processor} />
+                    <SpecRow label="Batere" value={review.specs.battery} />
+                    <SpecRow label="Charging" value={review.specs.charging} />
+                    <SpecRow label="Koneksi" value={review.specs.koneksi} />
+                    <SpecRow label="NFC" value={review.specs.nfc} />
+                    <SpecRow label="Rilis" value={review.specs.rilis} />
+                </div>
+            </div>
+        </div>
+
         {review.targetAudience && review.targetAudience.length > 0 && (
             <div>
                 <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <UsersIcon className="w-6 h-6 text-slate-400" />
+                    <SearchIcon className="w-6 h-6 text-slate-400" />
                     Cocok Untuk Siapa?
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -756,18 +799,6 @@ const TabContentRingkasan: FC<{ review: ReviewResult }> = ({ review }) => (
             <div className="bg-rose-50/50 p-5 rounded-2xl border border-rose-100">
                 <h4 className="font-bold text-rose-700 mb-3 flex items-center gap-2">❌ Kekurangan</h4>
                 <ul className="space-y-2">{review.quickReview.cons.map((c, i) => <li key={i} className="text-sm text-slate-600 flex items-start gap-2"><span className="text-rose-400 mt-1">•</span>{c}</li>)}</ul>
-            </div>
-        </div>
-
-        <div>
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Spesifikasi Kunci</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-                {Object.entries(review.specs).map(([k, v]) => (
-                    <div key={k} className="flex justify-between border-b border-slate-100 pb-2 text-sm">
-                        <span className="text-slate-500 font-medium capitalize">{k}</span>
-                        <span className="font-bold text-slate-800 text-right ml-4">{v}</span>
-                    </div>
-                ))}
             </div>
         </div>
     </div>
