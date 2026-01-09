@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, FC } from 'react';
+import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
 import SparklesIcon from './icons/SparklesIcon';
@@ -9,15 +9,26 @@ import EcommerceButtons from './EcommerceButtons';
 interface Recommendation {
   phoneName: string;
   reason: string;
-  keyFeatures: string[];
   estimatedPrice: string;
   rilis?: string;
+  specs: {
+    design: string;
+    network: string;
+    display: string;
+    chipset: string;
+    camera: string;
+    memory: string;
+    storage: string;
+    battery: string;
+    charging: string;
+    connection: string;
+  };
 }
 
 const activityOptions = [
   "Sosial Media & Browsing", "Gaming Berat", "Fotografi & Videografi", "Produktivitas (Email, Doc.)",
   "Streaming Film & Video", "Baterai Tahan Lama", "Layar Super Mulus (120Hz+)", "Butuh NFC",
-  "RAM Min. 8GB atau Lebih", "Storage Min. 128GB atau Lebih"
+  "RAM Min. 8GB atau Lebih", "Storage Besar"
 ];
 
 const budgetOptions = [
@@ -40,10 +51,30 @@ const PhoneFinder: React.FC = () => {
   const [recommendationCount, setRecommendationCount] = useState(1);
   const [otherPrefs, setOtherPrefs] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('Menganalisis profilmu...');
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<Recommendation[] | null>(null);
 
   const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
+
+  // Loading message rotation
+  useEffect(() => {
+    if (loading) {
+      const messages = [
+        "Menganalisis kebutuhan utamamu...",
+        "Menyeimbangkan budget dengan spesifikasi...",
+        "Mengecek database HP rilis terbaru 2026...",
+        "Membandingkan skor benchmark & performa...",
+        "Memilihkan yang paling 'Value for Money' untukmu..."
+      ];
+      let i = 0;
+      const interval = setInterval(() => {
+        i = (i + 1) % messages.length;
+        setLoadingMessage(messages[i]);
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [loading]);
 
   const schema: any = {
     type: Type.OBJECT,
@@ -53,13 +84,28 @@ const PhoneFinder: React.FC = () => {
             items: {
                 type: Type.OBJECT,
                 properties: {
-                    phoneName: { type: Type.STRING }, 
-                    reason: { type: Type.STRING },
-                    keyFeatures: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    estimatedPrice: { type: Type.STRING }, 
-                    rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan dan tahun. Contoh: 'Januari 2025' atau 'Awal 2026 (Estimasi)'." },
+                    phoneName: { type: Type.STRING, description: "Nama resmi HP selengkap mungkin (e.g., Xiaomi 15T 5G)" }, 
+                    reason: { type: Type.STRING, description: "Alasan spesifik mengapa HP ini cocok dengan pilihan user" },
+                    estimatedPrice: { type: Type.STRING, description: "Harga pasar di Indonesia saat ini" }, 
+                    rilis: { type: Type.STRING, description: "Bulan dan tahun rilis (e.g., Januari 2026)" },
+                    specs: {
+                        type: Type.OBJECT,
+                        properties: {
+                            design: { type: Type.STRING, description: "Material dan gaya desain" },
+                            network: { type: Type.STRING, description: "Dukungan jaringan (e.g., 5G, LTE)" },
+                            display: { type: Type.STRING, description: "Panel, ukuran, refresh rate" },
+                            chipset: { type: Type.STRING, description: "Model prosesor dan GPU" },
+                            camera: { type: Type.STRING, description: "Konfigurasi kamera utama dan depan" },
+                            memory: { type: Type.STRING, description: "Kapasitas RAM" },
+                            storage: { type: Type.STRING, description: "Kapasitas internal storage" },
+                            battery: { type: Type.STRING, description: "Kapasitas mAh" },
+                            charging: { type: Type.STRING, description: "Kecepatan charging" },
+                            connection: { type: Type.STRING, description: "Bluetooth, Wi-Fi, NFC, Port" }
+                        },
+                        required: ["design", "network", "display", "chipset", "camera", "memory", "storage", "battery", "charging", "connection"]
+                    }
                 },
-                required: ["phoneName", "reason", "keyFeatures", "estimatedPrice", "rilis"]
+                required: ["phoneName", "reason", "estimatedPrice", "rilis", "specs"]
             }
         }
     },
@@ -80,21 +126,14 @@ const PhoneFinder: React.FC = () => {
     setError(null);
     setResults(null);
     
-    const cacheKey = [...activities.sort(), `cam:${cameraPriority}`, `budget:${budget}`, `count:${recommendationCount}`, `prefs:${otherPrefs.trim().toLowerCase()}`].join('|');
+    const cacheKey = [...activities.sort(), `cam:${cameraPriority}`, `budget:${budget}`, `count:${recommendationCount}`, `prefs:${otherPrefs.trim().toLowerCase()}`, 'v2_specs'].join('|');
 
     if (supabase) {
         try {
             const { data } = await supabase.from('phone_finder_cache').select('result_data').eq('cache_key', cacheKey).single();
             if (data && data.result_data) {
-                // Compatibility check for old single object cache
                 const cachedData = data.result_data;
-                if (Array.isArray(cachedData)) {
-                    setResults(cachedData);
-                } else if (cachedData.recommendations) {
-                    setResults(cachedData.recommendations);
-                } else {
-                    setResults([cachedData as Recommendation]);
-                }
+                setResults(cachedData.recommendations);
                 setLoading(false);
                 return;
             }
@@ -102,22 +141,28 @@ const PhoneFinder: React.FC = () => {
     }
 
     const cameraPriorityText = ["Tidak penting", "Kurang penting", "Cukup penting", "Penting", "Sangat penting"][cameraPriority - 1];
-    const nfcRequired = activities.includes("Butuh NFC");
-    const ramRequired = activities.includes("RAM Min. 8GB atau Lebih");
-    const storageRequired = activities.includes("Storage Min. 128GB atau Lebih");
-    const mainActivities = activities.filter(act => !["Butuh NFC", "RAM Min. 8GB atau Lebih", "Storage Min. 128GB atau Lebih"].includes(act)).join(', ') || "Tidak ada preferensi spesifik";
 
-    const prompt = `**Peran:** Ahli Rekomendasi Gadget Dunia dengan pengetahuan hingga awal 2026.
-**Tugas:** Berikan **TEPAT ${recommendationCount} rekomendasi smartphone** terbaik awal 2026 berdasarkan kuesioner. 
-**Ketentuan:**
-1. Patuhi budget ketat (IDR pasar Indonesia 2026).
-2. Data 'rilis' WAJIB mencantumkan nama bulan. 
-3. Brand 'iQOO' ditulis 'iQOO'.
-4. Sumber: Seluruh internet publik (GSMArena, PhoneArena, dll). 
-5. Berikan alasan 'reason' yang personal untuk pengguna.`;
+    const prompt = `**Peran:** JAGO-HP Matchmaker AI (Pakar Gadget Senior).
+**Tugas:** Temukan **TEPAT ${recommendationCount} smartphone** terbaik awal 2026 yang PALING SESUAI dengan profil pengguna:
+- **Kebutuhan Utama:** ${activities.join(', ')}
+- **Prioritas Kamera:** ${cameraPriorityText}
+- **Budget Maksimal:** ${budget}
+- **Preferensi Lain:** ${otherPrefs || "Tidak ada"}
+
+**ATURAN MAIN:**
+1. **Akurasi:** Berikan rekomendasi yang benar-benar relevan dengan budget dan kebutuhan.
+2. **Spesifikasi Lengkap:** Isi semua field spesifikasi (Design, Network, Display, Chipset, Camera, Memory, Storage, Battery, Charging, Connection) dengan data teknis yang akurat untuk tahun 2026.
+3. **Bahasa:** Gunakan Bahasa Indonesia yang profesional.`;
 
     try {
-      const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt, config: { responseMimeType: "application/json", responseSchema: schema } });
+      const response = await ai.models.generateContent({ 
+          model: 'gemini-3-flash-preview', 
+          contents: prompt, 
+          config: { 
+              responseMimeType: "application/json", 
+              responseSchema: schema 
+          } 
+      });
       const parsed = JSON.parse(response.text.trim());
       const finalResults = parsed.recommendations || [];
       setResults(finalResults);
@@ -139,12 +184,11 @@ const PhoneFinder: React.FC = () => {
       <div className="w-full max-w-6xl mx-auto">
         <div className="text-center mb-4">
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">Phone Match</h1>
-            <p className="text-sm md:text-base text-slate-500 mt-1 max-w-2xl mx-auto">Jawab beberapa pertanyaan, biarkan AI pakar kami menemukan HP terbaikmu di 2026.</p>
+            <p className="text-sm md:text-base text-slate-500 mt-1 max-w-2xl mx-auto">Jawab beberapa pertanyaan, biarkan AI kami menemukan HP terbaik untukmu.</p>
         </div>
         {!results && !loading && (
           <form onSubmit={handleSubmit} className="glass p-5 mt-2 animate-fade-in">
               <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 gap-y-6">
-                  {/* Left Column: Q1 & Q2 */}
                   <div className="space-y-6">
                       <QuestionSection title="1. Apa aktivitas & kebutuhan utamamu?">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -164,7 +208,6 @@ const PhoneFinder: React.FC = () => {
                       </QuestionSection>
                   </div>
 
-                  {/* Right Column: Q3, Q4, Q5 & Submit */}
                   <div className="space-y-6">
                       <QuestionSection title="3. Berapa budget maksimalmu?">
                           <select value={budget} onChange={e => setBudget(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all">
@@ -195,7 +238,6 @@ const PhoneFinder: React.FC = () => {
                           <button type="submit" disabled={loading} className="w-full px-8 py-3.5 rounded-xl bg-[color:var(--accent1)] text-white font-bold flex items-center justify-center gap-3 hover:opacity-95 transition-all duration-200 disabled:opacity-50 shadow-lg active:scale-[0.98]">
                               {loading ? 'Menganalisis...' : 'Cari Rekomendasi'}{!loading && <SparklesIcon className="w-5 h-5" />}
                           </button>
-                          {loading && <p className="text-sm text-slate-500 mt-2 text-center animate-pulse font-medium">Sabar ya, AI pakar lagi pilihkan HP terbaik awal 2026 untukmu...</p>}
                           {error && <p className="text-red-500 mt-2 text-sm text-center font-semibold">{error}</p>}
                       </div>
                   </div>
@@ -203,7 +245,16 @@ const PhoneFinder: React.FC = () => {
           </form>
         )}
         <div className="animate-fade-in">
-            {loading && <ResultsSkeleton count={recommendationCount} />}
+            {loading && (
+                <div className="mt-12 text-center">
+                    <div className="inline-block relative">
+                         <div className="w-20 h-20 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-6"></div>
+                         <SparklesIcon className="w-6 h-6 text-yellow-400 absolute top-0 right-0 animate-pulse" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-800 animate-pulse">{loadingMessage}</h3>
+                    <p className="text-sm text-slate-400 mt-2">Pakar AI kami sedang memilihkan yang terbaik untukmu...</p>
+                </div>
+            )}
             {results && <ResultsDisplay results={results} onReset={() => setResults(null)} />}
         </div>
       </div>
@@ -225,66 +276,51 @@ const Checkbox: FC<{ label: string; checked: boolean; onChange: () => void }> = 
   </label>
 );
 
-const ResultsSkeleton: FC<{ count: number }> = ({ count }) => (
-  <div className="mt-8 animate-pulse">
-    <div className="h-7 bg-slate-200 rounded-md w-1/2 mx-auto mb-6"></div>
-    <div className={`grid grid-cols-1 ${count === 2 ? 'md:grid-cols-2' : count === 3 ? 'lg:grid-cols-3' : 'max-w-xl mx-auto'} gap-6`}>
-        {[...Array(count)].map((_, i) => (
-            <div key={i} className="glass p-6 space-y-4">
-                <div className="h-6 bg-slate-200 rounded-md w-3/4"></div>
-                <div className="h-5 bg-slate-200 rounded-md w-1/3"></div>
-                <div className="h-4 bg-slate-200 rounded-md w-full mt-4"></div>
-                <div className="h-4 bg-slate-200 rounded-md w-5/6"></div>
-                <div className="h-10 bg-slate-100 rounded-lg w-full"></div>
-            </div>
-        ))}
-    </div>
-  </div>
-);
-
 const ResultsDisplay: FC<{ results: Recommendation[]; onReset: () => void }> = ({ results, onReset }) => {
     const isMulti = results.length > 1;
 
     return (
       <div className="mt-8 animate-fade-in">
-        <h2 className="text-2xl font-bold text-center mb-6 text-slate-800">
+        <h2 className="text-2xl font-bold text-center mb-8 text-slate-800">
             {isMulti ? `Ini ${results.length} Rekomendasi Terbaik Untukmu` : 'Rekomendasi Terbaik Untukmu'}
         </h2>
-        <div className={`grid grid-cols-1 ${results.length === 2 ? 'md:grid-cols-2' : results.length === 3 ? 'lg:grid-cols-3' : 'max-w-xl mx-auto'} gap-6`}>
+        <div className={`grid grid-cols-1 ${results.length === 2 ? 'md:grid-cols-2' : results.length === 3 ? 'lg:grid-cols-3' : 'max-w-3xl mx-auto'} gap-8`}>
           {results.map((result, index) => {
               const shareText = `Pakar AI JAGO-HP merekomendasikan ${formatBrandName(result.phoneName)} untukku!\n\nAlasannya: ${result.reason}\n\nCari HP impianmu juga di JAGO-HP.`;
               const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
               
               return (
-                <div key={index} className="glass p-6 flex flex-col h-full">
+                <div key={index} className="glass p-6 flex flex-col h-full hover:shadow-xl transition-shadow duration-300 border-t-4 border-t-indigo-500 bg-white">
                     <div className="flex-grow">
                         <div className="flex justify-between items-start gap-2 mb-1">
                             <h3 className="text-xl font-bold text-slate-900 leading-tight">{formatBrandName(result.phoneName)}</h3>
                             {isMulti && <span className="bg-[color:var(--accent1)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Opsi {index + 1}</span>}
                         </div>
-                        {result.rilis && <p className="text-[color:var(--accent1)] text-xs mb-1 font-medium">Rilis: {result.rilis}</p>}
-                        {result.estimatedPrice && <p className="text-slate-600 font-bold mb-3">{result.estimatedPrice}</p>}
+                        {result.rilis && <p className="text-[color:var(--accent1)] text-xs mb-1 font-bold uppercase tracking-wider">Rilis: {result.rilis}</p>}
+                        <p className="text-indigo-600 font-black text-lg mb-3">{result.estimatedPrice}</p>
                         
-                        <div className="my-4 p-4 bg-slate-100 border-l-4 border-[color:var(--accent1)] rounded-r-lg">
-                            <p className="text-slate-600 text-sm leading-relaxed italic">"{result.reason}"</p>
+                        <div className="my-4 p-4 bg-indigo-50/50 border-l-4 border-indigo-500 rounded-r-lg">
+                            <p className="text-slate-700 text-sm leading-relaxed italic">"{result.reason}"</p>
                         </div>
                         
-                        {result.keyFeatures && result.keyFeatures.length > 0 && (
-                        <div className="mb-4">
-                            <h4 className="font-semibold text-slate-800 mb-2 text-sm">Fitur Unggulan:</h4>
-                            <ul className="space-y-1.5">
-                                {result.keyFeatures.map((feat, j) => (
-                                    <li key={j} className="flex items-start gap-2 text-sm text-slate-600">
-                                        <span className="text-[color:var(--accent1)] mt-1">•</span>
-                                        <span>{feat}</span>
-                                    </li>
-                                ))}
-                            </ul>
+                        <div className="mt-6 space-y-4">
+                            <h4 className="font-bold text-slate-800 text-xs uppercase tracking-widest border-b border-slate-100 pb-2">Spesifikasi Lengkap</h4>
+                            <div className="grid grid-cols-1 gap-y-3">
+                                <SpecRow label="Desain" value={result.specs.design} />
+                                <SpecRow label="Jaringan" value={result.specs.network} />
+                                <SpecRow label="Display" value={result.specs.display} />
+                                <SpecRow label="Chipset" value={result.specs.chipset} />
+                                <SpecRow label="Kamera" value={result.specs.camera} />
+                                <SpecRow label="Memory" value={result.specs.memory} />
+                                <SpecRow label="Storage" value={result.specs.storage} />
+                                <SpecRow label="Baterai" value={result.specs.battery} />
+                                <SpecRow label="Charging" value={result.specs.charging} />
+                                <SpecRow label="Koneksi" value={result.specs.connection} />
+                            </div>
                         </div>
-                        )}
                     </div>
                     
-                    <div className="mt-auto">
+                    <div className="mt-8">
                         <EcommerceButtons phoneName={result.phoneName} isCompact={true} />
                         <div className="mt-4">
                             <ShareButtons shareText={shareText} shareUrl={shareUrl} />
@@ -294,10 +330,10 @@ const ResultsDisplay: FC<{ results: Recommendation[]; onReset: () => void }> = (
               );
           })}
         </div>
-        <div className="mt-10 text-center">
+        <div className="mt-12 text-center">
             <button 
                 onClick={onReset} 
-                className="px-8 py-3 rounded-xl bg-slate-200 text-slate-700 font-bold hover:bg-slate-300 transition-colors shadow-sm"
+                className="px-10 py-3.5 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] hover:bg-indigo-600 transition-all shadow-xl active:scale-95 border-b-4 border-slate-700"
             >
                 Cari Rekomendasi Lain
             </button>
@@ -305,5 +341,12 @@ const ResultsDisplay: FC<{ results: Recommendation[]; onReset: () => void }> = (
       </div>
     );
 };
+
+const SpecRow: FC<{ label: string; value: string }> = ({ label, value }) => (
+    <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-1 border-b border-slate-50 pb-2 last:border-0">
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter w-24 flex-shrink-0">{label}</span>
+        <span className="text-[11px] font-bold text-slate-700 text-left sm:text-right">{value}</span>
+    </div>
+);
 
 export default PhoneFinder;
