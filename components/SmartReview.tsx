@@ -252,6 +252,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 **Tugas:** Lakukan ulasan mendalam untuk: '${searchQuery}'. 
 **ATURAN IDENTITAS (KRUSIAL):** 
 - Normalisasi Identitas: Identifikasi HP dengan tepat meskipun input user tidak lengkap atau bervariasi.
+- Contoh: 'Xiaomi 15T' dan 'Xiaomi 15T 5G' adalah HP yang sama. Identifikasi sebagai versi terlengkap: 'Xiaomi 15T 5G'.
 - Field 'phoneName' WAJIB menggunakan nama resmi penuh yang paling dikenal di pasar global/Indonesia (Wajib ada nama Brand).
 - Contoh: 'S24 Ultra' -> 'Samsung Galaxy S24 Ultra', 'zenfone 10' -> 'Asus Zenfone 10'.
 - **KHUSUS iPHONE 17 AIR:** Jika HP yang dimaksud adalah iPhone 17 Air atau iPhone Slim 2025, gunakan nama 'iPhone Air' sebagai phoneName resmi (Tanpa angka 17).
@@ -400,41 +401,41 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
     return (
         <section id="review" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
             <div className="w-full max-w-5xl mx-auto">
-                { !review && !loading && (
-                    <>
-                        <div className="text-center mb-8">
-                            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">
-                                Smart Review
-                            </h1>
-                            <p className="text-base text-slate-500 max-w-2xl mx-auto mt-2">
-                                Tulis tipe HP yang ingin diulas, dan dapatkan analisis lengkap dalam hitungan detik.
-                            </p>
-                        </div>
+                { !review && (
+                    <div className="text-center mb-8">
+                        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">
+                            Smart Review
+                        </h1>
+                        <p className="text-base text-slate-500 max-w-2xl mx-auto mt-2">
+                            Tulis tipe HP yang ingin diulas, dan dapatkan analisis lengkap dalam hitungan detik.
+                        </p>
+                    </div>
+                )}
 
-                        <form onSubmit={handleSearch} className="relative max-w-xl mx-auto mb-10">
-                            <input
-                                type="text"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Contoh: Samsung S26 Ultra..."
-                                className="w-full bg-white border border-slate-300 rounded-lg py-3 pl-5 pr-28 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all duration-200 shadow-sm"
-                            />
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[80px] px-4 h-10 rounded-lg bg-[color:var(--accent1)] text-white flex items-center justify-center
-                                           hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm"
-                            >
-                                {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'Review'}
-                            </button>
-                        </form>
-                    </>
+                { !review && !loading && (
+                    <form onSubmit={handleSearch} className="relative max-w-xl mx-auto mb-10">
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Contoh: Samsung S26 Ultra..."
+                            className="w-full bg-white border border-slate-300 rounded-lg py-3 pl-5 pr-28 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all duration-200 shadow-sm"
+                        />
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[80px] px-4 h-10 rounded-lg bg-[color:var(--accent1)] text-white flex items-center justify-center
+                                       hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm"
+                        >
+                            {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'Review'}
+                        </button>
+                    </form>
                 )}
 
 
                 <div aria-live="polite">
                     {loading && (
-                        <div className="mt-12 mb-20 text-center animate-fade-in">
+                        <div className="mt-4 mb-20 text-center animate-fade-in">
                             <div className="inline-block relative">
                                 <div className="w-20 h-20 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-6"></div>
                                 <SparklesIcon className="w-6 h-6 text-yellow-400 absolute top-0 right-0 animate-pulse" />
