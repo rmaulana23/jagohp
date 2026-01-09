@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -9,6 +8,7 @@ import CrownIcon from './icons/CrownIcon';
 import UsersIcon from './icons/UsersIcon';
 import ShareIcon from './icons/ShareIcon';
 import SparklesIcon from './icons/SparklesIcon';
+import LinkIcon from './icons/LinkIcon';
 
 // --- INTERFACES ---
 interface Ratings {
@@ -22,7 +22,7 @@ interface Ratings {
 
 export interface ReviewResult {
   phoneName: string;
-  imageUrl?: string; // Menyimpan URL gambar dari admin
+  imageUrl?: string;
   ratings: Ratings;
   quickReview: {
     summary: string;
@@ -69,6 +69,7 @@ export interface ReviewResult {
     photoCons: string[];
     videoSummary: string;
   };
+  sources?: { title: string; uri: string }[];
 }
 
 interface SmartReviewProps {
@@ -78,7 +79,6 @@ interface SmartReviewProps {
     onCompare?: (phoneName: string) => void;
 }
 
-// Utility to format brand names correctly
 const formatBrandName = (name: string): string => {
     if (!name) return name;
     return name.replace(/iqoo/gi, 'iQOO');
@@ -91,8 +91,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
     const [error, setError] = useState<string | null>(null);
     const [review, setReview] = useState<ReviewResult | null>(initialResult);
     const [showFullReview, setShowFullReview] = useState(initialResult ? true : false);
-    
-    // States for Exploration Section
     const [recentReviews, setRecentReviews] = useState<ReviewResult[]>([]);
     const [loadingRecent, setLoadingRecent] = useState(false);
     const [explorationSearch, setExplorationSearch] = useState('');
@@ -100,16 +98,11 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
 
-    // Loading message rotation
     useEffect(() => {
         if (loading) {
             const messages = [
-                "Menganalisis spesifikasi inti...",
-                "Mengecek skor benchmark terbaru 2026...",
-                "Menilai kualitas sensor kamera...",
-                "Membandingkan dengan kompetitor di kelasnya...",
-                "Menyusun ringkasan cerdas JagoBot...",
-                "Mengkalkulasi rating performa & baterai..."
+                "Memverifikasi spesifikasi teknis global...",
+                "Membandingkan varian model secara presisi...",
             ];
             let i = 0;
             const interval = setInterval(() => {
@@ -120,7 +113,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         }
     }, [loading]);
 
-    // Fetch recent reviews from DB with optional search term
     const fetchRecent = async (searchTerm: string = '') => {
         if (!supabase) return;
         setLoadingRecent(true);
@@ -138,10 +130,8 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 
             const { data } = await dbQuery;
             if (data) {
-                // Filter unik berdasarkan nama HP agar tidak duplikat di list eksplorasi
                 const uniqueResults: ReviewResult[] = [];
                 const seenNames = new Set<string>();
-                
                 data.forEach(d => {
                     const rev = d.review_data as ReviewResult;
                     const normalized = rev.phoneName.toLowerCase();
@@ -150,7 +140,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                         uniqueResults.push(rev);
                     }
                 });
-                
                 setRecentReviews(uniqueResults);
             }
         } catch (err) {
@@ -160,23 +149,17 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         }
     };
 
-    useEffect(() => {
-        fetchRecent();
-    }, []);
+    useEffect(() => { fetchRecent(); }, []);
 
     const schema = {
         type: Type.OBJECT,
         properties: {
-            phoneName: { type: Type.STRING, description: "Nama resmi lengkap HP (Contoh: Samsung Galaxy S24 Ultra)" },
+            phoneName: { type: Type.STRING, description: "Official Full Name (Contoh: Xiaomi 17 Pro Max 5G)" },
             ratings: {
                 type: Type.OBJECT,
                 properties: {
-                    gaming: { type: Type.NUMBER },
-                    kamera: { type: Type.NUMBER },
-                    baterai: { type: Type.NUMBER },
-                    layarDesain: { type: Type.NUMBER },
-                    performa: { type: Type.NUMBER },
-                    storageRam: { type: Type.NUMBER },
+                    gaming: { type: Type.NUMBER }, kamera: { type: Type.NUMBER }, baterai: { type: Type.NUMBER },
+                    layarDesain: { type: Type.NUMBER }, performa: { type: Type.NUMBER }, storageRam: { type: Type.NUMBER },
                 }
             },
             quickReview: {
@@ -184,50 +167,30 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
             },
             specs: {
                 type: Type.OBJECT, properties: {
-                    rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan. Contoh: 'Januari 2025' atau 'Awal 2026 (Estimasi)'." }, 
-                    storage: { type: Type.STRING, description: "Kapasitas Internal Storage. Contoh: '256GB / 512GB (UFS 4.0)'" }, 
-                    processor: { type: Type.STRING }, 
-                    ram: { type: Type.STRING }, 
-                    camera: { type: Type.STRING }, 
-                    battery: { type: Type.STRING }, 
-                    display: { type: Type.STRING }, 
-                    charging: { type: Type.STRING }, 
-                    jaringan: { type: Type.STRING }, 
-                    koneksi: { type: Type.STRING }, 
-                    nfc: { type: Type.STRING }, 
-                    os: { type: Type.STRING }
+                    rilis: { type: Type.STRING, description: "Bulan & Tahun (Contoh: Januari 2026)." }, 
+                    storage: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, 
+                    camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, 
+                    charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, 
+                    nfc: { type: Type.STRING }, os: { type: Type.STRING }
                 }
             },
-            targetAudience: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Daftar kategori pengguna yang paling cocok menggunakan HP ini." },
+            targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
             accessoryAvailability: { type: Type.STRING },
             marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } }, required: ["indonesia"] },
             performance: {
                 type: Type.OBJECT,
                 properties: {
-                    antutuScore: { type: Type.INTEGER },
-                    geekbenchScore: { type: Type.STRING },
+                    antutuScore: { type: Type.INTEGER }, geekbenchScore: { type: Type.STRING },
                     competitors: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, antutuScore: { type: Type.INTEGER } } } },
                     gamingReview: { type: Type.STRING },
-                    gamingRatings: {
-                        type: Type.ARRAY,
-                        items: {
-                            type: Type.OBJECT,
-                            properties: {
-                                game: { type: Type.STRING },
-                                score: { type: Type.NUMBER }
-                            }
-                        }
-                    }
+                    gamingRatings: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { game: { type: Type.STRING }, score: { type: Type.NUMBER } } } }
                 }
             },
             cameraAssessment: {
                 type: Type.OBJECT,
                 properties: {
-                    dxomarkScore: { type: Type.INTEGER },
-                    photoSummary: { type: Type.STRING },
-                    photoPros: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    photoCons: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    videoSummary: { type: Type.STRING }
+                    dxomarkScore: { type: Type.INTEGER }, photoSummary: { type: Type.STRING }, photoPros: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    photoCons: { type: Type.ARRAY, items: { type: Type.STRING } }, videoSummary: { type: Type.STRING }
                 }
             }
         },
@@ -240,132 +203,83 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         setReview(null);
         setShowFullReview(false);
 
-        const normalizedQuery = searchQuery.trim().toLowerCase().replace(/-/g, ' ');
-        const cacheKey = normalizedQuery;
+        const cacheKey = searchQuery.trim().toLowerCase();
 
-        // 1. CEK CACHE BERDASARKAN KUERI MENTAH
         if (supabase) {
             try {
                 const { data } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', cacheKey).single();
                 if (data && data.review_data) {
-                    const cachedReview = data.review_data as ReviewResult;
-                    setReview(cachedReview);
+                    setReview(data.review_data as ReviewResult);
                     setShowFullReview(true);
                     setLoading(false);
-                    updateRecentList(cachedReview);
-                    await supabase.from('smart_reviews').update({ created_at: new Date().toISOString() }).eq('cache_key', cacheKey);
                     return;
                 }
-            } catch (cacheError) {
-                console.warn("Raw query cache miss.");
-            }
+            } catch (cacheError) {}
         }
 
-        const prompt = `**Peran:** Pakar Gadget Senior JAGO-HP. Pengetahuan hingga awal 2026.
-**Tugas:** Lakukan ulasan mendalam untuk: '${searchQuery}'. 
-**ATURAN IDENTITAS (KRUSIAL):** 
-- Normalisasi Identitas: Identifikasi HP dengan tepat meskipun input user tidak lengkap atau bervariasi.
-- Field 'phoneName' WAJIB menggunakan nama resmi penuh yang paling dikenal di pasar global/Indonesia (Wajib ada nama Brand).
-- Contoh: 'S24 Ultra' -> 'Samsung Galaxy S24 Ultra', 'zenfone 10' -> 'Asus Zenfone 10'.
-- **KHUSUS iPHONE 17 AIR:** Jika HP yang dimaksud adalah iPhone 17 Air atau iPhone Slim 2025, gunakan nama 'iPhone Air' sebagai phoneName resmi (Tanpa angka 17).
-- Selalu gunakan data terbaru (GSMArena/PhoneArena) 2026.
+        const prompt = `**PERAN:** Pakar Teknologi & Analis Gadget Global Senior JAGO-HP. Anda ahli dalam SEMUA tipe smartphone di dunia, dari flagship 2025 hingga bocoran rilis 2026.
+**TUGAS:** Lakukan ulasan mendalam untuk smartphone: '${searchQuery}'. 
+**SUMBER DATA:** Anda WAJIB menggunakan pencarian internet (Google Search) untuk mengambil data dari GSMArena, PhoneArena, dan NotebookCheck.
+**KETELITIAN VARIANT:** Bedakan secara presisi antara varian (Contoh: Xiaomi 17 Pro Max 5G berbeda dengan Xiaomi 17 Ultra). Jangan berhalusinasi.
+**DATA 2025/2026:** Fokus pada jajaran HP 2025. Jika HP rilis awal 2026 belum resmi, gunakan data rumor/leaks yang paling kredibel dari internet.
 **Bahasa:** Bahasa Indonesia.`;
 
         try {
             const response = await ai.models.generateContent({ 
                 model: 'gemini-3-flash-preview', 
                 contents: prompt, 
-                config: { responseMimeType: "application/json", responseSchema: schema as any } 
+                config: { 
+                    responseMimeType: "application/json", 
+                    responseSchema: schema as any,
+                    tools: [{ googleSearch: {} }] as any
+                } 
             });
+
             const parsedResult: ReviewResult = JSON.parse(response.text.trim());
+            
+            // Extract sources from grounding metadata
+            const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
+            const sources: {title: string, uri: string}[] = [];
+            if (groundingMetadata?.groundingChunks) {
+                groundingMetadata.groundingChunks.forEach((chunk: any) => {
+                    if (chunk.web) {
+                        sources.push({ title: chunk.web.title, uri: chunk.web.uri });
+                    }
+                });
+            }
+            parsedResult.sources = sources.length > 0 ? sources : undefined;
 
             if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
                 setError(parsedResult.phoneName);
-                setReview(null);
             } else {
-                // 2. CEK LAGI BERDASARKAN NAMA RESMI (CEK APAKAH SUDAH ADA DARI FITUR COMPARE)
                 const officialCacheKey = parsedResult.phoneName.toLowerCase().trim();
-                
                 if (supabase) {
-                    const { data: existingData } = await supabase
-                        .from('smart_reviews')
-                        .select('review_data')
-                        .eq('cache_key', officialCacheKey)
-                        .single();
-
-                    if (existingData) {
-                        const existingReview = existingData.review_data as ReviewResult;
-                        setReview(existingReview);
-                        setShowFullReview(true);
-                        updateRecentList(existingReview);
-                        
-                        // Link kueri user ke record resmi agar pencarian berikutnya lebih cepat
-                        if (officialCacheKey !== cacheKey) {
-                             await supabase.from('smart_reviews').insert({ 
-                                cache_key: cacheKey, 
-                                review_data: existingReview 
-                            }).catch(() => null); 
-                        }
-                        await supabase.from('smart_reviews').update({ created_at: new Date().toISOString() }).eq('cache_key', officialCacheKey);
-                        setLoading(false);
-                        return;
-                    }
-
-                    // 3. JIKA BENAR-BENAR BELUM ADA, BARU SIMPAN
                     try {
-                        await supabase.from('smart_reviews').insert({ 
-                            cache_key: officialCacheKey, 
-                            review_data: parsedResult 
-                        });
-                        // Simpan juga record kueri user yang tadinya tidak ada
+                        await supabase.from('smart_reviews').insert({ cache_key: officialCacheKey, review_data: parsedResult });
                         if (officialCacheKey !== cacheKey) {
-                             await supabase.from('smart_reviews').insert({ 
-                                cache_key: cacheKey, 
-                                review_data: parsedResult 
-                            }).catch(() => null); 
+                            await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: parsedResult });
                         }
-                    } catch (cacheError) {
-                        console.warn("Supabase save failed:", cacheError);
+                    } catch (supabaseErr) {
+                        console.warn("Supabase cache error", supabaseErr);
                     }
                 }
-                
                 setReview(parsedResult);
                 setShowFullReview(true);
-                updateRecentList(parsedResult);
             }
         } catch (e) {
             console.error(e);
-            setError('Terjadi kesalahan AI. Silakan coba lagi.');
+            setError('Gagal mendapatkan kueri. Pastikan koneksi internet stabil.');
         } finally {
             setLoading(false);
         }
     };
-
-    const updateRecentList = (newReview: ReviewResult) => {
-        setRecentReviews(prev => {
-            const filtered = prev.filter(r => r.phoneName.toLowerCase() !== newReview.phoneName.toLowerCase());
-            return [newReview, ...filtered];
-        });
-    };
     
     useEffect(() => {
         if(initialQuery && !initialResult) {
-            setQuery(initialQuery);
             performSearch(initialQuery);
         } else if (initialResult) {
             setReview(initialResult);
-            setQuery(initialResult.phoneName);
             setShowFullReview(true);
-            updateRecentList(initialResult);
-            setLoading(false);
-            setError(null);
-        } else {
-            // Clean/Reset condition
-            setReview(null);
-            setQuery('');
-            setShowFullReview(false);
-            setLoading(false);
-            setError(null);
         }
     }, [initialQuery, initialResult]);
 
@@ -374,53 +288,13 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         performSearch(query);
     };
 
-    const handleExplorationSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        setExplorationSearch(val);
-        fetchRecent(val);
-    };
-
-    const selectFromRecent = (rev: ReviewResult) => {
-        setReview(rev);
-        setShowFullReview(true);
-        setQuery(rev.phoneName);
-        updateRecentList(rev);
-        if (supabase) {
-            supabase.from('smart_reviews')
-                .update({ created_at: new Date().toISOString() })
-                .eq('cache_key', rev.phoneName.toLowerCase())
-                .then();
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const handleLoadMore = () => {
-        setVisibleCount(prev => prev + 6);
-    };
-
-    const handleResetReview = () => {
-        setReview(null); 
-        setQuery(''); 
-        setShowFullReview(false);
-        setLoading(false);
-        setError(null);
-        clearGlobalResult();
-        // Redirect precisely to #review and let hashchange listener in App.tsx handle path update
-        window.location.hash = 'review';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
     return (
         <section id="review" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
             <div className="w-full max-w-5xl mx-auto">
                 { !review && (
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">
-                            Smart Review
-                        </h1>
-                        <p className="text-base text-slate-500 max-w-2xl mx-auto mt-2">
-                            Tulis tipe HP yang ingin diulas, dan dapatkan analisis lengkap dalam hitungan detik.
-                        </p>
+                        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">Smart Review</h1>
+                        <p className="text-base text-slate-500 mt-2">Dapatkan analisis lengkap dan cepat dalam hitungan detik.</p>
                     </div>
                 )}
 
@@ -430,309 +304,155 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Contoh: Samsung S26 Ultra..."
-                            className="w-full bg-white border border-slate-300 rounded-lg py-3 pl-5 pr-28 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all duration-200 shadow-sm"
+                            placeholder="Tulis nama/tipe hpnya..."
+                            className="w-full bg-white border border-slate-300 rounded-lg py-3 pl-5 pr-28 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] shadow-sm"
                         />
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[80px] px-4 h-10 rounded-lg bg-[color:var(--accent1)] text-white flex items-center justify-center
-                                       hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm"
-                        >
-                            {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'Review'}
-                        </button>
+                        <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 px-4 h-10 rounded-lg bg-[color:var(--accent1)] text-white font-bold text-sm">Review</button>
                     </form>
                 )}
-
 
                 <div aria-live="polite">
                     {loading && (
                         <div className="mt-4 mb-20 text-center animate-fade-in">
-                            <div className="inline-block relative">
-                                <div className="w-20 h-20 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-6"></div>
-                                <SparklesIcon className="w-6 h-6 text-yellow-400 absolute top-0 right-0 animate-pulse" />
-                            </div>
+                            <div className="w-20 h-20 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-6"></div>
                             <h3 className="text-xl font-bold text-slate-800 animate-pulse">{loadingMessage}</h3>
-                            <p className="text-sm text-slate-400 mt-2">Pakar AI kami sedang meninjau data terbaru 2026...</p>
-                            <div className="mt-10 max-w-2xl mx-auto opacity-50 grayscale">
-                                <ReviewSkeleton />
-                            </div>
+                            <p className="text-sm text-slate-400 mt-2">Mohon tunggu, kami sedang menganalisis...</p>
                         </div>
                     )}
 
                     {error && <div className="text-center text-red-500 border border-red-500/30 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
                     
                     {review && showFullReview && (
-                        <ReviewResultDisplay 
-                            review={review} 
-                            onReset={handleResetReview} 
-                        />
+                        <ReviewResultDisplay review={review} onReset={() => { setReview(null); setQuery(''); setShowFullReview(false); clearGlobalResult(); }} />
                     )}
 
                     { !review && !loading && (
                         <div className="mt-16 animate-fade-in">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b border-slate-200 pb-6 gap-4">
-                                <h2 className="text-xl font-bold text-slate-900 font-orbitron uppercase tracking-tight">Eksplorasi Review HP</h2>
-                                <div className="relative w-full md:w-72">
-                                    <input 
-                                        type="text"
-                                        value={explorationSearch}
-                                        onChange={handleExplorationSearch}
-                                        placeholder="Cari HP di database..."
-                                        className="w-full bg-slate-100 border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                                    />
-                                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                </div>
-                            </div>
-
-                            {loadingRecent ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {[...Array(3)].map((_, i) => <div key={i} className="h-64 bg-slate-100 animate-pulse rounded-2xl"></div>)}
-                                </div>
-                            ) : recentReviews.length > 0 ? (
+                            <h2 className="text-xl font-bold text-slate-900 font-orbitron uppercase tracking-tight border-b pb-6 mb-8">Pencarian Review Pengguna Lainnya</h2>
+                            {loadingRecent ? <p>Memuat database...</p> : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {recentReviews.slice(0, visibleCount).map((rev, idx) => (
-                                        <RecentReviewCard 
-                                            key={idx} 
-                                            result={rev} 
-                                            onSelect={() => selectFromRecent(rev)}
-                                            onCompare={onCompare}
-                                        />
+                                        <RecentReviewCard key={idx} result={rev} onSelect={() => {setReview(rev); setShowFullReview(true); window.scrollTo(0,0);}} onCompare={onCompare} />
                                     ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-20 text-slate-400 italic">
-                                    HP tidak ditemukan dalam database eksplorasi.
-                                </div>
-                            )}
-
-                            {recentReviews.length > visibleCount && (
-                                <div className="mt-12 text-center">
-                                    <button 
-                                        onClick={handleLoadMore}
-                                        className="px-8 py-3 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition-all shadow-md active:scale-95"
-                                    >
-                                        Tampilkan Lebih Banyak
-                                    </button>
                                 </div>
                             )}
                         </div>
                     )}
                 </div>
-
             </div>
         </section>
     );
 };
 
-const ReviewSkeleton: FC = () => (
-    <div className="glass p-5 md:p-6 text-left space-y-6 animate-pulse">
-        <div className="w-full aspect-[2/1] bg-slate-200 rounded-lg"></div>
-        <div className="h-7 bg-slate-200 rounded-md w-3/4 mx-auto mb-4"></div>
-        <div className="grid grid-cols-2 gap-4">
-            <div className="h-20 bg-slate-200 rounded-xl"></div>
-            <div className="h-20 bg-slate-200 rounded-xl"></div>
+const RecentReviewCard: FC<{ result: ReviewResult; onSelect: () => void; onCompare?: (name: string) => void }> = ({ result, onSelect, onCompare }) => (
+    <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 flex flex-col h-full hover:shadow-md transition-all duration-300 group">
+        <div className="flex gap-4 mb-4">
+            <div className="w-16 h-20 rounded-2xl bg-slate-50 flex items-center justify-center border overflow-hidden p-1 shadow-inner">
+                {result.imageUrl ? <img src={result.imageUrl} alt="" className="max-w-full max-h-full object-contain drop-shadow-sm group-hover:scale-110 transition-transform" /> : <span className="text-[8px] text-slate-400 font-bold uppercase text-center">No Image</span>}
+            </div>
+            <div className="min-w-0 flex-1">
+                <h3 className="text-lg font-bold text-slate-900 truncate group-hover:text-[color:var(--accent1)] transition-colors">{formatBrandName(result.phoneName)}</h3>
+                <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-tight">Rilis: {result.specs?.rilis || 'N/A'}</p>
+            </div>
+        </div>
+
+        {/* Technical Specs Grid */}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-3 mb-5 px-1">
+            <div>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">CPU</p>
+                <p className="text-[10px] text-slate-800 font-bold truncate leading-tight">
+                    {result.specs?.processor?.replace(/Qualcomm\s*/i, '').replace(/MediaTek\s*/i, '').replace(/Samsung\s*Exynos\s*/i, 'Exynos ') || '-'}
+                </p>
+            </div>
+            <div>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">RAM</p>
+                <p className="text-[10px] text-slate-800 font-bold truncate leading-tight">{result.specs?.ram || '-'}</p>
+            </div>
+            <div>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Antutu</p>
+                <p className="text-[10px] text-slate-800 font-bold truncate leading-tight">{result.performance?.antutuScore?.toLocaleString('id-ID') || '-'}</p>
+            </div>
+            <div>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Koneksi</p>
+                <p className="text-[10px] text-slate-800 font-bold truncate leading-tight">{result.specs?.koneksi || '-'}</p>
+            </div>
+        </div>
+
+        <div className="mb-5 mt-auto">
+            <div className="px-3 py-2 bg-slate-900 rounded-2xl w-full text-center shadow-lg border-b-2 border-slate-700 active:translate-y-0.5 transition-all">
+                <span className="text-yellow-400 font-black text-sm tracking-tight">{result.marketPrice?.indonesia || 'Rp -'}</span>
+            </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+            <button onClick={onSelect} className="px-3 py-2.5 rounded-2xl bg-slate-100 text-slate-900 font-black text-[10px] uppercase border border-slate-200 hover:bg-slate-200 transition-colors">Detail</button>
+            <button onClick={() => onCompare?.(result.phoneName)} className="px-3 py-2.5 rounded-2xl bg-white border border-slate-900 text-slate-900 font-black text-[10px] uppercase hover:bg-slate-50 transition-colors">Compare</button>
         </div>
     </div>
 );
 
-const RecentReviewCard: FC<{ result: ReviewResult; onSelect: () => void; onCompare?: (name: string) => void }> = ({ result, onSelect, onCompare }) => {
-    return (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-full hover:shadow-md transition-shadow duration-300 group">
-            <div className="flex gap-4 mb-4">
-                {result.imageUrl ? (
-                    <div className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-50 p-1 flex items-center justify-center border border-slate-100">
-                        <img src={result.imageUrl} alt={result.phoneName} className="max-w-full max-h-full object-contain drop-shadow-sm" />
-                    </div>
-                ) : (
-                    <div className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 flex items-center justify-center border border-slate-200">
-                         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter text-center">No Image</span>
-                    </div>
-                )}
-                <div className="min-w-0 flex-1">
-                    <h3 className="text-lg font-bold text-slate-900 leading-tight group-hover:text-indigo-600 transition-colors truncate">{formatBrandName(result.phoneName)}</h3>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Rilis: {result.specs?.rilis || 'N/A'}</p>
-                </div>
-            </div>
-            
-            <div className="mb-6 grid grid-cols-2 gap-x-3 gap-y-4">
-                <SpecItemSmall label="CPU" value={result.specs?.processor} />
-                <SpecItemSmall label="RAM" value={result.specs?.ram} />
-                <SpecItemSmall label="AnTuTu" value={result.performance?.antutuScore?.toLocaleString('id-ID')} />
-                <SpecItemSmall label="Koneksi" value={result.specs?.koneksi || result.specs?.jaringan} />
-            </div>
-            
-            <div className="mb-5 mt-auto">
-                <div className="inline-block px-3 py-1.5 bg-slate-900 rounded-xl w-full text-center shadow-sm">
-                    <span className="text-yellow-400 font-black text-sm">{result.marketPrice?.indonesia || 'Rp -'}</span>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-                <button onClick={onSelect} className="px-3 py-2.5 rounded-xl bg-slate-100 text-slate-900 font-black text-[10px] uppercase tracking-wider hover:bg-slate-200 transition-all border border-slate-200">Detail</button>
-                <button onClick={() => onCompare ? onCompare(result.phoneName) : (window.location.hash = 'battle')} className="px-3 py-2.5 rounded-xl bg-white border border-slate-900 text-slate-900 font-black text-[10px] uppercase tracking-wider hover:bg-slate-50 transition-all">Compare</button>
-            </div>
+const RatingItem: FC<{ label: string; score: number }> = ({ label, score }) => (
+    <div className="flex flex-col mb-6">
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{label}</span>
+        <div className="flex items-baseline gap-1 mb-2">
+            <span className="text-2xl font-black text-slate-900">{score.toFixed(1)}</span>
+            <span className="text-xs font-bold text-slate-300">/ 10</span>
         </div>
-    );
-};
-
-const SpecItemSmall: FC<{ label: string; value: string | undefined | null }> = ({ label, value }) => {
-    if (!value) return null;
-    return (
-        <div className="flex flex-col text-left">
-            <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest mb-0.5">{label}</span>
-            <span className="text-[11px] text-slate-700 font-bold truncate leading-tight">{value}</span>
+        <div className="w-full h-[3px] bg-slate-100 rounded-full overflow-hidden">
+            <div 
+                className="h-full bg-slate-900 rounded-full transition-all duration-1000 ease-out" 
+                style={{ width: `${(score / 10) * 100}%` }}
+            />
         </div>
-    );
-};
+    </div>
+);
 
 const ReviewResultDisplay: FC<{ review: ReviewResult; onReset: () => void; }> = ({ review, onReset }) => {
     const [activeTab, setActiveTab] = useState('ringkasan');
-    const [copyStatus, setCopyStatus] = useState('');
-    const priceDisplay = review.marketPrice?.indonesia || 'Rp -';
-
-    const shareUrl = `${window.location.origin}/#review/${encodeURIComponent(review.phoneName.replace(/\s+/g, '-'))}`;
-    const shareText = `Baca Smart Review lengkap ${review.phoneName} di JAGO-HP!\n\n${shareUrl}`;
-
-    const handleCopyLink = () => {
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            setCopyStatus('Tautan disalin!');
-            setTimeout(() => setCopyStatus(''), 2000);
-        });
-    };
-
     return (
         <div className="glass p-4 md:p-8 text-left animate-fade-in shadow-xl">
-            {/* Header Action Row */}
-            <div className="flex justify-between items-center mb-6">
-                <button 
-                    onClick={onReset}
-                    className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                    </svg>
-                    <span>Kembali</span>
-                </button>
-                <div className="flex items-center gap-2">
-                    {copyStatus && <span className="text-[10px] font-bold text-green-600 animate-pulse">{copyStatus}</span>}
-                    <button 
-                        onClick={handleCopyLink}
-                        className="p-2 bg-slate-100 rounded-lg text-slate-500 hover:bg-slate-200 transition-colors"
-                        title="Salin Tautan Review"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-                        </svg>
-                    </button>
-                    <a 
-                        href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                        title="Bagikan ke WhatsApp"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
-                        </svg>
-                    </a>
-                </div>
-            </div>
+            <button onClick={onReset} className="flex items-center gap-2 text-sm font-bold text-slate-500 mb-6 hover:text-slate-800 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+                <span>Kembali</span>
+            </button>
 
             <div className="flex flex-col items-center mb-8">
-                {review.imageUrl && (
-                    <img 
-                        src={review.imageUrl} 
-                        alt={review.phoneName} 
-                        className="w-full max-w-sm h-auto object-contain mb-6 drop-shadow-2xl" 
-                    />
-                )}
+                {review.imageUrl && <img src={review.imageUrl} alt="" className="w-full max-w-xs h-auto object-contain mb-6 drop-shadow-2xl" />}
                 <h2 className="text-2xl md:text-4xl font-bold text-center text-slate-900 font-orbitron">{formatBrandName(review.phoneName)}</h2>
-                <p className="text-center text-sm font-semibold text-slate-500 mt-2">{review.specs.rilis ? `Resmi Rilis: ${review.specs.rilis}` : ''}</p>
-            </div>
-            
-            <div className="mb-10 flex justify-center">
-                <div className="flex flex-col items-center px-8 py-3 rounded-2xl bg-slate-900 text-white shadow-lg">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Estimasi Harga Pasar</span>
-                    <span className="text-2xl font-black text-yellow-400">{priceDisplay}</span>
+                <div className="mt-4 px-8 py-3 rounded-2xl bg-slate-900 text-white shadow-lg flex flex-col items-center">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Estimasi Harga Jago-HP</span>
+                    <span className="text-2xl font-black text-yellow-400">{review.marketPrice?.indonesia || 'Rp -'}</span>
                 </div>
             </div>
 
-            {review.ratings && <RatingsDisplay ratings={review.ratings} />}
-            
-            <div className="mt-10 flex bg-slate-100 p-1.5 rounded-2xl">
+            {/* Ratings Section - Following the screenshot style */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-2 mb-10 border-t border-slate-100 pt-10">
+                <RatingItem label="Baterai" score={review.ratings?.baterai || 0} />
+                <RatingItem label="Gaming" score={review.ratings?.gaming || 0} />
+                <RatingItem label="Kamera" score={review.ratings?.kamera || 0} />
+                <RatingItem label="Layar Desain" score={review.ratings?.layarDesain || 0} />
+                <RatingItem label="Performa" score={review.ratings?.performa || 0} />
+                <RatingItem label="Storage RAM" score={review.ratings?.storageRam || 0} />
+            </div>
+
+            <div className="flex bg-slate-100 p-1.5 rounded-2xl mb-8">
                 {['ringkasan', 'performa', 'foto-video'].map(id => (
-                    <button 
-                        key={id} 
-                        onClick={() => setActiveTab(id)} 
-                        className={`flex-1 py-3 text-xs md:text-sm font-bold rounded-xl transition-all uppercase tracking-wider ${activeTab === id ? 'bg-slate-900 text-white shadow-md scale-[1.02]' : 'text-slate-500 hover:text-slate-800'}`}
-                    >
-                        {id.replace('-', ' ')}
-                    </button>
+                    <button key={id} onClick={() => setActiveTab(id)} className={`flex-1 py-3 text-xs md:text-sm font-bold rounded-xl transition-all uppercase ${activeTab === id ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-800'}`}>{id.replace('-', ' ')}</button>
                 ))}
             </div>
 
-            <div className="pt-8 min-h-[300px]">
+            <div className="pt-4 min-h-[300px]">
                 {activeTab === 'ringkasan' && <TabContentRingkasan review={review} />}
                 {activeTab === 'performa' && <TabContentPerforma review={review} />}
                 {activeTab === 'foto-video' && <TabContentCamera review={review} />}
             </div>
-            
-            {/* Bagikan Review Section */}
-            <div className="mt-12 p-6 bg-slate-50 rounded-3xl border border-slate-200 text-center">
-                <h3 className="font-bold text-slate-800 mb-2">Suka dengan Review Ini?</h3>
-                <p className="text-sm text-slate-500 mb-6">Bagikan ke teman atau simpan tautannya untuk referensi nanti.</p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <a 
-                        href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full sm:w-auto px-6 py-3 bg-[#25D366] text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
-                    >
-                        Bagikan ke WhatsApp
-                    </a>
-                    <button 
-                        onClick={handleCopyLink}
-                        className="w-full sm:w-auto px-6 py-3 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
-                    >
-                        <ShareIcon className="w-5 h-5" />
-                        Salin Tautan Review
-                    </button>
-                </div>
-            </div>
 
             <div className="mt-10 space-y-6">
                 <EcommerceButtons phoneName={review.phoneName} />
-                <div className="text-center">
-                    <button 
-                        onClick={onReset} 
-                        className="px-10 py-3.5 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] hover:bg-indigo-600 transition-colors shadow-xl active:scale-95 border-b-4 border-slate-700"
-                    >
-                        Reset Review
-                    </button>
-                </div>
+                <div className="text-center"><button onClick={onReset} className="px-10 py-3.5 rounded-2xl bg-slate-900 text-white font-black uppercase text-[10px] hover:bg-indigo-600 transition-colors shadow-xl border-b-4 border-slate-700">Reset Review</button></div>
             </div>
         </div>
     );
 };
-
-// Fix for type errors in RatingsDisplay by casting Object.entries values to number.
-const RatingsDisplay: FC<{ ratings: Ratings }> = ({ ratings }) => (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 border-y border-slate-200 py-8">
-        {(Object.entries(ratings) as [string, number][]).map(([key, score]) => (
-            <div key={key} className="flex flex-col">
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-2">{key.replace(/([A-Z])/g, ' $1')}</p>
-                <div className="flex items-baseline gap-1.5">
-                    <span className="font-black text-3xl text-slate-900">{score.toFixed(1)}</span>
-                    <span className="text-sm text-slate-400 font-bold">/ 10</span>
-                </div>
-                <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
-                    <div className="h-full bg-slate-900 rounded-full" style={{ width: `${score * 10}%` }}></div>
-                </div>
-            </div>
-        ))}
-    </div>
-);
 
 const SpecRow: FC<{ label: string; value: string | undefined }> = ({ label, value }) => (
     <div className="flex justify-between border-b border-slate-100 pb-2 text-sm">
@@ -744,26 +464,21 @@ const SpecRow: FC<{ label: string; value: string | undefined }> = ({ label, valu
 const TabContentRingkasan: FC<{ review: ReviewResult }> = ({ review }) => (
     <div className="space-y-8">
         <div>
-            <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-                <span className="w-2 h-6 bg-[color:var(--accent1)] rounded-full"></span>
-                Ringkasan AI Komprehensif
-            </h3>
+            <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2"><span className="w-2 h-6 bg-[color:var(--accent1)] rounded-full"></span>Ringkasan AI Komprehensif</h3>
             <p className="text-slate-600 leading-relaxed text-base whitespace-pre-wrap">{review.quickReview.summary}</p>
         </div>
 
         <div>
             <h3 className="text-lg font-bold text-slate-900 mb-4">Spesifikasi Kunci</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12">
-                {/* Left Column */}
                 <div className="space-y-3">
                     <SpecRow label="OS" value={review.specs.os} />
                     <SpecRow label="Jaringan" value={review.specs.jaringan} />
-                    <SpecRow label="Layar" value={review.specs.display} />
+                    <SpecRow label="Display" value={review.specs.display} />
                     <SpecRow label="Kamera" value={review.specs.camera} />
-                    <SpecRow label="Penyimpanan" value={review.specs.storage} />
-                    <SpecRow label="Memori" value={review.specs.ram} />
+                    <SpecRow label="Storage" value={review.specs.storage} />
+                    <SpecRow label="Ram" value={review.specs.ram} />
                 </div>
-                {/* Right Column */}
                 <div className="space-y-3 mt-3 sm:mt-0">
                     <SpecRow label="Processor" value={review.specs.processor} />
                     <SpecRow label="Batere" value={review.specs.battery} />
@@ -774,22 +489,6 @@ const TabContentRingkasan: FC<{ review: ReviewResult }> = ({ review }) => (
                 </div>
             </div>
         </div>
-
-        {review.targetAudience && review.targetAudience.length > 0 && (
-            <div>
-                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <SearchIcon className="w-6 h-6 text-slate-400" />
-                    Cocok Untuk Siapa?
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                    {review.targetAudience.map((audience, idx) => (
-                        <span key={idx} className="px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-xl text-indigo-700 text-sm font-semibold shadow-sm">
-                            {audience}
-                        </span>
-                    ))}
-                </div>
-            </div>
-        )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
@@ -812,13 +511,8 @@ const TabContentPerforma: FC<{ review: ReviewResult }> = ({ review }) => {
 
     return (
         <div className="space-y-10">
-            {/* AnTuTu v10 Section */}
             <div>
-                <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                    <span className="w-2 h-6 bg-orange-500 rounded-full"></span>
-                    Benchmark AnTuTu v10
-                </h3>
-                
+                <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2"><span className="w-2 h-6 bg-orange-500 rounded-full"></span>Benchmark AnTuTu v10</h3>
                 <div className="space-y-5 bg-slate-50 p-6 rounded-2xl border border-slate-200">
                     {allForComparison.map((item, idx) => {
                         const percentage = maxScore > 0 ? (item.score / maxScore) * 100 : 0;
@@ -826,31 +520,20 @@ const TabContentPerforma: FC<{ review: ReviewResult }> = ({ review }) => {
                             <div key={idx} className="space-y-1.5">
                                 <div className="flex justify-between items-end">
                                     <div className="flex items-center gap-2">
-                                        <span className={`text-xs font-bold truncate max-w-[150px] sm:max-w-none ${item.isMain ? 'text-indigo-600' : 'text-slate-500'}`}>
-                                            {formatBrandName(item.name)}
-                                        </span>
-                                        {item.isMain && <span className="bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">Target</span>}
+                                        <span className={`text-xs font-bold truncate max-w-[150px] sm:max-w-none ${item.isMain ? 'text-indigo-600' : 'text-slate-50'}`}>{formatBrandName(item.name)}</span>
+                                        {item.isMain && <span className="bg-indigo-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase">Target</span>}
                                     </div>
-                                    <span className={`text-sm font-black ${item.isMain ? 'text-slate-900' : 'text-slate-500'}`}>
-                                        {item.score.toLocaleString('id-ID')}
-                                    </span>
+                                    <span className={`text-sm font-black ${item.isMain ? 'text-slate-900' : 'text-slate-500'}`}>{item.score.toLocaleString('id-ID')}</span>
                                 </div>
                                 <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-                                    <div 
-                                        className={`h-full rounded-full transition-all duration-1000 ease-out ${item.isMain ? 'bg-indigo-600 shadow-[0_0_8px_rgba(79,70,229,0.4)]' : 'bg-slate-400 opacity-60'}`}
-                                        style={{ width: `${percentage}%` }}
-                                    ></div>
+                                    <div className={`h-full rounded-full transition-all duration-1000 ease-out ${item.isMain ? 'bg-indigo-600 shadow-[0_0_8px_rgba(79,70,229,0.4)]' : 'bg-slate-400 opacity-60'}`} style={{ width: `${percentage}%` }}></div>
                                 </div>
                             </div>
                         );
                     })}
-                    <p className="text-[10px] text-slate-400 font-medium italic mt-4 text-center">
-                        * Data AnTuTu v10 berdasarkan database benchmark publik 2025/2026.
-                    </p>
+                    <p className="text-[10px] text-slate-400 font-medium italic mt-4 text-center">* Data AnTuTu v10 berdasarkan database benchmark publik 2025/2026.</p>
                 </div>
             </div>
-
-            {/* Geekbench & Gaming Review */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="glass p-6 text-center">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Geekbench 6 (Multi)</p>
@@ -861,7 +544,6 @@ const TabContentPerforma: FC<{ review: ReviewResult }> = ({ review }) => {
                     <p className="text-base font-bold text-indigo-600 leading-tight">{review.specs.processor}</p>
                 </div>
             </div>
-
             <div>
                 <h3 className="text-lg font-bold text-slate-900 mb-3">Analisis Gaming</h3>
                 <div className="p-5 bg-indigo-50/30 rounded-2xl border border-indigo-100">
@@ -877,13 +559,8 @@ const TabContentCamera: FC<{ review: ReviewResult }> = ({ review }) => (
         <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
              <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-slate-900">Penilaian Kamera</h3>
-                {review.cameraAssessment?.dxomarkScore && (
-                    <div className="px-4 py-1.5 bg-slate-900 text-white rounded-full text-xs font-bold">
-                        DXOMark: {review.cameraAssessment.dxomarkScore}
-                    </div>
-                )}
+                {review.cameraAssessment?.dxomarkScore && <div className="px-4 py-1.5 bg-slate-900 text-white rounded-full text-xs font-bold">DXOMark: {review.cameraAssessment.dxomarkScore}</div>}
              </div>
-             
              <div className="space-y-6">
                 <div>
                     <h4 className="font-bold text-slate-800 text-sm mb-2 uppercase tracking-wide">Kualitas Foto</h4>
