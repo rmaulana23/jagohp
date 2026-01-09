@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, FC, useEffect, useRef } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -404,7 +403,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
                     onSetPersistentQuickReviewResult(finalResult);
                     // Update cache for the original query too
                     if (officialKey !== cacheKey) {
-                        await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: finalResult }).catch(() => null);
+                        try { await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: finalResult }); } catch(e) {}
                     }
                     setReviewLoading(false);
                     return;
@@ -424,7 +423,7 @@ const Hero: React.FC<HeroProps> = ({ setPage, openChat, navigateToFullReview, na
                    await supabase.from('smart_reviews').insert({
                     cache_key: cacheKey,
                     review_data: parsedResult,
-                  }).catch(() => null);
+                  });
                 }
               } catch (cacheError) {
                 console.warn("Review sync failed:", cacheError);
@@ -630,11 +629,11 @@ Gunakan data resmi terbaru 2026. Lakukan analisis mendalam termasuk ringkasan pe
                         <div>
                             <label className="font-semibold text-slate-800 text-lg md:hidden">Quick Smart Review</label>
                             <div className="mt-2 flex gap-3 items-center">
-                                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Contoh: Samsung S26 Ultra..." />
+                                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Tulis nama/tipe hpnya..." />
                                 <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-3 rounded-xl bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">{reviewLoading ? '...' : 'Review'}</button>
                             </div>
                             <div className="mt-2 text-sm small-muted md:hidden">Ketik model atau tipe HP terbaru</div>
-                            {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">Ahli kami sedang menganalisis, mohon tunggu..</div>}
+                            {reviewLoading && <div className="text-center p-4 small-muted animate-pulse">AI kami sedang menganalisis, mohon tunggu..</div>}
                             {reviewError && <div className="text-center p-4 text-red-500">{reviewError}</div>}
                             {persistentQuickReviewResult && (
                                 <div className="md:hidden mt-4">
@@ -652,11 +651,11 @@ Gunakan data resmi terbaru 2026. Lakukan analisis mendalam termasuk ringkasan pe
                         <div className="glass p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="font-semibold text-slate-800 text-lg">Quick Compare</h3>
-                                <div className="text-sm small-muted">Bandingkan flagship terbaru</div>
+                                <div className="text-sm small-muted">Bandingkan HP terbaru</div>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <input id="cmpA" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 1" value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
-                                <input id="cmpB" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Masukkan Tipe HP 2" value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
+                                <input id="cmpA" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Tulis nama/tipe hpnya..." value={comparePhoneA} onChange={(e) => setComparePhoneA(e.target.value)} />
+                                <input id="cmpB" className="px-3 py-2.5 rounded-md bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Tulis nama/tipe hpnya..." value={comparePhoneB} onChange={(e) => setComparePhoneB(e.target.value)} />
                             </div>
                             <div className="mt-4">
                                 <button onClick={handleCompareAction} disabled={battleModeLoading} className="w-full px-4 py-2.5 rounded-lg text-sm bg-[color:var(--accent1)] text-white font-bold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md">
