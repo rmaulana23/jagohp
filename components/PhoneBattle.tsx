@@ -8,12 +8,14 @@ import PlusCircleIcon from './icons/PlusCircleIcon';
 import XCircleIcon from './icons/XCircleIcon';
 import CrownIcon from './icons/CrownIcon';
 import EcommerceButtons from './EcommerceButtons';
+import SparklesIcon from './icons/SparklesIcon';
 
 interface SpecDetails {
     rilis?: string;
     os?: string;
     processor?: string;
     ram?: string;
+    storage?: string;
     antutuScore?: number | null;
     jaringan?: string;
     display?: string;
@@ -53,10 +55,31 @@ const formatBrandName = (name: string): string => {
 const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initialPhoneA = '', clearInitialPhoneA, clearGlobalBattleResult }) => {
     const [phoneNames, setPhoneNames] = useState<string[]>(['', '']);
     const [loading, setLoading] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState('Menimbang pilihan...');
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<BattleResult | null>(initialResult);
 
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
+
+    // Loading message rotation
+    useEffect(() => {
+        if (loading) {
+            const messages = [
+                "Menyeimbangkan data kedua HP...",
+                "Membandingkan performa chipset...",
+                "Menganalisis efisiensi baterai & charging...",
+                "Menentukan pemenang sektor kamera...",
+                "Memproses skor benchmark AnTuTu v10...",
+                "Menyusun ringkasan duel cerdas..."
+            ];
+            let i = 0;
+            const interval = setInterval(() => {
+                i = (i + 1) % messages.length;
+                setLoadingMessage(messages[i]);
+            }, 2000);
+            return () => clearInterval(interval);
+        }
+    }, [loading]);
 
     // Fungsi untuk melengkapi gambar HP dari database
     const enrichWithImages = async (battleData: BattleResult): Promise<BattleResult> => {
@@ -104,6 +127,7 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
         os: { type: Type.STRING },
         processor: { type: Type.STRING },
         ram: { type: Type.STRING, description: "Ukuran dan tipe RAM. Contoh: '8GB LPDDR5X'" },
+        storage: { type: Type.STRING, description: "Kapasitas Internal Storage. Contoh: '256GB UFS 4.0'" },
         antutuScore: { type: Type.INTEGER, description: "Skor benchmark AnTuTu v10 sebagai angka integer." },
         jaringan: { type: Type.STRING },
         display: { type: Type.STRING },
@@ -222,7 +246,7 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
                     />
                 </div>
 
-                { !result && (
+                { !result && !loading && (
                     <>
                         <div className="text-center mb-8">
                             <h2 className="text-3xl md:text-4xl font-bold mb-2 text-slate-900 font-orbitron">
@@ -269,7 +293,19 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
                 )}
                 
                 <div className="mt-12" aria-live="polite">
-                    {loading && !result && <BattleSkeleton phoneCount={phoneNames.length} />}
+                    {loading && (
+                        <div className="mb-20 text-center animate-fade-in">
+                            <div className="inline-block relative">
+                                <div className="w-20 h-20 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-6"></div>
+                                <SparklesIcon className="w-6 h-6 text-yellow-400 absolute top-0 right-0 animate-pulse" />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-800 animate-pulse">{loadingMessage}</h3>
+                            <p className="text-sm text-slate-400 mt-2">Pakar AI kami sedang menimbang data terbaik...</p>
+                            <div className="mt-10 opacity-50 grayscale">
+                                <BattleSkeleton phoneCount={phoneNames.length} />
+                            </div>
+                        </div>
+                    )}
                     {error && <div className="text-center text-red-500 border border-red-500/30 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
                     {result && (
                         <>
@@ -305,7 +341,7 @@ const PhoneInputCard: FC<{phoneName: string; setPhoneName: (name: string) => voi
 
 const BattleSkeleton: FC<{ phoneCount: number }> = ({ phoneCount }) => (
     <div className="space-y-8 animate-pulse">
-        <div className={`grid grid-cols-1 md:grid-cols-${phoneCount} gap-6`}>
+        <div className={`grid grid-cols-1 ${phoneCount === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6`}>
             {[...Array(phoneCount)].map((_, i) => (
                 <div key={i} className="glass p-5 space-y-3">
                     <div className="h-40 bg-slate-200 rounded-xl mb-4"></div>
