@@ -8,6 +8,7 @@ import EcommerceButtons from './EcommerceButtons';
 import CrownIcon from './icons/CrownIcon';
 import UsersIcon from './icons/UsersIcon';
 import ShareIcon from './icons/ShareIcon';
+import SparklesIcon from './icons/SparklesIcon';
 
 // --- INTERFACES ---
 interface Ratings {
@@ -30,7 +31,7 @@ export interface ReviewResult {
   };
   specs: {
     rilis?: string;
-    brand?: string;
+    storage: string;
     processor: string;
     ram: string;
     camera: string;
@@ -86,6 +87,7 @@ const formatBrandName = (name: string): string => {
 const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialResult = null, clearGlobalResult, onCompare }) => {
     const [query, setQuery] = useState(initialQuery);
     const [loading, setLoading] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState('Menganalisis spesifikasi...');
     const [error, setError] = useState<string | null>(null);
     const [review, setReview] = useState<ReviewResult | null>(initialResult);
     const [showFullReview, setShowFullReview] = useState(initialResult ? true : false);
@@ -97,6 +99,26 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
     const [visibleCount, setVisibleCount] = useState(6);
 
     const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
+
+    // Loading message rotation
+    useEffect(() => {
+        if (loading) {
+            const messages = [
+                "Menganalisis spesifikasi inti...",
+                "Mengecek skor benchmark terbaru 2026...",
+                "Menilai kualitas sensor kamera...",
+                "Membandingkan dengan kompetitor di kelasnya...",
+                "Menyusun ringkasan cerdas JagoBot...",
+                "Mengkalkulasi rating performa & baterai..."
+            ];
+            let i = 0;
+            const interval = setInterval(() => {
+                i = (i + 1) % messages.length;
+                setLoadingMessage(messages[i]);
+            }, 2000);
+            return () => clearInterval(interval);
+        }
+    }, [loading]);
 
     // Fetch recent reviews from DB with optional search term
     const fetchRecent = async (searchTerm: string = '') => {
@@ -149,7 +171,18 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
             },
             specs: {
                 type: Type.OBJECT, properties: {
-                    rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan. Contoh: 'Januari 2025' atau 'Awal 2026 (Estimasi)'." }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }
+                    rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan. Contoh: 'Januari 2025' atau 'Awal 2026 (Estimasi)'." }, 
+                    storage: { type: Type.STRING, description: "Kapasitas Internal Storage. Contoh: '256GB / 512GB (UFS 4.0)'" }, 
+                    processor: { type: Type.STRING }, 
+                    ram: { type: Type.STRING }, 
+                    camera: { type: Type.STRING }, 
+                    battery: { type: Type.STRING }, 
+                    display: { type: Type.STRING }, 
+                    charging: { type: Type.STRING }, 
+                    jaringan: { type: Type.STRING }, 
+                    koneksi: { type: Type.STRING }, 
+                    nfc: { type: Type.STRING }, 
+                    os: { type: Type.STRING }
                 }
             },
             targetAudience: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Daftar kategori pengguna yang paling cocok menggunakan HP ini." },
@@ -219,7 +252,6 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 **Tugas:** Lakukan ulasan mendalam untuk: '${searchQuery}'. 
 **ATURAN IDENTITAS (KRUSIAL):** 
 - Normalisasi Identitas: Identifikasi HP dengan tepat meskipun input user tidak lengkap atau bervariasi.
-- Contoh: 'Xiaomi 15T' dan 'Xiaomi 15T 5G' adalah HP yang sama. Identifikasi sebagai versi terlengkap: 'Xiaomi 15T 5G'.
 - Field 'phoneName' WAJIB menggunakan nama resmi penuh yang paling dikenal di pasar global/Indonesia (Wajib ada nama Brand).
 - Contoh: 'S24 Ultra' -> 'Samsung Galaxy S24 Ultra', 'zenfone 10' -> 'Asus Zenfone 10'.
 - **KHUSUS iPHONE 17 AIR:** Jika HP yang dimaksud adalah iPhone 17 Air atau iPhone Slim 2025, gunakan nama 'iPhone Air' sebagai phoneName resmi (Tanpa angka 17).
@@ -305,6 +337,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
     
     useEffect(() => {
         if(initialQuery && !initialResult) {
+            setQuery(initialQuery);
             performSearch(initialQuery);
         } else if (initialResult) {
             setReview(initialResult);
@@ -352,21 +385,22 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
         setVisibleCount(prev => prev + 6);
     };
 
-    const handleBackToSearch = () => {
+    const handleResetReview = () => {
         setReview(null); 
         setQuery(''); 
-        clearGlobalResult();
         setShowFullReview(false);
         setLoading(false);
         setError(null);
-        // Explicitly force hash to just 'review'
+        clearGlobalResult();
+        // Redirect precisely to #review and let hashchange listener in App.tsx handle path update
         window.location.hash = 'review';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     return (
         <section id="review" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
             <div className="w-full max-w-5xl mx-auto">
-                { !review && (
+                { !review && !loading && (
                     <>
                         <div className="text-center mb-8">
                             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">
@@ -399,13 +433,26 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
 
 
                 <div aria-live="polite">
-                    {loading && !review && <ReviewSkeleton />}
+                    {loading && (
+                        <div className="mt-12 mb-20 text-center animate-fade-in">
+                            <div className="inline-block relative">
+                                <div className="w-20 h-20 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-6"></div>
+                                <SparklesIcon className="w-6 h-6 text-yellow-400 absolute top-0 right-0 animate-pulse" />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-800 animate-pulse">{loadingMessage}</h3>
+                            <p className="text-sm text-slate-400 mt-2">Pakar AI kami sedang meninjau data terbaru 2026...</p>
+                            <div className="mt-10 max-w-2xl mx-auto opacity-50 grayscale">
+                                <ReviewSkeleton />
+                            </div>
+                        </div>
+                    )}
+
                     {error && <div className="text-center text-red-500 border border-red-500/30 bg-red-500/10 rounded-lg p-4 max-w-2xl mx-auto">{error}</div>}
                     
                     {review && showFullReview && (
                         <ReviewResultDisplay 
                             review={review} 
-                            onReset={handleBackToSearch} 
+                            onReset={handleResetReview} 
                         />
                     )}
 
@@ -469,6 +516,10 @@ const ReviewSkeleton: FC = () => (
     <div className="glass p-5 md:p-6 text-left space-y-6 animate-pulse">
         <div className="w-full aspect-[2/1] bg-slate-200 rounded-lg"></div>
         <div className="h-7 bg-slate-200 rounded-md w-3/4 mx-auto mb-4"></div>
+        <div className="grid grid-cols-2 gap-4">
+            <div className="h-20 bg-slate-200 rounded-xl"></div>
+            <div className="h-20 bg-slate-200 rounded-xl"></div>
+        </div>
     </div>
 );
 
@@ -540,7 +591,16 @@ const ReviewResultDisplay: FC<{ review: ReviewResult; onReset: () => void; }> = 
     return (
         <div className="glass p-4 md:p-8 text-left animate-fade-in shadow-xl">
             {/* Header Action Row */}
-            <div className="flex justify-end items-center mb-6">
+            <div className="flex justify-between items-center mb-6">
+                <button 
+                    onClick={onReset}
+                    className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                    </svg>
+                    <span>Kembali</span>
+                </button>
                 <div className="flex items-center gap-2">
                     {copyStatus && <span className="text-[10px] font-bold text-green-600 animate-pulse">{copyStatus}</span>}
                     <button 
@@ -633,9 +693,9 @@ const ReviewResultDisplay: FC<{ review: ReviewResult; onReset: () => void; }> = 
                 <div className="text-center">
                     <button 
                         onClick={onReset} 
-                        className="px-8 py-3 rounded-xl text-sm bg-slate-200 text-slate-700 font-bold hover:bg-slate-300 transition-all shadow-sm active:scale-95"
+                        className="px-10 py-3.5 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] hover:bg-indigo-600 transition-colors shadow-xl active:scale-95 border-b-4 border-slate-700"
                     >
-                        Kembali Cari HP Lain
+                        Reset Review
                     </button>
                 </div>
             </div>
