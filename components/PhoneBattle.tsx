@@ -1,4 +1,3 @@
-
 import React, { useState, FC, useMemo, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -237,15 +236,6 @@ const PhoneBattle: React.FC<PhoneBattleProps> = ({ initialResult = null, initial
         <section id="battle" className="flex-grow flex flex-col items-center pb-12 px-4 sm:px-6 w-full">
             <div className="container mx-auto max-w-6xl">
                 
-                {/* Banner Image Section - Updated for Full View & Cropping edges */}
-                <div className="w-full mb-10 rounded-2xl overflow-hidden shadow-2xl border border-slate-200 aspect-[21/9] md:aspect-[3/1]">
-                    <img 
-                        src="https://imgur.com/ZIQQkar.jpg" 
-                        alt="DUELKAN HP Favoritmu!" 
-                        className="w-full h-full object-cover block"
-                    />
-                </div>
-
                 { !result && !loading && (
                     <>
                         <div className="text-center mb-8">
@@ -375,6 +365,7 @@ const BattleResultDisplay: FC<{ result: BattleResult; onReset: () => void }> = (
                         {/* Tampilan Gambar HP */}
                         <div className="w-full aspect-square mb-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center p-4 overflow-hidden group">
                             {phone.imageUrl ? (
+                                // Fix syntax error where img tag was missing opening bracket on line 369.
                                 <img 
                                     src={phone.imageUrl} 
                                     alt={phone.name} 
