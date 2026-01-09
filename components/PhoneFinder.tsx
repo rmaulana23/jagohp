@@ -28,7 +28,7 @@ interface Recommendation {
 const activityOptions = [
   "Sosial Media & Browsing", "Gaming Berat", "Fotografi & Videografi", "Produktivitas (Email, Doc.)",
   "Streaming Film & Video", "Baterai Tahan Lama", "Layar Super Mulus (120Hz+)", "Butuh NFC",
-  "RAM Min. 8GB atau Lebih", "Storage Besar"
+  "RAM 8GB atau Lebih", "Storage Besar"
 ];
 
 const budgetOptions = [
