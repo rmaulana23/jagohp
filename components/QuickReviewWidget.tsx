@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, FC } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -26,31 +25,24 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
 
         const cacheKey = reviewQuery.trim().toLowerCase();
 
-        // 1. CEK CACHE DI TABEL UTAMA SMART REVIEW
         if (supabase) {
             try {
-                const { data } = await supabase
-                    .from('smart_reviews')
-                    .select('review_data')
-                    .eq('cache_key', cacheKey)
-                    .single();
+                const { data } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', cacheKey).single();
                 if (data && data.review_data) {
                     setQuickReviewResult(data.review_data as ReviewResult);
                     setReviewLoading(false);
                     return;
                 }
-            } catch (cacheError) {
-                console.warn("Supabase central review cache miss.");
-            }
+            } catch (cacheError) {}
         }
 
         const schema = {
             type: Type.OBJECT,
             properties: {
-                phoneName: { type: Type.STRING, description: "Nama resmi HP selengkap mungkin" },
+                phoneName: { type: Type.STRING, description: "Official Full Name (e.g., Xiaomi 17 Pro Max 5G)" },
                 ratings: { type: Type.OBJECT, properties: { gaming: { type: Type.NUMBER }, kamera: { type: Type.NUMBER }, baterai: { type: Type.NUMBER }, layarDesain: { type: Type.NUMBER }, performa: { type: Type.NUMBER }, storageRam: { type: Type.NUMBER }}},
                 quickReview: { type: Type.OBJECT, properties: { summary: { type: Type.STRING }, pros: { type: Type.ARRAY, items: { type: Type.STRING } }, cons: { type: Type.ARRAY, items: { type: Type.STRING } } } },
-                specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan. Contoh: 'Januari 2026'." }, storage: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
+                specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING, description: "Januari 2026 atau 2025." }, storage: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
                 targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
                 accessoryAvailability: { type: Type.STRING },
                 marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } }, required: ["indonesia"] },
@@ -60,19 +52,20 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
         };
         
         try {
-            const prompt = `**Pakar Teknologi:** Quick Review HP dari kueri user: "${reviewQuery}". 
-**NORMALISASI NAMA (PENTING):** 
-- Identifikasi HP yang dimaksud (Contoh: "iPhone 16" -> "Apple iPhone 16"). 
-- Gunakan NAMA RESMI PENUH di 'phoneName'.
-- **KHUSUS iPHONE 17 AIR:** WAJIB gunakan nama resmi 'iPhone Air'. 
-- Gunakan data terbaru 2026.`;
+            const prompt = `**PERAN:** Pakar Teknologi JAGO-HP Global. Anda mengetahui SEMUA smartphone di dunia.
+**TUGAS:** Lakukan analisis kilat smartphone: "${reviewQuery}". 
+**SUMBER DATA:** WAJIB gunakan pencarian internet (Google Search grounding) untuk mengambil data dari GSMArena & PhoneArena.
+**KETELITIAN:** Bedakan varian model secara akurat (Xiaomi 17 Pro Max 5G vs Xiaomi 17 Ultra).
+- Gunakan nama resmi lengkap di 'phoneName'.
+- Pengetahuan hingga Januari 2026.`;
 
             const response = await ai.models.generateContent({ 
                 model: 'gemini-3-flash-preview', 
                 contents: prompt, 
                 config: { 
                     responseMimeType: "application/json", 
-                    responseSchema: schema as any 
+                    responseSchema: schema as any,
+                    tools: [{ googleSearch: {} }] as any
                 } 
             });
             const parsedResult: ReviewResult = JSON.parse(response.text.trim());
@@ -81,32 +74,20 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
                 setReviewError(parsedResult.phoneName);
             } else {
                 const officialKey = parsedResult.phoneName.toLowerCase().trim();
-                
                 if (supabase) {
-                    // 2. CEK APAKAH NAMA RESMI SUDAH ADA DI DB UTAMA
-                    const { data: existing } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', officialKey).single();
-                    if (existing) {
-                        const finalResult = existing.review_data as ReviewResult;
-                        setQuickReviewResult(finalResult);
-                        // Simpan link kueri user ke data resmi
+                    try {
+                        await supabase.from('smart_reviews').insert({ cache_key: officialKey, review_data: parsedResult });
                         if (officialKey !== cacheKey) {
-                            await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: finalResult }).catch(() => null);
+                            await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: parsedResult });
                         }
-                    } else {
-                        // 3. JIKA BENAR-BENAR BARU, SIMPAN KE TABEL SMART REVIEW
-                        setQuickReviewResult(parsedResult);
-                        await supabase.from('smart_reviews').insert({ cache_key: officialKey, review_data: parsedResult }).catch(() => null);
-                        if (officialKey !== cacheKey) {
-                            await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: parsedResult }).catch(() => null);
-                        }
+                    } catch (supabaseErr) {
+                        console.warn("Supabase widget cache error", supabaseErr);
                     }
-                } else {
-                    setQuickReviewResult(parsedResult);
                 }
+                setQuickReviewResult(parsedResult);
             }
         } catch (e) {
-            console.error(e);
-            setReviewError('Terjadi kesalahan AI.');
+            setReviewError('Kesalahan kueri global AI.');
         } finally {
             setReviewLoading(false);
         }
@@ -114,31 +95,15 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
 
     return (
         <div className="glass p-5 space-y-4">
-            <h3 className="font-semibold text-slate-800 text-lg">Quick Review Pakar 2026</h3>
+            <h3 className="font-semibold text-slate-800 text-lg">Quick Review Global 2026</h3>
             <div className="flex gap-3 items-center">
-                <input 
-                    value={reviewQuery} 
-                    onChange={(e) => setReviewQuery(e.target.value)} 
-                    onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} 
-                    className="flex-1 px-4 py-2.5 rounded-lg bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" 
-                    placeholder="Tipe HP 2026..." 
-                />
-                <button 
-                    onClick={handleReviewSearch} 
-                    disabled={reviewLoading} 
-                    className="px-4 py-2.5 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-                >
-                    {reviewLoading ? '...' : 'Pakar'}
-                </button>
+                <input value={reviewQuery} onChange={(e) => setReviewQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleReviewSearch()} className="flex-1 px-4 py-2.5 rounded-lg bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all" placeholder="Xiaomi 17 Pro Max 5G..." />
+                <button onClick={handleReviewSearch} disabled={reviewLoading} className="px-4 py-2.5 rounded-lg bg-[color:var(--accent1)] text-white font-semibold hover:opacity-90 shadow-md disabled:opacity-50">{reviewLoading ? '...' : 'Pakar'}</button>
             </div>
             {quickReviewResult ? (
-                <div className="mt-4">
-                    <PreviewCard result={quickReviewResult} onSeeFull={() => navigateToFullReview(quickReviewResult)} />
-                </div>
+                <div className="mt-4"><PreviewCard result={quickReviewResult} onSeeFull={() => navigateToFullReview(quickReviewResult)} /></div>
             ) : (
-                <div className="text-center text-sm text-slate-400 py-4 italic">
-                    Tanya pada kami tentang model HP apa pun.
-                </div>
+                <div className="text-center text-sm text-slate-400 py-4 italic">Tanya tentang HP global apa pun di sini.</div>
             )}
         </div>
     );
