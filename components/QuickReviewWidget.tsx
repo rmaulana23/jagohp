@@ -26,12 +26,13 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
 
         const cacheKey = reviewQuery.trim().toLowerCase();
 
+        // 1. CEK CACHE DI TABEL UTAMA SMART REVIEW
         if (supabase) {
             try {
                 const { data } = await supabase
-                    .from('quick_reviews')
+                    .from('smart_reviews')
                     .select('review_data')
-                    .eq('phone_name_query', cacheKey)
+                    .eq('cache_key', cacheKey)
                     .single();
                 if (data && data.review_data) {
                     setQuickReviewResult(data.review_data as ReviewResult);
@@ -39,7 +40,7 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
                     return;
                 }
             } catch (cacheError) {
-                console.warn("Supabase quick review cache check missed.");
+                console.warn("Supabase central review cache miss.");
             }
         }
 
@@ -49,39 +50,59 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
                 phoneName: { type: Type.STRING, description: "Nama resmi HP selengkap mungkin" },
                 ratings: { type: Type.OBJECT, properties: { gaming: { type: Type.NUMBER }, kamera: { type: Type.NUMBER }, baterai: { type: Type.NUMBER }, layarDesain: { type: Type.NUMBER }, performa: { type: Type.NUMBER }, storageRam: { type: Type.NUMBER }}},
                 quickReview: { type: Type.OBJECT, properties: { summary: { type: Type.STRING }, pros: { type: Type.ARRAY, items: { type: Type.STRING } }, cons: { type: Type.ARRAY, items: { type: Type.STRING } } } },
-                specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan dan tahun. Contoh: 'Januari 2026'." }, brand: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
+                specs: { type: Type.OBJECT, properties: { rilis: { type: Type.STRING, description: "Wajib menyertakan nama bulan. Contoh: 'Januari 2026'." }, storage: { type: Type.STRING }, processor: { type: Type.STRING }, ram: { type: Type.STRING }, camera: { type: Type.STRING }, battery: { type: Type.STRING }, display: { type: Type.STRING }, charging: { type: Type.STRING }, jaringan: { type: Type.STRING }, koneksi: { type: Type.STRING }, nfc: { type: Type.STRING }, os: { type: Type.STRING }}},
                 targetAudience: { type: Type.ARRAY, items: { type: Type.STRING } },
                 accessoryAvailability: { type: Type.STRING },
-                marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } } },
+                marketPrice: { type: Type.OBJECT, properties: { indonesia: { type: Type.STRING }, global: { type: Type.STRING } }, required: ["indonesia"] },
                 performance: { type: Type.OBJECT, properties: { antutuScore: { type: Type.INTEGER }, geekbenchScore: { type: Type.STRING }, competitors: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, antutuScore: { type: Type.INTEGER } } } }, gamingReview: { type: Type.STRING }, gamingRatings: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { game: { type: Type.STRING }, score: { type: Type.NUMBER } } } } }},
                 cameraAssessment: { type: Type.OBJECT, properties: { dxomarkScore: { type: Type.INTEGER }, photoSummary: { type: Type.STRING }, photoPros: { type: Type.ARRAY, items: { type: Type.STRING } }, photoCons: { type: Type.ARRAY, items: { type: Type.STRING } }, videoSummary: { type: Type.STRING }}}
             },
         };
         
         try {
+            const prompt = `**Pakar Teknologi:** Quick Review HP dari kueri user: "${reviewQuery}". 
+**NORMALISASI NAMA (PENTING):** 
+- Identifikasi HP yang dimaksud (Contoh: "iPhone 16" -> "Apple iPhone 16"). 
+- Gunakan NAMA RESMI PENUH di 'phoneName'.
+- **KHUSUS iPHONE 17 AIR:** WAJIB gunakan nama resmi 'iPhone Air'. 
+- Gunakan data terbaru 2026.`;
+
             const response = await ai.models.generateContent({ 
                 model: 'gemini-3-flash-preview', 
-                contents: `**Pakar Teknologi:** Quick Review HP dari kueri user: "${reviewQuery}". Identifikasi HP apa yang dimaksud (Contoh: "iPhone 16" -> "Apple iPhone 16"). **KHUSUS iPHONE 17 AIR:** WAJIB gunakan nama resmi 'iPhone Air'. Gunakan data 2026. rilis wajib ada bulan.`, 
+                contents: prompt, 
                 config: { 
                     responseMimeType: "application/json", 
-                    responseSchema: schema 
+                    responseSchema: schema as any 
                 } 
             });
             const parsedResult: ReviewResult = JSON.parse(response.text.trim());
+            
             if (parsedResult.phoneName.toLowerCase().startsWith('maaf:')) {
                 setReviewError(parsedResult.phoneName);
             } else {
-                // Periksa apakah nama resmi dari AI sudah ada di DB utama
                 const officialKey = parsedResult.phoneName.toLowerCase().trim();
+                
                 if (supabase) {
+                    // 2. CEK APAKAH NAMA RESMI SUDAH ADA DI DB UTAMA
                     const { data: existing } = await supabase.from('smart_reviews').select('review_data').eq('cache_key', officialKey).single();
                     if (existing) {
-                        setQuickReviewResult(existing.review_data as ReviewResult);
-                        setReviewLoading(false);
-                        return;
+                        const finalResult = existing.review_data as ReviewResult;
+                        setQuickReviewResult(finalResult);
+                        // Simpan link kueri user ke data resmi
+                        if (officialKey !== cacheKey) {
+                            await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: finalResult }).catch(() => null);
+                        }
+                    } else {
+                        // 3. JIKA BENAR-BENAR BARU, SIMPAN KE TABEL SMART REVIEW
+                        setQuickReviewResult(parsedResult);
+                        await supabase.from('smart_reviews').insert({ cache_key: officialKey, review_data: parsedResult }).catch(() => null);
+                        if (officialKey !== cacheKey) {
+                            await supabase.from('smart_reviews').insert({ cache_key: cacheKey, review_data: parsedResult }).catch(() => null);
+                        }
                     }
+                } else {
+                    setQuickReviewResult(parsedResult);
                 }
-                setQuickReviewResult(parsedResult);
             }
         } catch (e) {
             console.error(e);
@@ -116,7 +137,7 @@ const QuickReviewWidget: FC<QuickReviewWidgetProps> = ({
                 </div>
             ) : (
                 <div className="text-center text-sm text-slate-400 py-4 italic">
-                    Tanya pakar kami tentang model HP apa pun.
+                    Tanya pada kami tentang model HP apa pun.
                 </div>
             )}
         </div>
