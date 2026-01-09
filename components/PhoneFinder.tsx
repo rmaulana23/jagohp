@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, FC, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { supabase } from '../utils/supabaseClient';
@@ -27,7 +26,7 @@ interface Recommendation {
 
 const activityOptions = [
   "Sosial Media & Browsing", "Gaming Berat", "Fotografi & Videografi", "Produktivitas (Email, Doc.)",
-  "Streaming Film & Video", "Baterai Tahan Lama", "Layar Super Mulus (120Hz+)", "Butuh NFC",
+  "Streaming Film & Video", "Baterai Awet", "Layar Super Mulus (120Hz+)", "Butuh NFC",
   "RAM 8GB atau Lebih", "Storage Besar"
 ];
 
@@ -63,9 +62,7 @@ const PhoneFinder: React.FC = () => {
       const messages = [
         "Menganalisis kebutuhan utamamu...",
         "Menyeimbangkan budget dengan spesifikasi...",
-        "Mengecek database HP rilis terbaru 2026...",
-        "Membandingkan skor benchmark & performa...",
-        "Memilihkan yang paling 'Value for Money' untukmu..."
+        "Memilihkan yang paling 'Value for Money'..."
       ];
       let i = 0;
       const interval = setInterval(() => {
@@ -84,7 +81,7 @@ const PhoneFinder: React.FC = () => {
             items: {
                 type: Type.OBJECT,
                 properties: {
-                    phoneName: { type: Type.STRING, description: "Nama resmi HP selengkap mungkin (e.g., Xiaomi 15T 5G)" }, 
+                    phoneName: { type: Type.STRING, description: "Nama resmi HP selengkap mungkin (e.g., Xiaomi 15 Pro Max)" }, 
                     reason: { type: Type.STRING, description: "Alasan spesifik mengapa HP ini cocok dengan pilihan user" },
                     estimatedPrice: { type: Type.STRING, description: "Harga pasar di Indonesia saat ini" }, 
                     rilis: { type: Type.STRING, description: "Bulan dan tahun rilis (e.g., Januari 2026)" },
@@ -94,7 +91,7 @@ const PhoneFinder: React.FC = () => {
                             design: { type: Type.STRING, description: "Material dan gaya desain" },
                             network: { type: Type.STRING, description: "Dukungan jaringan (e.g., 5G, LTE)" },
                             display: { type: Type.STRING, description: "Panel, ukuran, refresh rate" },
-                            chipset: { type: Type.STRING, description: "Model prosesor dan GPU" },
+                            chipset: { type: Type.STRING, description: "Model prosesor dan GPU terbaru" },
                             camera: { type: Type.STRING, description: "Konfigurasi kamera utama dan depan" },
                             memory: { type: Type.STRING, description: "Kapasitas RAM" },
                             storage: { type: Type.STRING, description: "Kapasitas internal storage" },
@@ -126,7 +123,7 @@ const PhoneFinder: React.FC = () => {
     setError(null);
     setResults(null);
     
-    const cacheKey = [...activities.sort(), `cam:${cameraPriority}`, `budget:${budget}`, `count:${recommendationCount}`, `prefs:${otherPrefs.trim().toLowerCase()}`, 'v2_specs'].join('|');
+    const cacheKey = [...activities.sort(), `cam:${cameraPriority}`, `budget:${budget}`, `count:${recommendationCount}`, `prefs:${otherPrefs.trim().toLowerCase()}`, 'v2_specs_2026'].join('|');
 
     if (supabase) {
         try {
@@ -142,7 +139,7 @@ const PhoneFinder: React.FC = () => {
 
     const cameraPriorityText = ["Tidak penting", "Kurang penting", "Cukup penting", "Penting", "Sangat penting"][cameraPriority - 1];
 
-    const prompt = `**Peran:** JAGO-HP Matchmaker AI (Pakar Gadget Senior).
+    const prompt = `**Peran:** JAGO-HP Matchmaker AI. Pakar Senior dengan data hingga 1 Januari 2026.
 **Tugas:** Temukan **TEPAT ${recommendationCount} smartphone** terbaik awal 2026 yang PALING SESUAI dengan profil pengguna:
 - **Kebutuhan Utama:** ${activities.join(', ')}
 - **Prioritas Kamera:** ${cameraPriorityText}
@@ -150,8 +147,8 @@ const PhoneFinder: React.FC = () => {
 - **Preferensi Lain:** ${otherPrefs || "Tidak ada"}
 
 **ATURAN MAIN:**
-1. **Akurasi:** Berikan rekomendasi yang benar-benar relevan dengan budget dan kebutuhan.
-2. **Spesifikasi Lengkap:** Isi semua field spesifikasi (Design, Network, Display, Chipset, Camera, Memory, Storage, Battery, Charging, Connection) dengan data teknis yang akurat untuk tahun 2026.
+1. **Validasi Sumber:** Gunakan spesifikasi teknis dari GSMArena/PhoneArena.
+2. **Presisi Varian:** Bedakan varian model secara akurat (misal: Xiaomi 15 Pro Max vs Ultra).
 3. **Bahasa:** Gunakan Bahasa Indonesia yang profesional.`;
 
     try {
@@ -184,7 +181,7 @@ const PhoneFinder: React.FC = () => {
       <div className="w-full max-w-6xl mx-auto">
         <div className="text-center mb-4">
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 font-orbitron">Phone Match</h1>
-            <p className="text-sm md:text-base text-slate-500 mt-1 max-w-2xl mx-auto">Jawab beberapa pertanyaan, biarkan AI kami menemukan HP terbaik untukmu.</p>
+            <p className="text-sm md:text-base text-slate-500 mt-1 max-w-2xl mx-auto">Jawab pertanyaan dan biarkan AI kami menemukan HP terbaik untukmu.</p>
         </div>
         {!results && !loading && (
           <form onSubmit={handleSubmit} className="glass p-5 mt-2 animate-fade-in">
@@ -231,7 +228,7 @@ const PhoneFinder: React.FC = () => {
                       </QuestionSection>
 
                       <QuestionSection title="5. Ada preferensi lain? (Opsional)">
-                          <input type="text" value={otherPrefs} onChange={e => setOtherPrefs(e.target.value)} placeholder="Misal: Harus ada charger di box..." className="w-full bg-slate-50 border-2 border-slate-300 rounded-lg p-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all"/>
+                          <input type="text" value={otherPrefs} onChange={e => setOtherPrefs(e.target.value)} placeholder="Misal dari brand tertentu..." className="w-full bg-slate-50 border-2 border-slate-300 rounded-lg p-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent1)] transition-all"/>
                       </QuestionSection>
 
                       <div className="pt-4">
@@ -252,7 +249,7 @@ const PhoneFinder: React.FC = () => {
                          <SparklesIcon className="w-6 h-6 text-yellow-400 absolute top-0 right-0 animate-pulse" />
                     </div>
                     <h3 className="text-xl font-bold text-slate-800 animate-pulse">{loadingMessage}</h3>
-                    <p className="text-sm text-slate-400 mt-2">Pakar AI kami sedang memilihkan yang terbaik untukmu...</p>
+                    <p className="text-sm text-slate-400 mt-2">Mohon tunggu, kami pilihkan yang terbaik untukmu...</p>
                 </div>
             )}
             {results && <ResultsDisplay results={results} onReset={() => setResults(null)} />}
@@ -308,11 +305,11 @@ const ResultsDisplay: FC<{ results: Recommendation[]; onReset: () => void }> = (
                             <div className="grid grid-cols-1 gap-y-3">
                                 <SpecRow label="Desain" value={result.specs.design} />
                                 <SpecRow label="Jaringan" value={result.specs.network} />
-                                <SpecRow label="Display" value={result.specs.display} />
-                                <SpecRow label="Chipset" value={result.specs.chipset} />
+                                <SpecRow label="Layar" value={result.specs.display} />
+                                <SpecRow label="Processor" value={result.specs.chipset} />
                                 <SpecRow label="Kamera" value={result.specs.camera} />
                                 <SpecRow label="Memory" value={result.specs.memory} />
-                                <SpecRow label="Storage" value={result.specs.storage} />
+                                <SpecRow label="Penyimpanan" value={result.specs.storage} />
                                 <SpecRow label="Baterai" value={result.specs.battery} />
                                 <SpecRow label="Charging" value={result.specs.charging} />
                                 <SpecRow label="Koneksi" value={result.specs.connection} />
