@@ -460,7 +460,7 @@ const SmartReview: React.FC<SmartReviewProps> = ({ initialQuery = '', initialRes
                     { !review && !loading && (
                         <div className="mt-16 animate-fade-in">
                             <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b border-slate-200 pb-6 gap-4">
-                                <h2 className="text-xl font-bold text-slate-900 font-orbitron uppercase tracking-tight">Eksplorasi Review HP</h2>
+                                <h2 className="text-xl font-bold text-slate-900 font-orbitron uppercase tracking-tight">Pencarian Review Oleh Pengguna Lain</h2>
                                 <div className="relative w-full md:w-72">
                                     <input 
                                         type="text"
